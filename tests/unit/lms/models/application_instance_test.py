@@ -1,11 +1,10 @@
 from unittest.mock import sentinel
 
 import pytest
-from pyramid.settings import asbool
 from sqlalchemy.exc import IntegrityError
 
 from lms.models import ApplicationInstance, ApplicationSettings, Family
-from lms.models.json_settings import JSONSetting
+from lms.models.json_settings import SettingFormat
 from tests import factories
 
 
@@ -17,79 +16,149 @@ class TestApplicationSettings:
         ]
 
         assert settings_fields_keys == [
-            ("blackboard", "files_enabled", "blackboard.files_enabled", asbool),
-            ("blackboard", "groups_enabled", "blackboard.groups_enabled", asbool),
-            ("canvas", "sections_enabled", "canvas.sections_enabled", asbool),
-            ("canvas", "groups_enabled", "canvas.groups_enabled", asbool),
-            ("canvas", "files_enabled", "canvas.files_enabled", asbool),
-            ("canvas", "folders_enabled", "canvas.folders_enabled", asbool),
+            (
+                "blackboard",
+                "files_enabled",
+                "blackboard.files_enabled",
+                SettingFormat.BOOLEAN,
+            ),
+            (
+                "blackboard",
+                "groups_enabled",
+                "blackboard.groups_enabled",
+                SettingFormat.BOOLEAN,
+            ),
+            (
+                "canvas",
+                "sections_enabled",
+                "canvas.sections_enabled",
+                SettingFormat.BOOLEAN,
+            ),
+            (
+                "canvas",
+                "groups_enabled",
+                "canvas.groups_enabled",
+                SettingFormat.BOOLEAN,
+            ),
+            ("canvas", "files_enabled", "canvas.files_enabled", SettingFormat.BOOLEAN),
+            (
+                "canvas",
+                "folders_enabled",
+                "canvas.folders_enabled",
+                SettingFormat.BOOLEAN,
+            ),
             (
                 "canvas",
                 "strict_section_membership",
                 "canvas.strict_section_membership",
-                asbool,
+                SettingFormat.BOOLEAN,
             ),
-            ("canvas", "pages_enabled", "canvas.pages_enabled", asbool),
-            ("canvas_studio", "admin_email", "canvas_studio.admin_email", str),
-            ("canvas_studio", "client_id", "canvas_studio.client_id", str),
+            ("canvas", "pages_enabled", "canvas.pages_enabled", SettingFormat.BOOLEAN),
+            (
+                "canvas_studio",
+                "admin_email",
+                "canvas_studio.admin_email",
+                SettingFormat.STRING,
+            ),
+            (
+                "canvas_studio",
+                "client_id",
+                "canvas_studio.client_id",
+                SettingFormat.STRING,
+            ),
             (
                 "canvas_studio",
                 "client_secret",
                 "canvas_studio.client_secret",
-                JSONSetting.AES_SECRET,
+                SettingFormat.AES_SECRET,
             ),
-            ("canvas_studio", "domain", "canvas_studio.domain", str),
-            ("desire2learn", "client_id", "desire2learn.client_id", str),
+            ("canvas_studio", "domain", "canvas_studio.domain", SettingFormat.STRING),
+            (
+                "desire2learn",
+                "client_id",
+                "desire2learn.client_id",
+                SettingFormat.STRING,
+            ),
             (
                 "desire2learn",
                 "client_secret",
                 "desire2learn.client_secret",
-                JSONSetting.AES_SECRET,
+                SettingFormat.AES_SECRET,
             ),
-            ("desire2learn", "groups_enabled", "desire2learn.groups_enabled", asbool),
-            ("desire2learn", "files_enabled", "desire2learn.files_enabled", asbool),
-            ("google_drive", "files_enabled", "google_drive.files_enabled", asbool),
+            (
+                "desire2learn",
+                "groups_enabled",
+                "desire2learn.groups_enabled",
+                SettingFormat.BOOLEAN,
+            ),
+            (
+                "desire2learn",
+                "files_enabled",
+                "desire2learn.files_enabled",
+                SettingFormat.BOOLEAN,
+            ),
+            (
+                "google_drive",
+                "files_enabled",
+                "google_drive.files_enabled",
+                SettingFormat.BOOLEAN,
+            ),
             (
                 "microsoft_onedrive",
                 "files_enabled",
                 "microsoft_onedrive.files_enabled",
-                asbool,
+                SettingFormat.BOOLEAN,
             ),
-            ("moodle", "api_token", "moodle.api_token", JSONSetting.AES_SECRET),
-            ("moodle", "groups_enabled", "moodle.groups_enabled", asbool),
-            ("moodle", "files_enabled", "moodle.files_enabled", asbool),
-            ("moodle", "pages_enabled", "moodle.pages_enabled", asbool),
-            ("vitalsource", "enabled", "vitalsource.enabled", asbool),
-            ("vitalsource", "user_lti_param", "vitalsource.user_lti_param", str),
-            ("vitalsource", "user_lti_pattern", "vitalsource.user_lti_pattern", str),
-            ("vitalsource", "api_key", "vitalsource.api_key", str),
+            ("moodle", "api_token", "moodle.api_token", SettingFormat.AES_SECRET),
+            (
+                "moodle",
+                "groups_enabled",
+                "moodle.groups_enabled",
+                SettingFormat.BOOLEAN,
+            ),
+            ("moodle", "files_enabled", "moodle.files_enabled", SettingFormat.BOOLEAN),
+            ("moodle", "pages_enabled", "moodle.pages_enabled", SettingFormat.BOOLEAN),
+            ("vitalsource", "enabled", "vitalsource.enabled", SettingFormat.BOOLEAN),
+            (
+                "vitalsource",
+                "user_lti_param",
+                "vitalsource.user_lti_param",
+                SettingFormat.STRING,
+            ),
+            (
+                "vitalsource",
+                "user_lti_pattern",
+                "vitalsource.user_lti_pattern",
+                SettingFormat.STRING,
+            ),
+            ("vitalsource", "api_key", "vitalsource.api_key", SettingFormat.STRING),
             (
                 "vitalsource",
                 "student_pay_enabled",
                 "vitalsource.student_pay_enabled",
-                asbool,
+                SettingFormat.BOOLEAN,
             ),
-            ("jstor", "enabled", "jstor.enabled", asbool),
-            ("jstor", "site_code", "jstor.site_code", str),
-            ("youtube", "enabled", "youtube.enabled", asbool),
-            ("hypothesis", "notes", "hypothesis.notes", str),
+            ("jstor", "enabled", "jstor.enabled", SettingFormat.BOOLEAN),
+            ("jstor", "site_code", "jstor.site_code", SettingFormat.STRING),
+            ("youtube", "enabled", "youtube.enabled", SettingFormat.BOOLEAN),
+            ("hypothesis", "notes", "hypothesis.notes", SettingFormat.STRING),
             (
                 "hypothesis",
                 "auto_assigned_to_org",
                 "hypothesis.auto_assigned_to_org",
-                asbool,
+                SettingFormat.BOOLEAN,
             ),
             (
                 "hypothesis",
                 "instructor_email_digests_enabled",
                 "hypothesis.instructor_email_digests_enabled",
-                asbool,
+                SettingFormat.BOOLEAN,
             ),
             (
                 "hypothesis",
                 "lti_13_sourcedid_for_grading",
                 "hypothesis.lti_13_sourcedid_for_grading",
-                asbool,
+                SettingFormat.BOOLEAN,
             ),
         ]
 

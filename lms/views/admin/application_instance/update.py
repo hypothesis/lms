@@ -1,9 +1,8 @@
 from marshmallow import fields, validate
-from pyramid.settings import asbool
 from pyramid.view import view_config
 
 from lms.models import ApplicationSettings
-from lms.models.json_settings import JSONSetting
+from lms.models.json_settings import SettingFormat
 from lms.security import Permissions
 from lms.services.aes import AESService
 from lms.validation._base import PyramidRequestSchema
@@ -81,18 +80,18 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
             value = self.request.params.get(field.compound_key)
             value = value.strip() if value else None
 
-            if field.format is asbool:
+            if field.format is SettingFormat.BOOLEAN:
                 value = value == "on"
                 ai.settings.set(field.group, field.key, value)
 
-            elif field.format == JSONSetting.AES_SECRET:
+            elif field.format == SettingFormat.AES_SECRET:
                 if not value:
                     continue
 
                 ai.settings.set_secret(self._aes_service, field.group, field.key, value)
 
             else:
-                assert field.format is str  # noqa: S101
+                assert field.format is SettingFormat.STRING  # noqa: S101
                 ai.settings.set(field.group, field.key, value)
 
         self.request.session.flash(

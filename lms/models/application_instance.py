@@ -4,7 +4,6 @@ from enum import StrEnum
 from urllib.parse import urlparse
 
 import sqlalchemy as sa
-from pyramid.settings import asbool
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -12,7 +11,7 @@ from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.exceptions import ReusedConsumerKey
 from lms.models.family import Family
-from lms.models.json_settings import JSONSetting, JSONSettings
+from lms.models.json_settings import JSONSetting, JSONSettings, SettingFormat
 
 LOG = logging.getLogger(__name__)
 
@@ -69,62 +68,68 @@ class ApplicationSettings(JSONSettings):
 
     fields: Mapping[Settings, JSONSetting] = {
         Settings.BLACKBOARD_FILES_ENABLED: JSONSetting(
-            Settings.BLACKBOARD_FILES_ENABLED, asbool
+            Settings.BLACKBOARD_FILES_ENABLED, SettingFormat.BOOLEAN
         ),
         Settings.BLACKBOARD_GROUPS_ENABLED: JSONSetting(
-            Settings.BLACKBOARD_GROUPS_ENABLED, asbool
+            Settings.BLACKBOARD_GROUPS_ENABLED, SettingFormat.BOOLEAN
         ),
         Settings.CANVAS_SECTIONS_ENABLED: JSONSetting(
-            Settings.CANVAS_SECTIONS_ENABLED, asbool
+            Settings.CANVAS_SECTIONS_ENABLED, SettingFormat.BOOLEAN
         ),
         Settings.CANVAS_GROUPS_ENABLED: JSONSetting(
-            Settings.CANVAS_GROUPS_ENABLED, asbool
+            Settings.CANVAS_GROUPS_ENABLED, SettingFormat.BOOLEAN
         ),
         Settings.CANVAS_FILES_ENABLED: JSONSetting(
-            Settings.CANVAS_FILES_ENABLED, asbool
+            Settings.CANVAS_FILES_ENABLED, SettingFormat.BOOLEAN
         ),
         Settings.CANVAS_FOLDERS_ENABLED: JSONSetting(
-            Settings.CANVAS_FOLDERS_ENABLED, asbool
+            Settings.CANVAS_FOLDERS_ENABLED, SettingFormat.BOOLEAN
         ),
         Settings.CANVAS_STRICT_SECTION_MEMBERSHIP: JSONSetting(
-            Settings.CANVAS_STRICT_SECTION_MEMBERSHIP, asbool
+            Settings.CANVAS_STRICT_SECTION_MEMBERSHIP, SettingFormat.BOOLEAN
         ),
         Settings.CANVAS_PAGES_ENABLED: JSONSetting(
-            Settings.CANVAS_PAGES_ENABLED, asbool
+            Settings.CANVAS_PAGES_ENABLED, SettingFormat.BOOLEAN
         ),
         Settings.CANVAS_STUDIO_ADMIN_EMAIL: JSONSetting(
             Settings.CANVAS_STUDIO_ADMIN_EMAIL
         ),
         Settings.CANVAS_STUDIO_CLIENT_ID: JSONSetting(Settings.CANVAS_STUDIO_CLIENT_ID),
         Settings.CANVAS_STUDIO_CLIENT_SECRET: JSONSetting(
-            Settings.CANVAS_STUDIO_CLIENT_SECRET, JSONSetting.AES_SECRET
+            Settings.CANVAS_STUDIO_CLIENT_SECRET, SettingFormat.AES_SECRET
         ),
         Settings.CANVAS_STUDIO_DOMAIN: JSONSetting(Settings.CANVAS_STUDIO_DOMAIN),
         Settings.D2L_CLIENT_ID: JSONSetting(Settings.D2L_CLIENT_ID),
         Settings.D2L_CLIENT_SECRET: JSONSetting(
-            Settings.D2L_CLIENT_SECRET, JSONSetting.AES_SECRET
+            Settings.D2L_CLIENT_SECRET, SettingFormat.AES_SECRET
         ),
-        Settings.D2L_GROUPS_ENABLED: JSONSetting(Settings.D2L_GROUPS_ENABLED, asbool),
-        Settings.D2L_FILES_ENABLED: JSONSetting(Settings.D2L_FILES_ENABLED, asbool),
+        Settings.D2L_GROUPS_ENABLED: JSONSetting(
+            Settings.D2L_GROUPS_ENABLED, SettingFormat.BOOLEAN
+        ),
+        Settings.D2L_FILES_ENABLED: JSONSetting(
+            Settings.D2L_FILES_ENABLED, SettingFormat.BOOLEAN
+        ),
         Settings.GOOGLE_DRIVE_FILES_ENABLED: JSONSetting(
-            Settings.GOOGLE_DRIVE_FILES_ENABLED, asbool
+            Settings.GOOGLE_DRIVE_FILES_ENABLED, SettingFormat.BOOLEAN
         ),
         Settings.MICROSOFT_ONEDRIVE_FILES_ENABLED: JSONSetting(
-            Settings.MICROSOFT_ONEDRIVE_FILES_ENABLED, asbool
+            Settings.MICROSOFT_ONEDRIVE_FILES_ENABLED, SettingFormat.BOOLEAN
         ),
         Settings.MOODLE_API_TOKEN: JSONSetting(
-            Settings.MOODLE_API_TOKEN, JSONSetting.AES_SECRET
+            Settings.MOODLE_API_TOKEN, SettingFormat.AES_SECRET
         ),
         Settings.MOODLE_GROUPS_ENABLED: JSONSetting(
-            Settings.MOODLE_GROUPS_ENABLED, asbool
+            Settings.MOODLE_GROUPS_ENABLED, SettingFormat.BOOLEAN
         ),
         Settings.MOODLE_FILES_ENABLED: JSONSetting(
-            Settings.MOODLE_FILES_ENABLED, asbool
+            Settings.MOODLE_FILES_ENABLED, SettingFormat.BOOLEAN
         ),
         Settings.MOODLE_PAGES_ENABLED: JSONSetting(
-            Settings.MOODLE_PAGES_ENABLED, asbool
+            Settings.MOODLE_PAGES_ENABLED, SettingFormat.BOOLEAN
         ),
-        Settings.VITALSOURCE_ENABLED: JSONSetting(Settings.VITALSOURCE_ENABLED, asbool),
+        Settings.VITALSOURCE_ENABLED: JSONSetting(
+            Settings.VITALSOURCE_ENABLED, SettingFormat.BOOLEAN
+        ),
         Settings.VITALSOURCE_USER_LTI_PARAM: JSONSetting(
             Settings.VITALSOURCE_USER_LTI_PARAM
         ),
@@ -133,22 +138,26 @@ class ApplicationSettings(JSONSettings):
         ),
         Settings.VITALSOURCE_API_KEY: JSONSetting(Settings.VITALSOURCE_API_KEY),
         Settings.VITALSOURCE_STUDENT_PAY_ENABLED: JSONSetting(
-            Settings.VITALSOURCE_STUDENT_PAY_ENABLED, asbool
+            Settings.VITALSOURCE_STUDENT_PAY_ENABLED, SettingFormat.BOOLEAN
         ),
-        Settings.JSTOR_ENABLED: JSONSetting(Settings.JSTOR_ENABLED, asbool),
+        Settings.JSTOR_ENABLED: JSONSetting(
+            Settings.JSTOR_ENABLED, SettingFormat.BOOLEAN
+        ),
         Settings.JSTOR_SITE_CODE: JSONSetting(Settings.JSTOR_SITE_CODE),
         Settings.YOUTUBE_ENABLED: JSONSetting(
-            Settings.YOUTUBE_ENABLED, asbool, default=True
+            Settings.YOUTUBE_ENABLED, SettingFormat.BOOLEAN, default=True
         ),
-        Settings.HYPOTHESIS_NOTES: JSONSetting(Settings.HYPOTHESIS_NOTES),
+        Settings.HYPOTHESIS_NOTES: JSONSetting(
+            Settings.HYPOTHESIS_NOTES, SettingFormat.STRING
+        ),
         Settings.HYPOTHESIS_AUTO_ASSIGNED_TO_ORG: JSONSetting(
-            Settings.HYPOTHESIS_AUTO_ASSIGNED_TO_ORG, asbool
+            Settings.HYPOTHESIS_AUTO_ASSIGNED_TO_ORG, SettingFormat.BOOLEAN
         ),
         Settings.HYPOTHESIS_INSTRUCTOR_EMAIL_DIGESTS_ENABLED: JSONSetting(
-            Settings.HYPOTHESIS_INSTRUCTOR_EMAIL_DIGESTS_ENABLED, asbool
+            Settings.HYPOTHESIS_INSTRUCTOR_EMAIL_DIGESTS_ENABLED, SettingFormat.BOOLEAN
         ),
         Settings.HYPOTHESIS_LTI_13_SOURCEDID_FOR_GRADING: JSONSetting(
-            Settings.HYPOTHESIS_LTI_13_SOURCEDID_FOR_GRADING, asbool
+            Settings.HYPOTHESIS_LTI_13_SOURCEDID_FOR_GRADING, SettingFormat.BOOLEAN
         ),
     }
 

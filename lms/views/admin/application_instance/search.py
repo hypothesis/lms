@@ -3,7 +3,7 @@ from pyramid.view import view_config, view_defaults
 from webargs import fields
 
 from lms.models import ApplicationSettings
-from lms.models.json_settings import JSONSetting
+from lms.models.json_settings import JSONSetting, SettingFormat
 from lms.security import Permissions
 from lms.services import InvalidPublicId
 from lms.validation import PyramidRequestSchema
@@ -11,10 +11,10 @@ from lms.views.admin import flash_validation
 from lms.views.admin._schemas import EmptyStringInt
 from lms.views.admin.application_instance._core import BaseApplicationInstanceView
 
-SETTINGS_BY_FIELD = {
+SETTINGS_BY_FIELD: dict[str, JSONSetting] = {
     key: field
     for key, field in ApplicationSettings.fields.items()
-    if field.format != JSONSetting.AES_SECRET
+    if field.format != SettingFormat.AES_SECRET
 }
 
 
@@ -52,7 +52,9 @@ class SearchApplicationInstanceViews(BaseApplicationInstanceView):
         settings = None
         if settings_key := self.request.params.get("settings_key"):
             if settings_value := self.request.params.get("settings_value"):
-                settings_value = SETTINGS_BY_FIELD[settings_key].format(settings_value)
+                settings_value = SETTINGS_BY_FIELD[settings_key].format.value(  # type: ignore[operator]
+                    settings_value
+                )
             else:
                 settings_value = ...
 
