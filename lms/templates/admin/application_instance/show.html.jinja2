@@ -12,25 +12,25 @@
         {% endif %}
     </span>
 {% endblock %}
-{# Tri-state checkbox with enabled/disabled/use-default options. #}
-{% macro settings_checkbox(label, setting, sub_setting, field_name, default=None) %}
+{% macro settings_checkbox(label, setting, sub_setting, field_name, default=False) %}
     {% call macros.field_body(label) %}
-        {% set value = instance.settings.get(setting, sub_setting, default) %}
-        <label class="select">
-            <select name="{{setting}}.{{sub_setting}}">
-              <option value="true" {% if value is true %}selected{% endif %}>Enabled</option>
-              <option value="false" {% if value is false %}selected{% endif %}>Disabled</option>
-              <option value="none" {% if value is none %}selected {% endif %}>Default</option>
-            </select>
+        <label class="checkbox">
+            <input {% if instance.settings.get(setting, sub_setting, default) %}checked{% endif %}
+                   type="checkbox"
+                   name="{{ setting }}.{{ sub_setting }}">
         </label>
     {% endcall %}
 {% endmacro %}
-{% macro setting_checkbox(label, setting, field_name) %}
+{# Tri-state checkbox with enabled/disabled/use-default options. #}
+{% macro tri_state_settings_checkbox(label, setting) %}
     {% call macros.field_body(label) %}
-        <label class="checkbox">
-            <input {% if instance.settings.get_setting(setting) %}checked{% endif %}
-                   type="checkbox"
-                   name="{{ setting.group }}.{{ setting.key }}">
+        {% set value = instance.settings.get_raw_setting(setting) %}
+        <label class="select">
+            <select name="{{setting.group}}.{{setting.key}}">
+              <option value="true" {% if value is true %}selected{% endif %}>Enabled</option>
+              <option value="false" {% if value is false %}selected{% endif %}>Disabled</option>
+              <option value="none" {% if value is none %}selected {% endif %}>Default ({{ setting.default }})</option>
+            </select>
         </label>
     {% endcall %}
 {% endmacro %}
@@ -186,7 +186,7 @@
                             {{ settings_checkbox("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
                             {{ settings_checkbox('JSTOR enabled', 'jstor', 'enabled') }}
                             {{ settings_text_field('JSTOR site code', 'jstor', 'site_code') }}
-                            {{ setting_checkbox("Youtube enabled", fields[Settings.YOUTUBE_ENABLED]) }}
+                            {{ tri_state_settings_checkbox("Youtube enabled", fields[Settings.YOUTUBE_ENABLED]) }}
                         </fieldset>
                         <div class="has-text-right mb-6">
                             <input type="submit" class="button is-primary" value="Save" />

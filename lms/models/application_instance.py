@@ -145,7 +145,7 @@ class ApplicationSettings(JSONSettings):
         ),
         Settings.JSTOR_SITE_CODE: JSONSetting(Settings.JSTOR_SITE_CODE),
         Settings.YOUTUBE_ENABLED: JSONSetting(
-            Settings.YOUTUBE_ENABLED, SettingFormat.BOOLEAN, default=True
+            Settings.YOUTUBE_ENABLED, SettingFormat.TRI_STATE, default=True
         ),
         Settings.HYPOTHESIS_NOTES: JSONSetting(
             Settings.HYPOTHESIS_NOTES, SettingFormat.STRING

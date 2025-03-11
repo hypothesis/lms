@@ -19,7 +19,9 @@ class TestJSONSetting:
 
 class TestJSONSettings:
     def test_data(self, settings):
-        assert settings == {"test_group": {"test_key": "test_value"}}
+        assert settings == {
+            "test_group": {"test_key": "test_value", "key_with_none": None}
+        }
 
     @pytest.mark.parametrize(
         "group,key,default,expected_value",
@@ -40,6 +42,34 @@ class TestJSONSettings:
     )
     def test_get(self, settings, group, key, default, expected_value):
         assert settings.get(group, key, default) == expected_value
+
+    @pytest.mark.parametrize(
+        "group,key,default,expected_value",
+        [
+            # If there's a value in the data it returns it.
+            ("test_group", "test_key", None, "test_value"),
+            # If the key is missing from the data it returns None.
+            ("test_group", "unknown_key", None, None),
+            # If the entire group is missing from the data it returns None.
+            ("unknown_group", "test_key", None, None),
+            # Ignores default if key is present
+            ("test_group", "test_key", "DEFAULT", "test_value"),
+            # If the key is missing from the data it returns the default
+            ("test_group", "unknown_key", "DEFAULT", "DEFAULT"),
+            # If the entire group is missing from the data it also returns the default
+            ("unknown_group", "test_key", "DEFAULT", "DEFAULT"),
+            # If the value is None it also returns the default
+            ("test_group", "key_with_none", "DEFAULT", "DEFAULT"),
+        ],
+    )
+    def test_get_setting(self, settings, group, key, default, expected_value):
+        assert (
+            settings.get_setting(JSONSetting(f"{group}.{key}", default=default))
+            == expected_value
+        )
+
+    def test_get_raw_setting(self, settings):
+        assert settings.get_raw_setting(JSONSetting("test_group.key_with_none")) is None
 
     @pytest.mark.parametrize(
         "group,key,value,expected_value",
@@ -110,17 +140,21 @@ class TestJSONSettings:
 
     def test__repr__(self, settings):
         assert (
-            repr(settings) == "JSONSettings({'test_group': {'test_key': 'test_value'}})"
+            repr(settings)
+            == "JSONSettings({'test_group': {'test_key': 'test_value', 'key_with_none': None}})"
         )
 
     def test__str__(self, settings):
         assert (
-            str(settings) == "JSONSettings({'test_group': {'test_key': 'test_value'}})"
+            str(settings)
+            == "JSONSettings({'test_group': {'test_key': 'test_value', 'key_with_none': None}})"
         )
 
     @pytest.fixture
     def settings(self):
-        return JSONSettings({"test_group": {"test_key": "test_value"}})
+        return JSONSettings(
+            {"test_group": {"test_key": "test_value", "key_with_none": None}}
+        )
 
     @pytest.fixture
     def aes(self):
