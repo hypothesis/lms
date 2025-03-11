@@ -49,6 +49,7 @@ class TestAdminOrganizationViews:
 
         assert response == {
             "org": organization_service.get_by_id.return_value,
+            "Settings": organization_service.get_by_id.return_value.settings.Settings,
             "fields": organization_service.get_by_id.return_value.settings.fields,
             "hierarchy_root": organization_service.get_hierarchy_root.return_value,
             "company": hubspot_service.get_company.return_value,

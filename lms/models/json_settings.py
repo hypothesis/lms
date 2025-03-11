@@ -1,19 +1,32 @@
 import base64
 from collections.abc import Mapping
 from dataclasses import dataclass
+from enum import Enum, member
 from typing import Any
 
 import sqlalchemy as sa
+from pyramid.settings import asbool
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import InstrumentedAttribute
+
+
+class SettingFormat(Enum):
+    """Valid values for JSONSetting.format.
+
+    Not that some of these values double as an identifier and a function `f(str) -> Any` to convert strings to the right JSON value (eg. asbool)
+    while other are just mere identifiers (AES_SECRET).
+    """
+
+    BOOLEAN = member(asbool)
+
+    AES_SECRET = object()  # Helper to declare settings as secret.
+
+    STRING = str
 
 
 @dataclass(init=False)
 class JSONSetting:
     """Describe a permitted field in a JSONSettings object."""
-
-    # Helper to declare settings as secret. This can be used with format
-    AES_SECRET = object()
 
     group: str
     """The group name that this setting is a part of."""
@@ -21,12 +34,17 @@ class JSONSetting:
     key: str
     """The key within the group that this setting is a part of."""
 
-    format: Any = str
+    format: SettingFormat = SettingFormat.STRING
     """An identifier to say what type of field this is."""
 
     default: Any = None
 
-    def __init__(self, compound_key: str, format_: Any = str, default=None):
+    def __init__(
+        self,
+        compound_key: str,
+        format_: SettingFormat = SettingFormat.STRING,
+        default=None,
+    ):
         self.group, self.key = compound_key.split(".")
         self.format = format_
         self.default = default
