@@ -80,11 +80,8 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
             value = self.request.params.get(field.compound_key)
             value = value.strip() if value else None
 
-            if field.format is SettingFormat.BOOLEAN:
-                if value == "none":
-                    value = None
-                else:
-                    value = asbool(value)
+            if field.format in [SettingFormat.BOOLEAN, SettingFormat.TRI_STATE]:
+                value = format.value(value)
                 ai.settings.set(field.group, field.key, value)
 
             elif field.format == SettingFormat.AES_SECRET:
