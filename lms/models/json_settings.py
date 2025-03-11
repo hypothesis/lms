@@ -18,6 +18,13 @@ class SettingFormat(Enum):
     """
 
     BOOLEAN = member(asbool)
+    """Regular True/False boolean. Convert it from strings using pyramid's asbool function"""
+
+    TRI_STATE = member(lambda value: None if value == "none" else asbool(value))
+    """Tri state True/False/None. Use "none" for the third state, pass the value to asbool otherwise.
+
+    In settings the third value is meant to represent "unset" or "default"
+    """
 
     AES_SECRET = object()  # Helper to declare settings as secret.
 
