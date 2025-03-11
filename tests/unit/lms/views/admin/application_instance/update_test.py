@@ -87,16 +87,20 @@ class TestUpdateApplicationInstanceView:
     @pytest.mark.parametrize(
         "setting,sub_setting,value,expected",
         (
-            # Tri-state boolean fields
-            ("canvas", "groups_enabled", "true", True),
-            ("canvas", "sections_enabled", "false", False),
-            ("blackboard", "files_enabled", "none", None),
-            ("blackboard", "groups_enabled", "false", False),
+            # Boolean fields
+            ("canvas", "groups_enabled", "on", True),
+            ("canvas", "sections_enabled", "", False),
+            ("blackboard", "files_enabled", "other", False),
+            ("blackboard", "groups_enabled", "off", False),
             ("desire2learn", "client_id", "client_id", "client_id"),
-            ("desire2learn", "groups_enabled", "false", False),
-            ("microsoft_onedrive", "files_enabled", "true", True),
-            ("vitalsource", "enabled", "true", True),
-            ("jstor", "enabled", "false", False),
+            ("desire2learn", "groups_enabled", "off", False),
+            ("microsoft_onedrive", "files_enabled", "on", True),
+            ("vitalsource", "enabled", "on", True),
+            ("jstor", "enabled", "off", False),
+            # Tri-state boolean fields
+            ("youtube", "enabled", "true", True),
+            ("youtube", "enabled", "false", False),
+            ("youtube", "enabled", "none", None),
             # String fields
             ("jstor", "site_code", "CODE", "CODE"),
             ("jstor", "site_code", "  CODE  ", "CODE"),
