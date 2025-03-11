@@ -140,7 +140,7 @@ class TestApplicationSettings:
             ),
             ("jstor", "enabled", "jstor.enabled", SettingFormat.BOOLEAN),
             ("jstor", "site_code", "jstor.site_code", SettingFormat.STRING),
-            ("youtube", "enabled", "youtube.enabled", SettingFormat.BOOLEAN),
+            ("youtube", "enabled", "youtube.enabled", SettingFormat.TRI_STATE),
             ("hypothesis", "notes", "hypothesis.notes", SettingFormat.STRING),
             (
                 "hypothesis",

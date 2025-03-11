@@ -110,7 +110,19 @@ class JSONSettings(MutableDict):
         return super().get(group, {}).get(key, default)
 
     def get_setting(self, setting: JSONSetting):
-        return self.get(setting.group, setting.key, setting.default)
+        value = self.get(setting.group, setting.key, setting.default)
+        if value is None:  # None is used a sentinel for "unset" or "default"
+            value = setting.default
+
+        return value
+
+    def get_raw_setting(self, setting: JSONSetting):
+        """Get the value of the setting as is stored on the DB.
+
+        This method for example ignores the default value.
+        """
+
+        return super().get(setting.group, {}).get(setting.key)
 
     def set(self, group, key, value):
         """
