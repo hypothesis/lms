@@ -1,11 +1,12 @@
 from dataclasses import asdict
-from unittest.mock import sentinel
+from unittest.mock import Mock, PropertyMock, sentinel
 
 import pytest
 
 from lms.events import AuditTrailEvent, BaseEvent, LTIEvent, ModelChange
 from lms.events.event import _serialize_change
 from lms.models import EventType
+from lms.services.user import UserNotFound
 from tests import factories
 
 
@@ -78,6 +79,15 @@ class TestLTIEvent:
         )
         assert event.assignment_id == assignment_service.get_assignment.return_value.id
         assert event.data == (event_data if event_data else {})
+
+    def test_lti_event_when_no_user(self):
+        pyramid_request = Mock()
+        type(pyramid_request).user = PropertyMock(side_effect=UserNotFound())
+
+        event = LTIEvent.from_request(request=pyramid_request, type_=sentinel.type)
+
+        assert not event.user_id
+        assert not event.role_ids
 
     def test_lti_event_when_no_course(self, pyramid_request, course_service):
         course_service.get_by_context_id.return_value = None

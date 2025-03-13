@@ -58,6 +58,16 @@ class LTIEvent(BaseEvent):
         if not request.lti_user:
             return cls(request=request, type=type_, data=event_data)
 
+        # There are scenarios where we might want to generate an event (for example an error)
+        # on a launch without having user in the DB.
+        from lms.services.user import UserNotFound
+
+        try:
+            user_id = request.user.id
+            role_ids = [role.id for role in request.lti_user.lti_roles]
+        except UserNotFound:
+            user_id, role_ids = None, []
+
         course_id = None
         assignment_id = None
         if course := request.find_service(name="course").get_by_context_id(
@@ -83,8 +93,8 @@ class LTIEvent(BaseEvent):
         return cls(
             request=request,
             type=type_,
-            user_id=request.user.id,
-            role_ids=[role.id for role in request.lti_user.lti_roles],
+            user_id=user_id,
+            role_ids=role_ids,
             application_instance_id=request.lti_user.application_instance_id,
             course_id=course_id,
             assignment_id=assignment_id,
