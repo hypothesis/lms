@@ -248,8 +248,11 @@ class BasicLaunchViews:
         # If there are any Hypothesis client feature flags that need to be
         # enabled based on the current application instance settings, those
         # should be enabled here via `self.context.js_config.enable_client_feature`.
-        #
-        # There are currently no such features.
+        ai_settings = self.request.lti_user.application_instance.settings
+        if ai_settings.get_setting(
+            ai_settings.fields[ai_settings.Settings.HYPOTHESIS_MENTIONS]
+        ):
+            self.context.js_config.enable_client_feature("at_mentions")
 
         # Run any non standard code for the current product
         self._misc_plugin.post_launch_assignment_hook(

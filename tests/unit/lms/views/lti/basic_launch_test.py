@@ -257,6 +257,7 @@ class TestBasicLaunchViews:
         with patch.object(pyramid_request, "has_permission") as has_permission:
             yield has_permission
 
+    @pytest.mark.parametrize("mentions_feature", [True, False])
     def test__show_document(
         self,
         svc,
@@ -268,7 +269,12 @@ class TestBasicLaunchViews:
         course_service,
         misc_plugin,
         assignment,
+        mentions_feature,
     ):
+        pyramid_request.lti_user.application_instance.settings.set(
+            "hypothesis", "mentions", mentions_feature
+        )
+
         result = svc._show_document(assignment)  # noqa: SLF001
 
         lti_h_service.sync.assert_called_once_with(
@@ -294,6 +300,11 @@ class TestBasicLaunchViews:
         misc_plugin.post_launch_assignment_hook.assert_called_once_with(
             pyramid_request, context.js_config, assignment
         )
+        if mentions_feature:
+            context.js_config.enable_client_feature.assert_called_once_with(
+                "at_mentions"
+            )
+
         assert result == {}
 
     @pytest.mark.parametrize("use_toolbar_editing", [True, False])
