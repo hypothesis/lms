@@ -45,9 +45,9 @@ class BasicLaunchViews:
         self._guid = self.request.lti_params.get("tool_consumer_instance_guid")
         self._resource_link_id = self.request.lti_params.get("resource_link_id")
 
+        # This might raise ReusedConsumerKey, preventing the launch
         self.request.lti_user.application_instance.check_guid_aligns(self._guid)
 
-        # This might raise ReausedCondumerKey, preventing the launch
         self.request.find_service(name="application_instance").update_from_lti_params(
             self.request.lti_user.application_instance, self.request.lti_params
         )
