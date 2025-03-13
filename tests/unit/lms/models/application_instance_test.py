@@ -166,6 +166,12 @@ class TestApplicationSettings:
                 "hypothesis.collect_student_emails",
                 SettingFormat.TRI_STATE,
             ),
+            (
+                "hypothesis",
+                "mentions",
+                "hypothesis.mentions",
+                SettingFormat.TRI_STATE,
+            ),
         ]
 
 

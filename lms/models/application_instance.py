@@ -66,6 +66,7 @@ class ApplicationSettings(JSONSettings):
             "hypothesis.lti_13_sourcedid_for_grading"
         )
         HYPOTHESIS_COLLECT_STUDENT_EMAILS = "hypothesis.collect_student_emails"
+        HYPOTHESIS_MENTIONS = "hypothesis.mentions"
 
     fields: Mapping[Settings, JSONSetting] = {
         Settings.BLACKBOARD_FILES_ENABLED: JSONSetting(
@@ -162,6 +163,11 @@ class ApplicationSettings(JSONSettings):
         ),
         Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS: JSONSetting(
             Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS,
+            SettingFormat.TRI_STATE,
+            default=False,
+        ),
+        Settings.HYPOTHESIS_MENTIONS: JSONSetting(
+            Settings.HYPOTHESIS_MENTIONS,
             SettingFormat.TRI_STATE,
             default=False,
         ),
