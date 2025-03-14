@@ -258,6 +258,7 @@ class TestBasicLaunchViews:
             yield has_permission
 
     @pytest.mark.parametrize("mentions_feature", [True, False])
+    @pytest.mark.parametrize("collect_student_emails", [True, False])
     def test__show_document(
         self,
         svc,
@@ -270,9 +271,13 @@ class TestBasicLaunchViews:
         misc_plugin,
         assignment,
         mentions_feature,
+        collect_student_emails,
     ):
         pyramid_request.lti_user.application_instance.settings.set(
             "hypothesis", "mentions", mentions_feature
+        )
+        pyramid_request.lti_user.application_instance.settings.set(
+            "hypothesis", "collect_student_emails", collect_student_emails
         )
 
         result = svc._show_document(assignment)  # noqa: SLF001
@@ -300,7 +305,7 @@ class TestBasicLaunchViews:
         misc_plugin.post_launch_assignment_hook.assert_called_once_with(
             pyramid_request, context.js_config, assignment
         )
-        if mentions_feature:
+        if mentions_feature and collect_student_emails:
             context.js_config.enable_client_feature.assert_called_once_with(
                 "at_mentions"
             )

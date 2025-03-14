@@ -249,8 +249,18 @@ class BasicLaunchViews:
         # enabled based on the current application instance settings, those
         # should be enabled here via `self.context.js_config.enable_client_feature`.
         ai_settings = self.request.lti_user.application_instance.settings
-        if ai_settings.get_setting(
-            ai_settings.fields[ai_settings.Settings.HYPOTHESIS_MENTIONS]
+        if (
+            ai_settings.get_setting(
+                ai_settings.fields[ai_settings.Settings.HYPOTHESIS_MENTIONS]
+            )
+            and
+            # Currently the only way to notify about mentions is email,
+            # if we are not emails disable mentions altogether
+            ai_settings.get_setting(
+                ai_settings.fields[
+                    ai_settings.Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS
+                ]
+            )
         ):
             self.context.js_config.enable_client_feature("at_mentions")
 
