@@ -43,6 +43,8 @@ app.conf.update(
     task_routes={
         # Route all email_digests task to their own queue
         "lms.tasks.email_digests.*": "email_digests",
+        # These tasks are enqueued directly by H, but declare them on the right queue as well
+        "lms.tasks.annotations.*": "annotation",
     },
     # Tell Celery to kill any task run (by raising
     # celery.exceptions.SoftTimeLimitExceeded) if it takes longer than
