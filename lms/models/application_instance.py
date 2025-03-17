@@ -164,7 +164,7 @@ class ApplicationSettings(JSONSettings):
         Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS: JSONSetting(
             Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS,
             SettingFormat.TRI_STATE,
-            default=False,
+            default=True,
         ),
         Settings.HYPOTHESIS_MENTIONS: JSONSetting(
             Settings.HYPOTHESIS_MENTIONS,
