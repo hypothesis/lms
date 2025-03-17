@@ -3,7 +3,7 @@ from datetime import date, datetime
 from logging import getLogger
 
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import Date, func, select, union
+from sqlalchemy import Date, and_, exists, func, or_, select, union
 from sqlalchemy.orm import Session
 
 from lms.models import (
@@ -13,8 +13,11 @@ from lms.models import (
     LMSCourseMembership,
     LMSSegment,
     LMSUser,
+    LTIRole,
     Organization,
     OrganizationUsageReport,
+    RoleScope,
+    RoleType,
 )
 from lms.services.h_api import HAPI
 from lms.services.organization import OrganizationService
@@ -32,11 +35,8 @@ class UsageReportRow:
     course_created: datetime
     authority_provided_id: str
 
-    @property
-    def is_teacher(self):
-        """Wether this row refers to a teacher."""
-        # Consider anyone for which we have an email a teacher
-        return self.email != "<STUDENT>"
+    is_teacher: bool
+    """Whether this row refers to a teacher."""
 
 
 class OrganizationUsageReportService:
@@ -195,6 +195,24 @@ class OrganizationUsageReportService:
                 .cast(Date)
                 .label("course_created"),
                 LMSCourse.h_authority_provided_id,
+                exists(
+                    select(LMSCourseMembership.id)
+                    .join(LTIRole)
+                    .where(
+                        LMSCourseMembership.lms_user_id == LMSUser.id,
+                        LMSCourseMembership.lms_course_id == LMSCourse.id,
+                        or_(
+                            and_(
+                                LTIRole.scope == RoleScope.COURSE,
+                                LTIRole.type == RoleType.INSTRUCTOR,
+                            ),
+                            and_(
+                                LTIRole.scope == RoleScope.SYSTEM,
+                                LTIRole.type == RoleType.ADMIN,
+                            ),
+                        ),
+                    )
+                ).label("is_teacher"),
             )
             .join(
                 LMSCourseMembership, LMSCourseMembership.lms_course_id == LMSCourse.id
@@ -211,8 +229,9 @@ class OrganizationUsageReportService:
         return [
             UsageReportRow(
                 # Students might have name but they never have email
-                name=row.name if row.email else "<STUDENT>",
-                email=row.email if row.email else "<STUDENT>",
+                name=row.name if row.is_teacher else "<STUDENT>",
+                email=row.email if row.is_teacher else "<STUDENT>",
+                is_teacher=row.is_teacher,
                 h_userid=row.h_userid,
                 course_name=row.course_name,
                 course_created=row.course_created.isoformat(),

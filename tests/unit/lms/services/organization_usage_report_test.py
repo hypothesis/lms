@@ -44,6 +44,7 @@ class TestOrganizationUsageReportService:
             UsageReportRow(
                 name="<STUDENT>",
                 email="<STUDENT>",
+                is_teacher=False,
                 h_userid=sentinel.h_userid,
                 course_name=sentinel.lms_name,
                 course_created="2020-01-01",
@@ -52,6 +53,7 @@ class TestOrganizationUsageReportService:
             UsageReportRow(
                 name="<STUDENT>",
                 email="<STUDENT>",
+                is_teacher=False,
                 h_userid=sentinel.h_userid,
                 course_name=sentinel.lms_name,
                 course_created="2020-01-01",
@@ -60,6 +62,7 @@ class TestOrganizationUsageReportService:
             UsageReportRow(
                 name="Mr Teacher",
                 email="teacher@example.com",
+                is_teacher=True,
                 h_userid=sentinel.h_userid_teacher,
                 course_name=sentinel.lms_name,
                 course_created="2020-01-01",
@@ -120,6 +123,9 @@ class TestOrganizationUsageReportService:
         until = datetime(2023, 12, 31, 23, 59, 59, 999999)  # noqa: DTZ001
 
         learner_role = factories.LTIRole(type=RoleType.LEARNER, scope=RoleScope.COURSE)
+        instructor_role = factories.LTIRole(
+            type=RoleType.INSTRUCTOR, scope=RoleScope.COURSE
+        )
         db_session.flush()
 
         ai_root_org = factories.ApplicationInstance(organization=org_with_parent.parent)
@@ -183,14 +189,14 @@ class TestOrganizationUsageReportService:
             display_name=user_1.display_name,
         )
         user_2 = factories.User()
-        lms_user_2 = factories.LMSUser(h_userid=user_2.h_userid)
+        lms_user_2 = factories.LMSUser(h_userid=user_2.h_userid, email="EMAIL2")
         factories.GroupingMembership(
             user=user_1, grouping=course_child, created=since + timedelta(days=1)
         )
         factories.LMSCourseMembership(
             lms_course=lms_course_child,
             lms_user=lms_user_1,
-            lti_role_id=learner_role.id,
+            lti_role_id=instructor_role.id,
             created=since + timedelta(days=1),
         )
         factories.GroupingMembership(
@@ -228,6 +234,7 @@ class TestOrganizationUsageReportService:
             UsageReportRow(
                 name=user_1.display_name,
                 email=user_1.email,
+                is_teacher=True,
                 h_userid=user_1.h_userid,
                 course_name=course_child.lms_name,
                 course_created=course_child.created.date().isoformat(),
@@ -236,6 +243,7 @@ class TestOrganizationUsageReportService:
             UsageReportRow(
                 name="<STUDENT>",
                 email="<STUDENT>",
+                is_teacher=False,
                 h_userid=user_2.h_userid,
                 course_name=course_root.lms_name,
                 course_created=course_root.created.date().isoformat(),
