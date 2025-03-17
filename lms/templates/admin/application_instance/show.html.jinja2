@@ -164,9 +164,9 @@
                         <fieldset class="box">
                             <legend class="label has-text-centered">Moodle settings</legend>
                             {{ settings_secret_field('API token', 'moodle', 'api_token') }}
-                            {{ settings_checkbox('Groups enabled', 'moodle', 'groups_enabled') }}
-                            {{ settings_checkbox('Files enabled', 'moodle', 'files_enabled') }}
-                            {{ settings_checkbox('Pages enabled', 'moodle', 'pages_enabled') }}
+                            {{ tri_state_settings_checkbox("Groups enabled", fields[Settings.MOODLE_GROUPS_ENABLED]) }}
+                            {{ tri_state_settings_checkbox("Files enabled", fields[Settings.MOODLE_FILES_ENABLED]) }}
+                            {{ tri_state_settings_checkbox("Pages enabled", fields[Settings.MOODLE_PAGES_ENABLED]) }}
                         </fieldset>
 
                         <fieldset class="box">

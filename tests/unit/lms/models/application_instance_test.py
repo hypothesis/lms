@@ -114,10 +114,20 @@ class TestApplicationSettings:
                 "moodle",
                 "groups_enabled",
                 "moodle.groups_enabled",
-                SettingFormat.BOOLEAN,
+                SettingFormat.TRI_STATE,
             ),
-            ("moodle", "files_enabled", "moodle.files_enabled", SettingFormat.BOOLEAN),
-            ("moodle", "pages_enabled", "moodle.pages_enabled", SettingFormat.BOOLEAN),
+            (
+                "moodle",
+                "files_enabled",
+                "moodle.files_enabled",
+                SettingFormat.TRI_STATE,
+            ),
+            (
+                "moodle",
+                "pages_enabled",
+                "moodle.pages_enabled",
+                SettingFormat.TRI_STATE,
+            ),
             ("vitalsource", "enabled", "vitalsource.enabled", SettingFormat.BOOLEAN),
             (
                 "vitalsource",

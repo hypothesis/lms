@@ -67,7 +67,7 @@ class TestDeepLinkingLaunch:
                 "enabled": True,
                 "redirectURI": "http://localhost/onedrive/filepicker/redirect",
             },
-            "moodle": {"enabled": None, "pagesEnabled": None},
+            "moodle": {"enabled": False, "pagesEnabled": False},
             "promptForTitle": True,
             "vitalSource": {"enabled": False},
             "youtube": {"enabled": Any()},

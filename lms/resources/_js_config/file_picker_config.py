@@ -45,8 +45,13 @@ class FilePickerConfig:
 
     @classmethod
     def moodle_config(cls, request, application_instance):
-        files_enabled = application_instance.settings.get("moodle", "files_enabled")
-        pages_enabled = application_instance.settings.get("moodle", "pages_enabled")
+        ai_settings = application_instance.settings
+        files_enabled = ai_settings.get_setting(
+            ai_settings.fields[ai_settings.Settings.MOODLE_FILES_ENABLED]
+        )
+        pages_enabled = ai_settings.get_setting(
+            ai_settings.fields[ai_settings.Settings.MOODLE_PAGES_ENABLED]
+        )
 
         config = {"enabled": files_enabled, "pagesEnabled": pages_enabled}
         course_id = request.lti_params.get("context_id")

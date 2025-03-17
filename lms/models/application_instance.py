@@ -121,13 +121,13 @@ class ApplicationSettings(JSONSettings):
             Settings.MOODLE_API_TOKEN, SettingFormat.AES_SECRET
         ),
         Settings.MOODLE_GROUPS_ENABLED: JSONSetting(
-            Settings.MOODLE_GROUPS_ENABLED, SettingFormat.BOOLEAN
+            Settings.MOODLE_GROUPS_ENABLED, SettingFormat.TRI_STATE, default=False
         ),
         Settings.MOODLE_FILES_ENABLED: JSONSetting(
-            Settings.MOODLE_FILES_ENABLED, SettingFormat.BOOLEAN
+            Settings.MOODLE_FILES_ENABLED, SettingFormat.TRI_STATE, default=False
         ),
         Settings.MOODLE_PAGES_ENABLED: JSONSetting(
-            Settings.MOODLE_PAGES_ENABLED, SettingFormat.BOOLEAN
+            Settings.MOODLE_PAGES_ENABLED, SettingFormat.TRI_STATE, default=False
         ),
         Settings.VITALSOURCE_ENABLED: JSONSetting(
             Settings.VITALSOURCE_ENABLED, SettingFormat.BOOLEAN
