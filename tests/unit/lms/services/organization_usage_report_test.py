@@ -5,6 +5,7 @@ import pytest
 from freezegun import freeze_time
 from h_matchers import Any
 
+from lms.models.lti_role import RoleScope, RoleType
 from lms.services.h_api import HAPI
 from lms.services.organization_usage_report import (
     OrganizationUsageReportService,
@@ -112,9 +113,14 @@ class TestOrganizationUsageReportService:
             == report
         )
 
-    def test_usage_report(self, svc, org_with_parent, h_api, organization_service):
+    def test_usage_report(
+        self, svc, org_with_parent, h_api, organization_service, db_session
+    ):
         since = datetime(2023, 1, 1, 0, 0, 0, 0)  # noqa: DTZ001
         until = datetime(2023, 12, 31, 23, 59, 59, 999999)  # noqa: DTZ001
+
+        learner_role = factories.LTIRole(type=RoleType.LEARNER, scope=RoleScope.COURSE)
+        db_session.flush()
 
         ai_root_org = factories.ApplicationInstance(organization=org_with_parent.parent)
         ai_child_org = factories.ApplicationInstance(organization=org_with_parent)
@@ -122,19 +128,48 @@ class TestOrganizationUsageReportService:
             application_instance=ai_root_org,
             created=since + timedelta(days=1),
         )
+        lms_course_root = factories.LMSCourse(
+            h_authority_provided_id=course_root.authority_provided_id,
+            created=since + timedelta(days=1),
+            name=course_root.lms_name,
+        )
+        factories.LMSCourseApplicationInstance(
+            lms_course=lms_course_root, application_instance=ai_root_org
+        )
         section = factories.CanvasSection(
             application_instance=ai_root_org,
             parent=course_root,
             created=since + timedelta(days=1),
         )
+        factories.LMSSegment(
+            h_authority_provided_id=section.authority_provided_id,
+            lms_course=lms_course_root,
+            created=since + timedelta(days=1),
+        )
         course_child = factories.Course(
             application_instance=ai_child_org, created=since + timedelta(days=1)
         )
+        lms_course_child = factories.LMSCourse(
+            h_authority_provided_id=course_child.authority_provided_id,
+            created=since + timedelta(days=1),
+            name=course_child.lms_name,
+        )
+        factories.LMSCourseApplicationInstance(
+            lms_course=lms_course_child, application_instance=ai_child_org
+        )
         # Course created after the until date
-        factories.Course(
+        course_created_after_date = factories.Course(
             application_instance=ai_child_org,
             created=until + timedelta(days=1),
         )
+        lms_course_created_after_date = factories.LMSCourse(
+            h_authority_provided_id=course_created_after_date.authority_provided_id,
+            created=until + timedelta(days=1),
+        )
+        factories.LMSCourseApplicationInstance(
+            lms_course=lms_course_created_after_date, application_instance=ai_child_org
+        )
+
         # Annotations in one section and in the other course
         h_api.get_groups.return_value = [
             HAPI.HAPIGroup(authority_provided_id=group.authority_provided_id)
@@ -142,17 +177,37 @@ class TestOrganizationUsageReportService:
         ]
         # Users that belong to the course
         user_1 = factories.User(display_name="NAME", email="EMAIL")
+        lms_user_1 = factories.LMSUser(
+            h_userid=user_1.h_userid,
+            email=user_1.email,
+            display_name=user_1.display_name,
+        )
         user_2 = factories.User()
+        lms_user_2 = factories.LMSUser(h_userid=user_2.h_userid)
         factories.GroupingMembership(
             user=user_1, grouping=course_child, created=since + timedelta(days=1)
+        )
+        factories.LMSCourseMembership(
+            lms_course=lms_course_child,
+            lms_user=lms_user_1,
+            lti_role_id=learner_role.id,
+            created=since + timedelta(days=1),
         )
         factories.GroupingMembership(
             user=user_2, grouping=course_root, created=since + timedelta(days=1)
         )
+        factories.LMSCourseMembership(
+            lms_course=lms_course_root,
+            lms_user=lms_user_2,
+            lti_role_id=learner_role.id,
+            created=since + timedelta(days=1),
+        )
+
         organization_service.get_hierarchy_ids.return_value = [
             org_with_parent.parent.id,
             org_with_parent.id,
         ]
+        db_session.flush()
 
         report = svc.usage_report(org_with_parent.parent, since, until)
 

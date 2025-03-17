@@ -3,16 +3,18 @@ from datetime import date, datetime
 from logging import getLogger
 
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import Date, func, select
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy import Date, func, select, union
+from sqlalchemy.orm import Session
 
 from lms.models import (
     ApplicationInstance,
     Grouping,
-    GroupingMembership,
+    LMSCourse,
+    LMSCourseMembership,
+    LMSSegment,
+    LMSUser,
     Organization,
     OrganizationUsageReport,
-    User,
 )
 from lms.services.h_api import HAPI
 from lms.services.organization import OrganizationService
@@ -168,40 +170,42 @@ class OrganizationUsageReportService:
                 f"No courses with activity found for {organization.public_id}"  # noqa: EM102
             )
 
+        lms_courses_with_annos = self._db.scalars(
+            # The report is based in courses so we query either
+            # courses that match the groups with annos or the parent coursers of segments.
+            union(
+                select(LMSCourse.id).where(
+                    LMSCourse.h_authority_provided_id.in_(groups_with_annos)
+                ),
+                select(LMSSegment.lms_course_id).where(
+                    LMSSegment.h_authority_provided_id.in_(groups_with_annos)
+                ),
+            )
+        ).all()
+
         # Based on those groups generate the usage report based on the definition of unique user:
         # Users that belong to a course in which there are annotations in the time period
-        parent = aliased(Grouping)
         query = (
             select(
-                User.display_name.label("name"),
-                User.email.label("email"),
-                User.h_userid.label("h_userid"),
-                Grouping.lms_name.label("course_name"),
-                func.date_trunc("day", Grouping.created)
+                LMSUser.display_name.label("name"),
+                LMSUser.email.label("email"),
+                LMSUser.h_userid.label("h_userid"),
+                LMSCourse.name.label("course_name"),
+                func.date_trunc("day", LMSCourse.created)
                 .cast(Date)
                 .label("course_created"),
-                Grouping.authority_provided_id,
+                LMSCourse.h_authority_provided_id,
             )
-            .select_from(User)
-            .join(GroupingMembership)
-            .join(Grouping)
+            .join(
+                LMSCourseMembership, LMSCourseMembership.lms_course_id == LMSCourse.id
+            )
+            .join(LMSUser, LMSUser.id == LMSCourseMembership.lms_user_id)
             .distinct()
             .where(
-                Grouping.authority_provided_id.in_(
-                    # The report is based in courses so we query either
-                    # groupings with no parent (courses) or the parents of segments (courses)
-                    select(
-                        func.coalesce(
-                            parent.authority_provided_id, Grouping.authority_provided_id
-                        )
-                    )
-                    .select_from(Grouping)
-                    .outerjoin(parent, Grouping.parent_id == parent.id)
-                    .where(Grouping.authority_provided_id.in_(groups_with_annos))
-                ),
+                LMSCourse.id.in_(lms_courses_with_annos),
                 # We can't exactly know the state of membership in the past but we can
                 # know if someone was added to the group after the date we are interested
-                GroupingMembership.created <= until,
+                LMSCourseMembership.created <= until,
             )
         )
         return [
@@ -212,7 +216,7 @@ class OrganizationUsageReportService:
                 h_userid=row.h_userid,
                 course_name=row.course_name,
                 course_created=row.course_created.isoformat(),
-                authority_provided_id=row.authority_provided_id,
+                authority_provided_id=row.h_authority_provided_id,
             )
             for row in self._db.execute(query).all()
         ]
