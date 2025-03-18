@@ -13,6 +13,7 @@ class AdminEmailViews:
     def __init__(self, request):
         self.request = request
 
+    # @view_config(route_name="admin.email.section")
     @view_config(request_method="GET", renderer="lms:templates/admin/email.html.jinja2")
     def get(self):
         return {
@@ -86,6 +87,14 @@ class AdminEmailViews:
         renderer="lms:templates/email/instructor_email_digest/body.html.jinja2",
     )
     def preview_instructor_email_digest(self):
+        return INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS
+
+    @view_config(
+        route_name="admin.email.preview.annotation_activity",
+        request_method="GET",
+        renderer="lms:templates/email/annotation_activity/body.html.jinja2",
+    )
+    def preview_annotation_activity(self):
         return INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS
 
 

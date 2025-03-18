@@ -35,7 +35,7 @@ def purge_launch_data(*, max_age_days=30) -> None:
                 .where(
                     # Find data that's is at least max_age_days old
                     Event.timestamp <= datetime.now(UTC) - timedelta(days=max_age_days),
-                    # Limit the search for only twice as old as we'd expect, limiting the data set significally
+                    # Limit the search for only twice as old as we'd expect, limiting the data set significantly
                     Event.timestamp
                     >= datetime.now(UTC) - timedelta(days=max_age_days * 2),
                     EventData.data["lti_params"].is_not(None),

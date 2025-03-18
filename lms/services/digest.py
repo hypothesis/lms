@@ -86,12 +86,12 @@ class DigestService:
         send.delay(
             task_done_key=task_done_key,
             task_done_data=task_done_data,
-            template="lms:templates/email/instructor_email_digest/",
+            template="lms:templates/email/annotation_activity/",
             sender=asdict(self._sender),
             recipient=asdict(EmailRecipient(to_email, context.user_info.display_name)),
             template_vars=digest,
             unsubscribe_url=self._email_preferences_service.unsubscribe_url(
-                context.user_info.h_userid, "instructor_digest"
+                context.user_info.h_userid, "annotation_activity"
             ),
         )
 

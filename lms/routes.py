@@ -243,6 +243,10 @@ def includeme(config):  # noqa: PLR0915
         "admin.email.preview.instructor_email_digest",
         "/admin/email/preview/instructor-email-digest",
     )
+    config.add_route(
+        "admin.email.preview.annotation_activity",
+        "/admin/email/preview/annotation-activity",
+    )
 
     config.add_route(
         "dashboard.launch.assignment", "/dashboard/launch/assignments/{assignment_id}"
