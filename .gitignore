@@ -12,6 +12,7 @@ supervisord.pid
 .devdata*
 .eslintcache
 *.tsbuildinfo
+.vscode
 .certificates
 
 # See https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored.

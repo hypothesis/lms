@@ -4,7 +4,7 @@
       "command": "newrelic-admin run-program gunicorn --paste conf/production.ini --config conf/gunicorn.conf.py"
     },
     "worker": {
-      "command": "newrelic-admin run-program celery -A lms.tasks.celery:app worker --loglevel INFO"
+      "command": "newrelic-admin run-program celery -A lms.tasks.celery:app worker --loglevel INFO -Q celery,annotation"
     },
     "worker-email-digests": {
       "command": "newrelic-admin run-program celery -A lms.tasks.celery:app worker --loglevel INFO -Q email_digests -n celery-email_digests-@%%h"
