@@ -30,6 +30,11 @@ amqp==5.2.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   kombu
+annotated-types==0.7.0
+    # via
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   pydantic
 attrs==23.1.0
     # via
     #   -r requirements/functests.txt
@@ -116,7 +121,7 @@ data-tasks==0.0.5
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-execnet==2.0.2
+execnet==2.1.1
     # via
     #   -r requirements/tests.txt
     #   pytest-xdist
@@ -368,6 +373,15 @@ pycryptodomex==3.21.0
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+pydantic==2.9.2
+    # via
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+pydantic-core==2.23.4
+    # via
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   pydantic
 pyjwt[crypto]==2.10.1
     # via
     #   -r requirements/functests.txt
@@ -428,7 +442,7 @@ pytest-factoryboy==2.7.0
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-pytest-xdist[psutil]==3.5.0
+pytest-xdist[psutil]==3.6.1
     # via -r requirements/tests.txt
 python-dateutil==2.8.2
     # via
@@ -519,6 +533,8 @@ typing-extensions==4.9.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   alembic
+    #   pydantic
+    #   pydantic-core
     #   pytest-factoryboy
     #   sqlalchemy
 tzdata==2023.3
