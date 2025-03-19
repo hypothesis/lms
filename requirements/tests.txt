@@ -24,6 +24,10 @@ amqp==5.2.0
     # via
     #   -r requirements/prod.txt
     #   kombu
+annotated-types==0.7.0
+    # via
+    #   -r requirements/prod.txt
+    #   pydantic
 attrs==23.1.0
     # via
     #   -r requirements/prod.txt
@@ -264,6 +268,12 @@ pycparser==2.21
     #   cffi
 pycryptodomex==3.21.0
     # via -r requirements/prod.txt
+pydantic==2.9.2
+    # via -r requirements/prod.txt
+pydantic-core==2.23.4
+    # via
+    #   -r requirements/prod.txt
+    #   pydantic
 pyjwt[crypto]==2.10.1
     # via
     #   -r requirements/prod.txt
@@ -376,6 +386,8 @@ typing-extensions==4.9.0
     # via
     #   -r requirements/prod.txt
     #   alembic
+    #   pydantic
+    #   pydantic-core
     #   pytest-factoryboy
     #   sqlalchemy
 tzdata==2023.3

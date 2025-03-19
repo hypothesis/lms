@@ -21,6 +21,7 @@ mailchimp-transactional
 marshmallow
 oauthlib
 pycryptodomex
+pydantic
 PyJWT[crypto]
 pyramid-exclog
 pyramid-googleauth
