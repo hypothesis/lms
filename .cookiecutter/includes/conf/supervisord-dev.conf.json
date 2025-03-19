@@ -11,7 +11,7 @@
       "command": "newrelic-admin run-program gunicorn --paste conf/development.ini --config conf/gunicorn-dev.conf.py --bind 0.0.0.0:48001 --certfile=.certificates/localhost/localhost.crt --keyfile=.certificates/localhost/localhost.key"
     },
     "worker": {
-      "command": "newrelic-admin run-program celery -A lms.tasks.celery:app worker --loglevel=INFO"
+      "command": "newrelic-admin run-program celery -A lms.tasks.celery:app worker --loglevel=INFO -Q celery,annotation"
     },
     "worker-email-digests": {
       "command": "newrelic-admin run-program celery -A lms.tasks.celery:app worker --loglevel=INFO -Q email_digests -n celery-email_digests-@%%h"
