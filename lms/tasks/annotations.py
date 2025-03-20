@@ -102,7 +102,7 @@ def annotation_event(*, event) -> None:
                 continue
 
             LOG.info(
-                "Processing mention from '%s' by '%s' in assignment '%s'",
+                "Processing mention from '%s' to '%s' in assignment '%s'",
                 mentioning_user.display_name,
                 mentioned_user.display_name,
                 assignment.title,

@@ -14,12 +14,21 @@ class AdminEmailViews:
         self.request = request
 
     @view_config(request_method="GET", renderer="lms:templates/admin/email.html.jinja2")
+    @view_config(
+        route_name="admin.email.section",
+        request_method="GET",
+        renderer="lms:templates/admin/email.html.jinja2",
+    )
     def get(self):
         return {
             "instructor_email_digest_subject": render(
                 "lms:templates/email/instructor_email_digest/subject.jinja2",
                 INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS,
-            )
+            ),
+            "mention_email_subject": render(
+                "lms:templates/email/mention/subject.jinja2",
+                MENTION_EMAIL_TEMPLATE_VARS,
+            ),
         }
 
     @view_config(request_method="POST")
@@ -87,6 +96,21 @@ class AdminEmailViews:
     )
     def preview_instructor_email_digest(self):
         return INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS
+
+    @view_config(
+        route_name="admin.email.preview.mention_email",
+        request_method="GET",
+        renderer="lms:templates/email/mention/body.html.jinja2",
+    )
+    def preview_mention_email(self):
+        return MENTION_EMAIL_TEMPLATE_VARS
+
+
+MENTION_EMAIL_TEMPLATE_VARS = {
+    "mentioned_user": "MENTIONED USER",
+    "course_title": "COURSE TITLE",
+    "assignment_title": "ASSIGNMENT TITLE",
+}
 
 
 #: Test template variables that the admin page will pass to the instructor_email_digest templates.
