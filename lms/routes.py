@@ -189,9 +189,9 @@ def includeme(config):  # noqa: PLR0915
     config.add_route("admin.instance.search", "/admin/instances/")
     config.add_route("admin.instance.create", "/admin/instances/create")
     config.add_route("admin.instance.upgrade", "/admin/instances/upgrade")
-    config.add_route("admin.instance", "/admin/instances/{id_}/")
     config.add_route("admin.instance.downgrade", "/admin/instances/{id_}/downgrade")
     config.add_route("admin.instance.move_org", "/admin/instances/{id_}/move_org")
+    config.add_route("admin.instance", "/admin/instances/{id_}/")
     config.add_route(
         "admin.instance.section",
         "/admin/instances/{id_}/{section:info|settings|role-overrides|danger}",
@@ -240,8 +240,17 @@ def includeme(config):  # noqa: PLR0915
 
     config.add_route("admin.email", "/admin/email")
     config.add_route(
+        "admin.email.section",
+        "/admin/email/{section:digest|mention}",
+    )
+
+    config.add_route(
         "admin.email.preview.instructor_email_digest",
         "/admin/email/preview/instructor-email-digest",
+    )
+    config.add_route(
+        "admin.email.preview.mention_email",
+        "/admin/email/preview/mention-email",
     )
 
     config.add_route(
