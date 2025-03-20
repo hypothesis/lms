@@ -1,4 +1,5 @@
 from lms.services.aes import AESService
+from lms.services.annotation_activity_email import AnnotationActivityEmailService
 from lms.services.application_instance import ApplicationInstanceNotFound
 from lms.services.assignment import AssignmentService
 from lms.services.auto_grading import AutoGradingService
@@ -61,6 +62,10 @@ def includeme(config):  # noqa: PLR0915
     )
     config.register_service_factory(
         "lms.services.canvas_api.canvas_api_client_factory", name="canvas_api_client"
+    )
+    config.register_service_factory(
+        "lms.services.annotation_activity_email.factory",
+        iface=AnnotationActivityEmailService,
     )
     config.register_service_factory("lms.services.canvas.factory", iface=CanvasService)
     config.register_service_factory(
