@@ -11,6 +11,7 @@ from lms.product.plugin.grouping import GroupingPlugin
 from lms.product.plugin.misc import MiscPlugin
 from lms.services import CanvasService, LTIRoleService, OrganizationService
 from lms.services.aes import AESService
+from lms.services.annotation_activity_email import AnnotationActivityEmailService
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
 from lms.services.async_oauth_http import AsyncOAuthHTTPService
@@ -64,6 +65,7 @@ __all__ = (  # noqa: RUF022
     "mock_service",
     # Individual services
     "aes_service",
+    "annotation_activity_email_service",
     "application_instance_service",
     "assignment_service",
     "async_oauth_http_service",
@@ -439,6 +441,11 @@ def course_copy_plugin(mock_service):
 @pytest.fixture
 def grouping_plugin(mock_service):
     return mock_service(GroupingPlugin)
+
+
+@pytest.fixture
+def annotation_activity_email_service(mock_service):
+    return mock_service(AnnotationActivityEmailService)
 
 
 @pytest.fixture

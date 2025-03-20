@@ -51,6 +51,7 @@ class MailchimpService:
         unsubscribe_url: str | None = None,
         task_done_key: str | None = None,
         task_done_data: dict | None = None,
+        tags: list[str] | None = None,
     ):
         """
         Send an email using Mailchimp Transactional's API.
@@ -85,6 +86,7 @@ class MailchimpService:
                 "track_clicks": True,
                 "auto_text": True,
                 "headers": headers,
+                "tags": tags or [],
             },
             "async": True,
         }
