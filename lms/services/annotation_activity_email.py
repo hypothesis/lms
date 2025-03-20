@@ -14,7 +14,7 @@ class AnnotationActivityEmailService:
         self._db = db
         self._sender = sender
 
-    def send_mention(self, mentioned_user_h_userid, assignment_id: int):
+    def send_mention(self, mentioned_user_h_userid: str, assignment_id: int):
         mentioned_user = self._db.execute(
             select(LMSUser).where(LMSUser.h_userid == mentioned_user_h_userid)
         ).scalar_one()

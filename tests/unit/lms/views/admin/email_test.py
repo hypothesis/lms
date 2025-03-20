@@ -5,12 +5,19 @@ from h_matchers import Any
 from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
 from pyramid.renderers import render
 
-from lms.views.admin.email import INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS, AdminEmailViews
+from lms.views.admin.email import (
+    INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS,
+    MENTION_EMAIL_TEMPLATE_VARS,
+    AdminEmailViews,
+)
 
 
 class TestAdminEmailViews:
     def test_get(self, views):
-        assert views.get() == {"instructor_email_digest_subject": Any.string()}
+        assert views.get() == {
+            "instructor_email_digest_subject": Any.string(),
+            "mention_email_subject": Any.string(),
+        }
 
     @pytest.mark.usefixtures("with_valid_post_params")
     def test_post(self, views, send_instructor_email_digest):
@@ -88,6 +95,17 @@ class TestAdminEmailViews:
         # doesn't crash.
         render(
             "lms:templates/email/instructor_email_digest/body.html.jinja2",
+            template_vars,
+        )
+
+    def test_preview_mention_email(self, views):
+        template_vars = views.preview_mention_email()
+
+        assert template_vars == MENTION_EMAIL_TEMPLATE_VARS
+        # Test that rendering the template using the template vars at least
+        # doesn't crash.
+        render(
+            "lms:templates/email/mention/body.html.jinja2",
             template_vars,
         )
 
