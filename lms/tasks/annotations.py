@@ -108,5 +108,8 @@ def annotation_event(*, event) -> None:
                 assignment.title,
             )
             annotation_activity_email_service.send_mention(
-                mentioned_user.h_userid, assignment.id
+                annotation.id,
+                mentioning_user.h_userid,
+                mentioned_user.h_userid,
+                assignment.id,
             )
