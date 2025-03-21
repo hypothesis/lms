@@ -2,7 +2,7 @@ from dataclasses import asdict
 
 from sqlalchemy import select
 
-from lms.models import Assignment, LMSUser
+from lms.models import Assignment, LMSUser, Notification
 from lms.services.mailchimp import EmailRecipient, EmailSender
 from lms.tasks.mailchimp import send
 
@@ -14,7 +14,17 @@ class AnnotationActivityEmailService:
         self._db = db
         self._sender = sender
 
-    def send_mention(self, mentioned_user_h_userid: str, assignment_id: int):
+    def send_mention(
+        self,
+        annotation_id: str,
+        mentioning_user_h_userid: str,
+        mentioned_user_h_userid: str,
+        assignment_id: int,
+    ):
+        mentioning_user = self._db.execute(
+            select(LMSUser).where(LMSUser.h_userid == mentioning_user_h_userid)
+        ).scalar_one()
+
         mentioned_user = self._db.execute(
             select(LMSUser).where(LMSUser.h_userid == mentioned_user_h_userid)
         ).scalar_one()
@@ -35,6 +45,15 @@ class AnnotationActivityEmailService:
             recipient=asdict(recipient),
             template_vars=email_vars,
             tags=["lms", "mention"],
+        )
+        self._db.add(
+            Notification(
+                notification_type=Notification.Type.MENTION,
+                source_annotation_id=annotation_id,
+                sender_id=mentioning_user.id,
+                recipient_id=mentioned_user.id,
+                assignment_id=assignment_id,
+            )
         )
 
 
