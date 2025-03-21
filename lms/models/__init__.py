@@ -46,6 +46,7 @@ from lms.models.lti_params import CLAIM_PREFIX, LTIParams
 from lms.models.lti_registration import LTIRegistration
 from lms.models.lti_role import LTIRole, LTIRoleOverride, RoleScope, RoleType
 from lms.models.lti_user import LTIUser, display_name
+from lms.models.notification import Notification
 from lms.models.oauth2_token import OAuth2Token
 from lms.models.organization import Organization
 from lms.models.organization_usage import OrganizationUsageReport
