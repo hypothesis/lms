@@ -14,6 +14,7 @@ class TestAnnotationEvent:
         annotation_event,
         caplog,
         annotation_activity_email_service,
+        mentioning_user,
         mentioned_user,
         assignment,
     ):
@@ -21,7 +22,10 @@ class TestAnnotationEvent:
 
         assert "Processing mention" in caplog.text
         annotation_activity_email_service.send_mention.assert_called_once_with(
-            mentioned_user.h_userid, assignment.id
+            annotation_event["annotation"]["id"],
+            mentioning_user.h_userid,
+            mentioned_user.h_userid,
+            assignment.id,
         )
 
     def test_annotation_event_private_annotation(
