@@ -7,11 +7,22 @@ from lms.tasks import annotations
 from tests import factories
 
 
+@pytest.mark.usefixtures("annotation_activity_email_service")
 class TestAnnotationEvent:
-    def test_annotation_event(self, annotation_event, caplog):
+    def test_annotation_event(
+        self,
+        annotation_event,
+        caplog,
+        annotation_activity_email_service,
+        mentioned_user,
+        assignment,
+    ):
         annotations.annotation_event(event=annotation_event)
 
         assert "Processing mention" in caplog.text
+        annotation_activity_email_service.send_mention.assert_called_once_with(
+            mentioned_user.h_userid, assignment.id
+        )
 
     def test_annotation_event_private_annotation(
         self, private_annotation_event, caplog

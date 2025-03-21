@@ -117,6 +117,7 @@ class TestSend:
                     "track_clicks": True,
                     "auto_text": True,
                     "headers": {},
+                    "tags": [],
                 },
                 "async": True,
             }

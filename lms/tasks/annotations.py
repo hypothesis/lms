@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 from lms.models import Assignment, LMSUser
+from lms.services.annotation_activity_email import AnnotationActivityEmailService
 from lms.tasks.celery import app
 
 
@@ -71,6 +72,9 @@ def annotation_event(*, event) -> None:
 
     with app.request_context() as request, request.tm:
         db = request.db
+        annotation_activity_email_service = request.find_service(
+            AnnotationActivityEmailService
+        )
 
         mentioning_user = db.execute(
             select(LMSUser).where(LMSUser.h_userid == annotation.user)
@@ -102,4 +106,7 @@ def annotation_event(*, event) -> None:
                 mentioning_user.display_name,
                 mentioned_user.display_name,
                 assignment.title,
+            )
+            annotation_activity_email_service.send_mention(
+                mentioned_user.h_userid, assignment.id
             )
