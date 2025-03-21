@@ -2,7 +2,9 @@ from dataclasses import asdict
 from unittest.mock import sentinel
 
 import pytest
+from sqlalchemy import select
 
+from lms.models import Notification
 from lms.services.annotation_activity_email import (
     AnnotationActivityEmailService,
     factory,
@@ -13,11 +15,16 @@ from tests import factories
 
 class TestAnnotationActivityEmailService:
     def test_send_mention(
-        self, svc, mentioned_user, assignment, db_session, send, sender
+        self, svc, mentioning_user, mentioned_user, assignment, db_session, send, sender
     ):
         db_session.flush()
 
-        svc.send_mention(mentioned_user.h_userid, assignment.id)
+        svc.send_mention(
+            "ANNOTATION_ID",
+            mentioning_user.h_userid,
+            mentioned_user.h_userid,
+            assignment.id,
+        )
 
         send.delay.assert_called_once_with(
             template="lms:templates/email/mention/",
@@ -33,8 +40,19 @@ class TestAnnotationActivityEmailService:
             tags=["lms", "mention"],
         )
 
+        notification = db_session.execute(select(Notification)).scalar_one()
+        assert notification.notification_type == Notification.Type.MENTION
+        assert notification.source_annotation_id == "ANNOTATION_ID"
+        assert notification.sender_id == mentioning_user.id
+        assert notification.recipient_id == mentioned_user.id
+        assert notification.assignment_id == assignment.id
+
     @pytest.fixture
     def mentioned_user(self):
+        return factories.LMSUser()
+
+    @pytest.fixture
+    def mentioning_user(self):
         return factories.LMSUser()
 
     @pytest.fixture
