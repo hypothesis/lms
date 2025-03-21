@@ -174,8 +174,7 @@ class UserService:
 
     def get_users_for_assignment(
         self,
-        role_scope: RoleScope,
-        role_type: RoleType,
+        include_role: tuple[RoleScope, RoleType],
         assignment_id: int,
         h_userids: list[str] | None = None,
     ) -> Select[tuple[LMSUser]]:
@@ -189,10 +188,8 @@ class UserService:
             )
             .where(
                 LMSUserAssignmentMembership.assignment_id == assignment_id,
-                LMSUserAssignmentMembership.lti_role_id.in_(
-                    select(LTIRole.id).where(
-                        LTIRole.scope == role_scope, LTIRole.type == role_type
-                    )
+                self._filter_membership_by_role_clause(
+                    LMSUserAssignmentMembership, include_role
                 ),
             )
         )
@@ -203,8 +200,7 @@ class UserService:
 
     def get_users_for_course(
         self,
-        role_scope: RoleScope,
-        role_type: RoleType,
+        include_role: tuple[RoleScope, RoleType],
         lms_course: LMSCourse,
         h_userids: list[str] | None = None,
     ) -> Select[tuple[LMSUser]]:
@@ -219,10 +215,8 @@ class UserService:
             .join(LMSCourse, LMSCourse.id == LMSCourseMembership.lms_course_id)
             .where(
                 LMSCourseMembership.lms_course_id == lms_course.id,
-                LMSCourseMembership.lti_role_id.in_(
-                    select(LTIRole.id).where(
-                        LTIRole.scope == role_scope, LTIRole.type == role_type
-                    )
+                self._filter_membership_by_role_clause(
+                    LMSCourseMembership, include_role
                 ),
             )
         )
@@ -233,14 +227,13 @@ class UserService:
 
     def get_users_for_segments(
         self,
-        role_scope: RoleScope,
-        role_type: RoleType,
+        include_role: tuple[RoleScope, RoleType],
         segment_ids: list[int],
         h_userids: list[str] | None = None,
     ) -> Select[tuple[LMSUser]]:
         """Get the users that belong to a list of segment.
 
-        This method doesn't use roste data, just launches.
+        This method doesn't use roster data, just launches.
         """
         query = (
             select(LMSUser)
@@ -251,10 +244,8 @@ class UserService:
             )
             .where(
                 LMSSegmentMembership.lms_segment_id.in_(segment_ids),
-                LMSSegmentMembership.lti_role_id.in_(
-                    select(LTIRole.id).where(
-                        LTIRole.scope == role_scope, LTIRole.type == role_type
-                    )
+                self._filter_membership_by_role_clause(
+                    LMSSegmentMembership, include_role
                 ),
             )
         )
@@ -263,10 +254,9 @@ class UserService:
 
         return query.order_by(LMSUser.display_name, LMSUser.id)
 
-    def get_users_for_organization(  # noqa: PLR0913
+    def get_users_for_organization(
         self,
-        role_scope: RoleScope,
-        role_type: RoleType,
+        include_role: tuple[RoleScope, RoleType],
         course_ids: list[int] | None = None,
         instructor_h_userid: str | None = None,
         admin_organization_ids: list[int] | None = None,
@@ -287,11 +277,9 @@ class UserService:
             )
             .join(candidate_courses, candidate_courses.c[0] == Grouping.id)
             .where(
-                LMSCourseMembership.lti_role_id.in_(
-                    select(LTIRole.id).where(
-                        LTIRole.scope == role_scope, LTIRole.type == role_type
-                    )
-                )
+                self._filter_membership_by_role_clause(
+                    LMSCourseMembership, include_role
+                ),
             )
         )
 
@@ -302,8 +290,7 @@ class UserService:
 
     def get_users(  # noqa: PLR0913
         self,
-        role_scope: RoleScope,
-        role_type: RoleType,
+        include_role: tuple[RoleScope, RoleType],
         instructor_h_userid: str | None = None,
         admin_organization_ids: list[int] | None = None,
         course_ids: list[int] | None = None,
@@ -324,8 +311,7 @@ class UserService:
         :param segment_authority_provided_ids: return only users that belong these segments.
         """
         query = self.get_users_for_organization(
-            role_scope=role_scope,
-            role_type=role_type,
+            include_role=include_role,
             instructor_h_userid=instructor_h_userid,
             admin_organization_ids=admin_organization_ids,
             h_userids=h_userids,
@@ -359,6 +345,18 @@ class UserService:
             )
 
         return query.order_by(LMSUser.display_name, LMSUser.id)
+
+    def _filter_membership_by_role_clause(
+        self,
+        MembershipModel,  # noqa: N803
+        include_role: tuple[RoleScope, RoleType],
+    ):
+        role_scope, role_type = include_role
+        return MembershipModel.lti_role_id.in_(
+            select(LTIRole.id).where(
+                LTIRole.scope == role_scope, LTIRole.type == role_type
+            )
+        )
 
 
 def factory(_context, request):
