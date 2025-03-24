@@ -19,7 +19,7 @@ export default function DashboardApp() {
       <div className="px-3 py-4 bg-white border-b shadow">
         <div className="flex justify-between items-center mx-auto max-w-6xl">
           <RouterLink href="" aria-label="All courses">
-            <LogoIcon />
+            <LogoIcon className="w-6 h-6" />
           </RouterLink>
 
           <div className="flex gap-6">
