@@ -43,6 +43,7 @@ class _Annotation(BaseModel):
     permissions: _AnnotationPermissions
     mentions: list[_AnnotationMention]
     metadata: _AnnotationMetadata
+    text_rendered: str
 
 
 class AnnotationEvent(BaseModel):
@@ -103,12 +104,13 @@ def annotation_event(*, event) -> None:
 
             LOG.info(
                 "Processing mention from '%s' to '%s' in assignment '%s'",
-                mentioning_user.display_name,
-                mentioned_user.display_name,
+                mentioning_user.h_userid,
+                mentioned_user.h_userid,
                 assignment.title,
             )
             annotation_activity_email_service.send_mention(
                 annotation.id,
+                annotation.text_rendered,
                 mentioning_user.h_userid,
                 mentioned_user.h_userid,
                 assignment.id,

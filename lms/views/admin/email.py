@@ -110,6 +110,7 @@ MENTION_EMAIL_TEMPLATE_VARS = {
     "mentioned_user": "MENTIONED USER",
     "course_title": "COURSE TITLE",
     "assignment_title": "ASSIGNMENT TITLE",
+    "annotation_text": "ANNOTATION TEXT",
 }
 
 
