@@ -28,6 +28,13 @@ class TestAnnotationEvent:
             assignment.id,
         )
 
+    def test_annotation_event_delete(self, annotation_event, caplog):
+        annotation_event["action"] = "delete"
+
+        annotations.annotation_event(event=annotation_event)
+
+        assert "Skipping event type" in caplog.text
+
     def test_annotation_event_private_annotation(
         self, private_annotation_event, caplog
     ):

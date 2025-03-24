@@ -63,6 +63,10 @@ def annotation_event(*, event) -> None:
     annotation_event = AnnotationEvent(**event)
     annotation = annotation_event.annotation
 
+    if annotation_event.action not in {"create", "update"}:
+        LOG.info("Skipping event type %s", annotation_event.action)
+        return
+
     if annotation.permissions.is_private:
         LOG.info("Skipping private annotation %s", annotation.id)
         return
