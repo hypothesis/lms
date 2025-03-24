@@ -43,6 +43,7 @@ from tests.factories.lms_user import LMSUser
 from tests.factories.lti_registration import LTIRegistration
 from tests.factories.lti_role import LTIRole, LTIRoleOverride
 from tests.factories.lti_user import LTIUser
+from tests.factories.notification import Notification
 from tests.factories.oauth2_token import OAuth2Token
 from tests.factories.organization import Organization
 from tests.factories.organization_usage import OrganizationUsageReport

@@ -6,6 +6,7 @@ from sqlalchemy import select
 
 from lms.models import Notification
 from lms.services.annotation_activity_email import (
+    ANNOTATION_NOTIFICATION_LIMIT,
     AnnotationActivityEmailService,
     factory,
 )
@@ -63,6 +64,56 @@ class TestAnnotationActivityEmailService:
         assert notification.sender_id == mentioning_user.id
         assert notification.recipient_id == mentioned_user.id
         assert notification.assignment_id == assignment.id
+
+    @pytest.mark.parametrize(
+        "fixture_name",
+        ["notification_for_mentioned_user", "notifications_for_annotation"],
+    )
+    def test_with_should_not_notify(
+        self,
+        fixture_name,
+        request,
+        svc,
+        send,
+        db_session,
+        mentioning_user,
+        mentioned_user,
+        assignment,
+    ):
+        _ = request.getfixturevalue(fixture_name)
+        db_session.flush()
+
+        assert not svc.send_mention(
+            "ANNOTATION_ID",
+            mentioning_user.h_userid,
+            mentioned_user.h_userid,
+            assignment.id,
+        )
+
+        send.delay.assert_not_called()
+
+    @pytest.fixture
+    def notification_for_mentioned_user(
+        self, mentioned_user, mentioning_user, assignment
+    ):
+        return factories.Notification(
+            source_annotation_id="ANNOTATION_ID",
+            recipient=mentioned_user,
+            sender=mentioning_user,
+            assignment=assignment,
+            notification_type=Notification.Type.MENTION,
+        )
+
+    @pytest.fixture
+    def notifications_for_annotation(self, assignment):
+        for _ in range(ANNOTATION_NOTIFICATION_LIMIT):
+            factories.Notification(
+                source_annotation_id="ANNOTATION_ID",
+                recipient=factories.LMSUser(),
+                sender=factories.LMSUser(),
+                assignment=assignment,
+                notification_type=Notification.Type.MENTION,
+            )
 
     @pytest.fixture
     def mentioned_user(self):
