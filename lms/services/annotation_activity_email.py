@@ -17,6 +17,7 @@ class AnnotationActivityEmailService:
     def send_mention(
         self,
         annotation_id: str,
+        annotation_text: str,
         mentioning_user_h_userid: str,
         mentioned_user_h_userid: str,
         assignment_id: int,
@@ -38,6 +39,7 @@ class AnnotationActivityEmailService:
             "assignment_title": assignment.title,
             "course_title": assignment.course.lms_name,
             "mentioned_user": mentioned_user.display_name,
+            "annotation_text": annotation_text,
         }
         send.delay(
             template="lms:templates/email/mention/",

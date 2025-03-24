@@ -21,6 +21,7 @@ class TestAnnotationActivityEmailService:
 
         svc.send_mention(
             "ANNOTATION_ID",
+            "ANNOTATION_TEXT",
             mentioning_user.h_userid,
             mentioned_user.h_userid,
             assignment.id,
@@ -34,6 +35,7 @@ class TestAnnotationActivityEmailService:
             ),
             template_vars={
                 "assignment_title": assignment.title,
+                "annotation_text": "ANNOTATION_TEXT",
                 "course_title": assignment.course.lms_name,
                 "mentioned_user": mentioned_user.display_name,
             },
