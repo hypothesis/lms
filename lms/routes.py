@@ -241,7 +241,7 @@ def includeme(config):  # noqa: PLR0915
     config.add_route("admin.email", "/admin/email")
     config.add_route(
         "admin.email.section",
-        "/admin/email/{section:digest|mention}",
+        "/admin/email/{section:digest|mentions}",
     )
 
     config.add_route(
