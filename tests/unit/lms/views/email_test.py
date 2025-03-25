@@ -5,7 +5,7 @@ from h_matchers import Any
 from pyramid.httpexceptions import HTTPFound
 
 from lms.security import EmailPreferencesIdentity
-from lms.services import EmailPrefs
+from lms.services import EmailPreferences
 from lms.views.email import EmailPreferencesViews, forbidden
 
 pytestmark = pytest.mark.usefixtures("email_preferences_service")
@@ -32,9 +32,11 @@ class TestEmailPreferencesViews:
 
         result = views.unsubscribe()
 
-        email_preferences_service.unsubscribe.assert_called_once_with(sentinel.h_userid)
+        email_preferences_service.instructor_digest_unsubscribe.assert_called_once_with(
+            sentinel.h_userid
+        )
         assert pyramid_request.session.pop_flash("email_preferences_result") == [
-            "You've been unsubscribed from email notifications."
+            "You've been unsubscribed from student annotation email notifications.",
         ]
         remember.assert_called_once_with(
             pyramid_request, pyramid_request.authenticated_userid
@@ -77,13 +79,24 @@ class TestEmailPreferencesViews:
             "jsConfig": {
                 "mode": "email-preferences",
                 "emailPreferences": {
-                    "selectedDays": email_preferences_service.get_preferences.return_value.days.return_value,
+                    "selectedDays": {
+                        "mon": email_preferences_service.get_preferences.return_value.mon,
+                        "tue": email_preferences_service.get_preferences.return_value.tue,
+                        "wed": email_preferences_service.get_preferences.return_value.wed,
+                        "thu": email_preferences_service.get_preferences.return_value.thu,
+                        "fri": email_preferences_service.get_preferences.return_value.fri,
+                        "sat": email_preferences_service.get_preferences.return_value.sat,
+                        "sun": email_preferences_service.get_preferences.return_value.sun,
+                    },
                     "flashMessage": flash_message,
                 },
             }
         }
 
     def test_set_preferences(self, views, email_preferences_service, pyramid_request):
+        email_preferences_service.get_preferences.return_value = EmailPreferences(
+            h_userid=pyramid_request.authenticated_userid
+        )
         pyramid_request.params = {
             "mon": "on",
             "wed": "on",
@@ -96,7 +109,7 @@ class TestEmailPreferencesViews:
         result = views.set_preferences()
 
         email_preferences_service.set_preferences.assert_called_once_with(
-            EmailPrefs(
+            EmailPreferences(
                 pyramid_request.authenticated_userid,
                 mon=True,
                 tue=False,

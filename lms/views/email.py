@@ -5,7 +5,7 @@ from pyramid.security import remember
 from pyramid.view import forbidden_view_config, view_config, view_defaults
 
 from lms.security import Permissions
-from lms.services import EmailPreferencesService, EmailPrefs
+from lms.services import EmailPreferencesService
 
 LOG = logging.getLogger(__name__)
 
@@ -39,11 +39,11 @@ class EmailPreferencesViews:
     )
     def unsubscribe(self):
         """Unsubscribe the email and tag combination encoded in token."""
-        self.request.find_service(EmailPreferencesService).unsubscribe(
+        self.email_preferences_service.instructor_digest_unsubscribe(
             self.request.identity.h_userid
         )
         self.request.session.flash(
-            "You've been unsubscribed from email notifications.",
+            "You've been unsubscribed from student annotation email notifications.",
             "email_preferences_result",
         )
 
@@ -76,13 +76,23 @@ class EmailPreferencesViews:
     )
     def preferences(self):
         flash_messages = self.request.session.pop_flash("email_preferences_result")
+        email_preferences = self.email_preferences_service.get_preferences(
+            self.request.authenticated_userid
+        )
+
         return {
             "jsConfig": {
                 "mode": "email-preferences",
                 "emailPreferences": {
-                    "selectedDays": self.email_preferences_service.get_preferences(
-                        self.request.authenticated_userid
-                    ).days(),
+                    "selectedDays": {
+                        "mon": email_preferences.mon,
+                        "tue": email_preferences.tue,
+                        "wed": email_preferences.wed,
+                        "thu": email_preferences.thu,
+                        "fri": email_preferences.fri,
+                        "sat": email_preferences.sat,
+                        "sun": email_preferences.sun,
+                    },
                     "flashMessage": flash_messages[0] if flash_messages else None,
                 },
             }
@@ -93,13 +103,18 @@ class EmailPreferencesViews:
         request_method="POST",
     )
     def set_preferences(self):
-        self.email_preferences_service.set_preferences(
-            EmailPrefs(
-                self.request.authenticated_userid,
-                **{
-                    key: self.request.params.get(key) == "on" for key in EmailPrefs.DAYS
-                },
-            )
+        email_preferences = self.email_preferences_service.get_preferences(
+            self.request.authenticated_userid
         )
+        params = self.request.params
+        email_preferences.mon = params.get("mon") == "on"
+        email_preferences.tue = params.get("tue") == "on"
+        email_preferences.wed = params.get("wed") == "on"
+        email_preferences.thu = params.get("thu") == "on"
+        email_preferences.fri = params.get("fri") == "on"
+        email_preferences.sat = params.get("sat") == "on"
+        email_preferences.sun = params.get("sun") == "on"
+
+        self.email_preferences_service.set_preferences(email_preferences)
         self.request.session.flash("Preferences saved.", "email_preferences_result")
         return HTTPFound(location=self.request.route_url("email.preferences"))
