@@ -37,7 +37,6 @@ class TestAnnotationActivityEmailService:
                 "assignment_title": assignment.title,
                 "annotation_text": "ANNOTATION_TEXT",
                 "course_title": assignment.course.lms_name,
-                "mentioned_user": mentioned_user.display_name,
             },
             tags=["lms", "mention"],
         )
