@@ -44,6 +44,7 @@ class _Annotation(BaseModel):
     mentions: list[_AnnotationMention]
     metadata: _AnnotationMetadata
     text_rendered: str
+    quote: str | None
 
 
 class AnnotationEvent(BaseModel):
@@ -115,6 +116,7 @@ def annotation_event(*, event) -> None:
             annotation_activity_email_service.send_mention(
                 annotation.id,
                 annotation.text_rendered,
+                annotation.quote,
                 mentioning_user.h_userid,
                 mentioned_user.h_userid,
                 assignment.id,

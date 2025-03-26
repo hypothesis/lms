@@ -24,6 +24,7 @@ class TestAnnotationEvent:
         annotation_activity_email_service.send_mention.assert_called_once_with(
             annotation_event["annotation"]["id"],
             annotation_event["annotation"]["text_rendered"],
+            annotation_event["annotation"]["quote"],
             mentioning_user.h_userid,
             mentioned_user.h_userid,
             assignment.id,
@@ -78,6 +79,7 @@ class TestAnnotationEvent:
                 "created": "2025-03-19T09:01:37.181037+00:00",
                 "updated": "2025-03-19T09:01:37.181037+00:00",
                 "text_rendered": "ANNOTATION TEXT",
+                "quote": "ANNOTATION QUOTE",
                 "user": mentioning_user.h_userid,
                 "uri": "https://example.com/",
                 "text": '<a data-hyp-mention="" data-userid="acct:270d2d38d2ddd16c911661e62f116c@lms.hypothes.is">@Dean Dean</a> ',
