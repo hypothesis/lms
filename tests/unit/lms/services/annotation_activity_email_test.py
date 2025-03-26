@@ -85,6 +85,7 @@ class TestAnnotationActivityEmailService:
 
         assert not svc.send_mention(
             "ANNOTATION_ID",
+            "ANNOTATION_TEXT",
             mentioning_user.h_userid,
             mentioned_user.h_userid,
             assignment.id,
