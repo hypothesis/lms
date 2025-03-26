@@ -1,8 +1,10 @@
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
+from typing import Self
 from urllib.parse import parse_qs, urlparse
 
+from lms.models import UserPreferences
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.services.jwt import JWTService
 from lms.services.user_preferences import UserPreferencesService
@@ -16,11 +18,12 @@ class InvalidTokenError(Exception):
     pass
 
 
-@dataclass(frozen=True)
-class EmailPrefs:
+@dataclass
+class EmailPreferences:
     DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]  # noqa: RUF012
 
     h_userid: str
+
     mon: bool = True
     tue: bool = True
     wed: bool = True
@@ -29,8 +32,39 @@ class EmailPrefs:
     sat: bool = True
     sun: bool = True
 
-    def days(self) -> dict:
-        return {key: value for key, value in asdict(self).items() if key in self.DAYS}
+    @staticmethod
+    def user_preferences_key_for_email_digest_date(datetime_: datetime) -> str:
+        return f"instructor_email_digests.days.{EmailPreferences.DAYS[datetime_.weekday()]}"
+
+    def unsubscribe_instructor_digest(self) -> None:
+        self.mon = self.tue = self.wed = self.thu = self.fri = self.sat = self.sun = (
+            False
+        )
+
+    def serialize(self) -> dict[str, bool]:
+        return {
+            "instructor_email_digests.days.mon": self.mon,
+            "instructor_email_digests.days.tue": self.tue,
+            "instructor_email_digests.days.wed": self.wed,
+            "instructor_email_digests.days.thu": self.thu,
+            "instructor_email_digests.days.fri": self.fri,
+            "instructor_email_digests.days.sat": self.sat,
+            "instructor_email_digests.days.sun": self.sun,
+        }
+
+    @classmethod
+    def from_user_preferences(cls, user_preferences: UserPreferences) -> Self:
+        preferences = user_preferences.preferences
+        return cls(
+            h_userid=user_preferences.h_userid,
+            mon=preferences.get("instructor_email_digests.days.mon", cls.mon),
+            tue=preferences.get("instructor_email_digests.days.tue", cls.tue),
+            wed=preferences.get("instructor_email_digests.days.wed", cls.wed),
+            thu=preferences.get("instructor_email_digests.days.thu", cls.thu),
+            fri=preferences.get("instructor_email_digests.days.fri", cls.fri),
+            sat=preferences.get("instructor_email_digests.days.sat", cls.sat),
+            sun=preferences.get("instructor_email_digests.days.sun", cls.sun),
+        )
 
 
 @dataclass(frozen=True)
@@ -78,11 +112,11 @@ class EmailPreferencesService:
             _query={"token": self._encode_token(TokenPayload(h_userid, tag))},
         )
 
-    def unsubscribe(self, h_userid):
+    def instructor_digest_unsubscribe(self, h_userid) -> None:
         """Unsubscribe `h_userid` from emails of type `tag`."""
-        self.set_preferences(
-            EmailPrefs(h_userid, **{day: False for day in EmailPrefs.DAYS})
-        )
+        email_preferences = self.get_preferences(h_userid)
+        email_preferences.unsubscribe_instructor_digest()
+        self.set_preferences(email_preferences)
 
     def decode(self, url: str) -> TokenPayload:
         """Return the decoded token from the given URL.
@@ -106,26 +140,16 @@ class EmailPreferencesService:
         except (ExpiredJWTError, InvalidJWTError) as err:
             raise InvalidTokenError from err
 
-    KEY_PREFIX = "instructor_email_digests.days."
-
-    def get_preferences(self, h_userid) -> EmailPrefs:
+    def get_preferences(self, h_userid) -> EmailPreferences:
         """Return h_userid's email preferences."""
-        user_preferences = self._user_preferences_service.get(h_userid)
-
-        return EmailPrefs(
-            h_userid=user_preferences.h_userid,
-            **{
-                key[len(self.KEY_PREFIX) :]: value
-                for key, value in user_preferences.preferences.items()
-                if key.startswith(self.KEY_PREFIX)
-            },
+        return EmailPreferences.from_user_preferences(
+            user_preferences=self._user_preferences_service.get(h_userid)
         )
 
-    def set_preferences(self, prefs: EmailPrefs) -> None:
+    def set_preferences(self, email_preferences: EmailPreferences) -> None:
         """Create or update h_userid's email preferences."""
         self._user_preferences_service.set(
-            prefs.h_userid,
-            {self.KEY_PREFIX + key: value for key, value in prefs.days().items()},
+            email_preferences.h_userid, email_preferences.serialize()
         )
 
     def _encode_token(self, payload: TokenPayload):

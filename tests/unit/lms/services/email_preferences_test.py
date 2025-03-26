@@ -4,8 +4,8 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.services.email_preferences import (
+    EmailPreferences,
     EmailPreferencesService,
-    EmailPrefs,
     InvalidTokenError,
     TokenPayload,
     UnrecognisedURLError,
@@ -15,7 +15,7 @@ from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from tests import factories
 
 
-class TestEmailPrefs:
+class TestEmailPreferences:
     @pytest.mark.parametrize(
         "kwargs,expected_attrs",
         (
@@ -54,28 +54,11 @@ class TestEmailPrefs:
         ),
     )
     def test___init__(self, kwargs, expected_attrs):
-        prefs = EmailPrefs(h_userid=sentinel.h_userid, **kwargs)
+        prefs = EmailPreferences(h_userid=sentinel.h_userid, **kwargs)
 
         assert prefs.h_userid == sentinel.h_userid
         for attr, value in expected_attrs.items():
             assert getattr(prefs, attr) == value
-
-    def test_days(self):
-        prefs = EmailPrefs(
-            h_userid=sentinel.h_userid, mon=False, wed=False, fri=False, sun=False
-        )
-
-        days = prefs.days()
-
-        assert days == {
-            "mon": False,
-            "tue": True,
-            "wed": False,
-            "thu": True,
-            "fri": False,
-            "sat": True,
-            "sun": False,
-        }
 
 
 class TestEmailPreferencesService:
@@ -98,11 +81,11 @@ class TestEmailPreferencesService:
         )
         assert url == f"http://example.com/email/{path}?token=TOKEN"
 
-    def test_unsubscribe(self, svc, user_preferences_service):
-        svc.unsubscribe(sentinel.h_userid)
+    def test_instructor_digest_unsubscribe(self, svc, user_preferences_service):
+        svc.instructor_digest_unsubscribe(sentinel.h_userid)
 
         user_preferences_service.set.assert_called_once_with(
-            sentinel.h_userid,
+            user_preferences_service.get.return_value.h_userid,
             {
                 "instructor_email_digests.days.mon": False,
                 "instructor_email_digests.days.tue": False,
@@ -157,12 +140,12 @@ class TestEmailPreferencesService:
         preferences = svc.get_preferences(sentinel.h_userid)
 
         user_preferences_service.get.assert_called_once_with(sentinel.h_userid)
-        assert preferences == EmailPrefs(
+        assert preferences == EmailPreferences(
             h_userid=sentinel.h_userid, mon=True, tue=False
         )
 
     def test_set_preferences(self, svc, user_preferences_service):
-        svc.set_preferences(EmailPrefs(sentinel.h_userid, tue=True, wed=False))
+        svc.set_preferences(EmailPreferences(sentinel.h_userid, tue=True, wed=False))
 
         user_preferences_service.set.assert_called_once_with(
             sentinel.h_userid,

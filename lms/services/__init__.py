@@ -7,7 +7,7 @@ from lms.services.canvas import CanvasService
 from lms.services.canvas_studio import CanvasStudioService
 from lms.services.d2l_api.client import D2LAPIClient
 from lms.services.digest import DigestService
-from lms.services.email_preferences import EmailPreferencesService, EmailPrefs
+from lms.services.email_preferences import EmailPreferences, EmailPreferencesService
 from lms.services.event import EventService
 from lms.services.exceptions import (
     CanvasAPIError,

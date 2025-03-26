@@ -13,7 +13,7 @@ from lms.models import (
     User,
     UserPreferences,
 )
-from lms.services import DigestService, EmailPreferencesService, EmailPrefs
+from lms.services import DigestService, EmailPreferences
 from lms.tasks.celery import app
 
 LOG = logging.getLogger(__name__)
@@ -44,7 +44,6 @@ def send_instructor_email_digest_tasks():
     don't need complete accuracy in the timing).
     """
     now = datetime.now(UTC)
-    weekday = EmailPrefs.DAYS[now.weekday()]
     created_before = datetime(
         year=now.year, month=now.month, day=now.day, hour=5, tzinfo=UTC
     )
@@ -93,7 +92,9 @@ def send_instructor_email_digest_tasks():
                     LTIRole.type == "instructor",
                     not_(
                         UserPreferences.preferences[
-                            f"{EmailPreferencesService.KEY_PREFIX}{weekday}"
+                            EmailPreferences.user_preferences_key_for_email_digest_date(
+                                now
+                            ),
                         ]
                         .astext.cast(Boolean)
                         .is_(False)
