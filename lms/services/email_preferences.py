@@ -1,10 +1,20 @@
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
+from enum import StrEnum
 from typing import Self
 from urllib.parse import parse_qs, urlparse
 
-from lms.models import UserPreferences
+from sqlalchemy import and_, or_, select
+
+from lms.models import (
+    LMSCourseMembership,
+    LMSUser,
+    LTIRole,
+    RoleScope,
+    RoleType,
+    UserPreferences,
+)
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.services.jwt import JWTService
 from lms.services.user_preferences import UserPreferencesService
@@ -18,11 +28,20 @@ class InvalidTokenError(Exception):
     pass
 
 
+class EmailTypes(StrEnum):
+    """Different types of emails sent by the application."""
+
+    INSTRUCTOR_DIGEST = "instructor_digest"
+    MENTION = "mention"
+
+
 @dataclass
 class EmailPreferences:
     DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]  # noqa: RUF012
 
     h_userid: str
+    is_instructor: bool
+    mention_email_feature_enabled: bool
 
     mon: bool = True
     tue: bool = True
@@ -32,14 +51,11 @@ class EmailPreferences:
     sat: bool = True
     sun: bool = True
 
+    mention_email_subscribed: bool = True
+
     @staticmethod
     def user_preferences_key_for_email_digest_date(datetime_: datetime) -> str:
         return f"instructor_email_digests.days.{EmailPreferences.DAYS[datetime_.weekday()]}"
-
-    def unsubscribe_instructor_digest(self) -> None:
-        self.mon = self.tue = self.wed = self.thu = self.fri = self.sat = self.sun = (
-            False
-        )
 
     def serialize(self) -> dict[str, bool]:
         return {
@@ -50,13 +66,22 @@ class EmailPreferences:
             "instructor_email_digests.days.fri": self.fri,
             "instructor_email_digests.days.sat": self.sat,
             "instructor_email_digests.days.sun": self.sun,
+            "mention_email.subscribed": self.mention_email_subscribed,
         }
 
     @classmethod
-    def from_user_preferences(cls, user_preferences: UserPreferences) -> Self:
+    def from_user_preferences(
+        cls,
+        is_instructor: bool,  # noqa: FBT001
+        mention_email_feature_enabled: bool,  # noqa: FBT001
+        user_preferences: UserPreferences,
+    ) -> Self:
         preferences = user_preferences.preferences
+
         return cls(
             h_userid=user_preferences.h_userid,
+            is_instructor=is_instructor,
+            mention_email_feature_enabled=mention_email_feature_enabled,
             mon=preferences.get("instructor_email_digests.days.mon", cls.mon),
             tue=preferences.get("instructor_email_digests.days.tue", cls.tue),
             wed=preferences.get("instructor_email_digests.days.wed", cls.wed),
@@ -64,6 +89,9 @@ class EmailPreferences:
             fri=preferences.get("instructor_email_digests.days.fri", cls.fri),
             sat=preferences.get("instructor_email_digests.days.sat", cls.sat),
             sun=preferences.get("instructor_email_digests.days.sun", cls.sun),
+            mention_email_subscribed=preferences.get(
+                "mention_email.subscribed", cls.mention_email_subscribed
+            ),
         )
 
 
@@ -112,10 +140,23 @@ class EmailPreferencesService:
             _query={"token": self._encode_token(TokenPayload(h_userid, tag))},
         )
 
-    def instructor_digest_unsubscribe(self, h_userid) -> None:
+    def unsubscribe(self, h_userid, tag) -> None:
         """Unsubscribe `h_userid` from emails of type `tag`."""
         email_preferences = self.get_preferences(h_userid)
-        email_preferences.unsubscribe_instructor_digest()
+        if tag == EmailTypes.INSTRUCTOR_DIGEST:
+            email_preferences.mon = False
+            email_preferences.tue = False
+            email_preferences.wed = False
+            email_preferences.thu = False
+            email_preferences.fri = False
+            email_preferences.sat = False
+            email_preferences.sun = False
+        elif tag == EmailTypes.MENTION:
+            email_preferences.mention_email_subscribed = False
+        else:  # pragma: no cover
+            error_message = f"Unrecognized email tag: {tag}"
+            raise ValueError(error_message)
+
         self.set_preferences(email_preferences)
 
     def decode(self, url: str) -> TokenPayload:
@@ -142,8 +183,23 @@ class EmailPreferencesService:
 
     def get_preferences(self, h_userid) -> EmailPreferences:
         """Return h_userid's email preferences."""
+        is_instructor = self._is_instructor(h_userid)
+
+        lms_user: LMSUser = self._db.execute(
+            select(LMSUser).where(LMSUser.h_userid == h_userid)
+        ).scalar_one()
+
+        ai_settings = lms_user.application_instance.settings
+
+        mention_email_feature_enabled = ai_settings.get_setting(
+            ai_settings.fields[ai_settings.Settings.HYPOTHESIS_MENTIONS]
+        ) and ai_settings.get_setting(
+            ai_settings.fields[ai_settings.Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS]
+        )
         return EmailPreferences.from_user_preferences(
-            user_preferences=self._user_preferences_service.get(h_userid)
+            is_instructor=is_instructor,
+            mention_email_feature_enabled=mention_email_feature_enabled,
+            user_preferences=self._user_preferences_service.get(h_userid),
         )
 
     def set_preferences(self, email_preferences: EmailPreferences) -> None:
@@ -156,6 +212,29 @@ class EmailPreferencesService:
         return self._jwt_service.encode_with_secret(
             asdict(payload), self._secret, lifetime=timedelta(days=30)
         )
+
+    def _is_instructor(self, h_userid) -> bool:
+        """Check if this h_userid is an instructor anywhere in the system."""
+        return (
+            self._db.execute(
+                select(LMSUser.id)
+                .join(LMSCourseMembership)
+                .join(LTIRole)
+                .where(
+                    LMSUser.h_userid == h_userid,
+                    or_(
+                        and_(
+                            LTIRole.type == RoleType.INSTRUCTOR,
+                            LTIRole.scope == RoleScope.COURSE,
+                        ),
+                        and_(
+                            LTIRole.type == RoleType.ADMIN,
+                            LTIRole.scope == RoleScope.SYSTEM,
+                        ),
+                    ),
+                )
+            )
+        ).scalar() is not None
 
 
 def factory(_context, request):
