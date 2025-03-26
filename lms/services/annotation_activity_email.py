@@ -38,7 +38,6 @@ class AnnotationActivityEmailService:
         email_vars = {
             "assignment_title": assignment.title,
             "course_title": assignment.course.lms_name,
-            "mentioned_user": mentioned_user.display_name,
             "annotation_text": annotation_text,
         }
         send.delay(

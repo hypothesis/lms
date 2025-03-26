@@ -1,7 +1,86 @@
-<p>Hi {{ mentioned_user}}</p>
+{% extends 'lms:templates/email/email_layout.html.jinja2' %}
 
-<p>Someone has mentioned you on an annotation:</p>
+{% block content %}
+<table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width:100%;">
+    <tbody class="mcnTextBlockOuter">
+    <tr>
+        <td valign="top" class="mcnTextBlockInner" style="padding-top:9px;">
+            <!--[if mso]>
+            <table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+                <tr>
+            <![endif]-->
+            <!--[if mso]>
+            <td valign="top" width="599" style="width:599px;">
+            <![endif]-->
+            <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width:100%; min-width:100%;" width="100%" class="mcnTextContentContainer">
+                <tbody>
+                <tr>
+                    <td valign="top" class="mcnTextContent" style="padding-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">
+                        <h1 style="text-align: center;">
+                            <span style="font-size:31px">Someone has mentioned you on an annotation</span>
+                        </h1>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <!--[if mso]>
+            </td>
+            <![endif]-->
+            <!--[if mso]>
+            </tr>
+            </table>
+            <![endif]-->
+        </td>
+    </tr>
+    </tbody>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width:100%;">
+    <tbody class="mcnTextBlockOuter">
+    <tr>
+        <td valign="top" class="mcnTextBlockInner" style="padding-top:9px;">
+            <!--[if mso]>
+            <table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+                <tr>
+            <![endif]-->
+            <!--[if mso]>
+            <td valign="top" width="599" style="width:599px;">
+            <![endif]-->
+            <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width:100%; min-width:100%;" width="100%" class="mcnTextContentContainer">
+                <tbody>
+                <tr>
+                    <td valign="top" class="mcnTextContent" style="padding-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">
 
-<p>{{ course_title }} - {{ assignment_title }}</p>
+                        <p>{{ course_title }} - {{ assignment_title }}</p>
 
-<p> {{ annotation_text | safe }} </p>
+
+                        <table align="left" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:100%; min-width:100%; border: 1px solid #D5D5D5; margin-bottom: 10px">
+                            <tbody>
+                            <tr>
+                                <td valign="top" style="padding: 10px;">
+                                    {% if annotation_quote %}
+                                        <blockquote style="font-style: italic; border-left: 4px solid lightgrey; color: grey; margin: 0 0 10px 0; padding-left: 10px">
+                                            {{ annotation_quote }}
+                                        </blockquote>
+                                    {% endif %}
+
+                                    <p style="margin-bottom: 0">{{ annotation_text | safe }}</p>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <!--[if mso]>
+            </td>
+            <![endif]-->
+            <!--[if mso]>
+            </tr>
+            </table>
+            <![endif]-->
+        </td>
+    </tr>
+    </tbody>
+</table>
+{% endblock %}
