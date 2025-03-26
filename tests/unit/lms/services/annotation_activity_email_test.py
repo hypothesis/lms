@@ -15,7 +15,15 @@ from tests import factories
 
 class TestAnnotationActivityEmailService:
     def test_send_mention(
-        self, svc, mentioning_user, mentioned_user, assignment, db_session, send, sender
+        self,
+        svc,
+        mentioning_user,
+        mentioned_user,
+        assignment,
+        db_session,
+        send,
+        sender,
+        email_preferences_service,
     ):
         db_session.flush()
 
@@ -27,6 +35,12 @@ class TestAnnotationActivityEmailService:
             assignment.id,
         )
 
+        email_preferences_service.unsubscribe_url.assert_called_once_with(
+            mentioned_user.h_userid, "mention"
+        )
+        email_preferences_service.preferences_url.assert_called_once_with(
+            mentioned_user.h_userid, "mention"
+        )
         send.delay.assert_called_once_with(
             template="lms:templates/email/mention/",
             sender=asdict(sender),
@@ -37,8 +51,10 @@ class TestAnnotationActivityEmailService:
                 "assignment_title": assignment.title,
                 "annotation_text": "ANNOTATION_TEXT",
                 "course_title": assignment.course.lms_name,
+                "preferences_url": email_preferences_service.preferences_url.return_value,
             },
             tags=["lms", "mention"],
+            unsubscribe_url=email_preferences_service.unsubscribe_url.return_value,
         )
 
         notification = db_session.execute(select(Notification)).scalar_one()
@@ -73,12 +89,16 @@ class TestAnnotationActivityEmailService:
         )
 
     @pytest.fixture
-    def svc(self, db_session, sender):
-        return AnnotationActivityEmailService(db_session, sender)
+    def svc(self, db_session, sender, email_preferences_service):
+        return AnnotationActivityEmailService(
+            db_session, sender, email_preferences_service=email_preferences_service
+        )
 
 
 class TestServiceFactory:
-    def test_it(self, pyramid_request, AnnotationActivityEmailService):
+    def test_it(
+        self, pyramid_request, AnnotationActivityEmailService, email_preferences_service
+    ):
         settings = pyramid_request.registry.settings
         settings["mailchimp_annotation_activity_subaccount"] = (
             sentinel.annotation_activity_subaccount
@@ -99,6 +119,7 @@ class TestServiceFactory:
                 sentinel.annotation_activity_from_email,
                 sentinel.annotation_activity_from_name,
             ),
+            email_preferences_service=email_preferences_service,
         )
         assert service == AnnotationActivityEmailService.return_value
 
