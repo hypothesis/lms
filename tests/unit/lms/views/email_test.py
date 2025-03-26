@@ -16,6 +16,16 @@ def test_forbidden(pyramid_request):
 
 
 class TestEmailPreferencesViews:
+    @pytest.mark.parametrize(
+        "tag,expected_message",
+        (
+            (
+                "instructor_digest",
+                "You've been unsubscribed from student annotation email notifications.",
+            ),
+            ("mention", "You've been unsubscribed from mention emails."),
+        ),
+    )
     def test_unsubscribe(
         self,
         views,
@@ -23,20 +33,22 @@ class TestEmailPreferencesViews:
         email_preferences_service,
         remember,
         pyramid_request,
+        tag,
+        expected_message,
     ):
         remember.return_value = [("foo", "bar")]
         pyramid_config.testing_securitypolicy(
             userid=sentinel.h_userid,
-            identity=EmailPreferencesIdentity(sentinel.h_userid, sentinel.tag),
+            identity=EmailPreferencesIdentity(sentinel.h_userid, tag),
         )
 
         result = views.unsubscribe()
 
-        email_preferences_service.instructor_digest_unsubscribe.assert_called_once_with(
-            sentinel.h_userid
+        email_preferences_service.unsubscribe.assert_called_once_with(
+            sentinel.h_userid, tag
         )
         assert pyramid_request.session.pop_flash("email_preferences_result") == [
-            "You've been unsubscribed from student annotation email notifications.",
+            expected_message
         ]
         remember.assert_called_once_with(
             pyramid_request, pyramid_request.authenticated_userid
@@ -75,27 +87,45 @@ class TestEmailPreferencesViews:
         email_preferences_service.get_preferences.assert_called_once_with(
             pyramid_request.authenticated_userid
         )
-        assert result == {
+        preferences = email_preferences_service.get_preferences.return_value
+        expected = {
             "jsConfig": {
                 "mode": "email-preferences",
                 "emailPreferences": {
+                    "is_instructor": preferences.is_instructor,
                     "selectedDays": {
-                        "mon": email_preferences_service.get_preferences.return_value.mon,
-                        "tue": email_preferences_service.get_preferences.return_value.tue,
-                        "wed": email_preferences_service.get_preferences.return_value.wed,
-                        "thu": email_preferences_service.get_preferences.return_value.thu,
-                        "fri": email_preferences_service.get_preferences.return_value.fri,
-                        "sat": email_preferences_service.get_preferences.return_value.sat,
-                        "sun": email_preferences_service.get_preferences.return_value.sun,
+                        "mon": preferences.mon,
+                        "tue": preferences.tue,
+                        "wed": preferences.wed,
+                        "thu": preferences.thu,
+                        "fri": preferences.fri,
+                        "sat": preferences.sat,
+                        "sun": preferences.sun,
                     },
+                    "mention_email_feature_enabled": preferences.mention_email_feature_enabled,
+                    "mention_email_subscribed": preferences.mention_email_subscribed,
                     "flashMessage": flash_message,
                 },
             }
         }
+        assert result == expected
 
-    def test_set_preferences(self, views, email_preferences_service, pyramid_request):
+    @pytest.mark.parametrize("mention_email_feature_enabled", (True, False))
+    @pytest.mark.parametrize("mention_email_subscribed_form", ("on", "off"))
+    @pytest.mark.parametrize("is_instructor", (True, False))
+    def test_set_preferences(
+        self,
+        views,
+        email_preferences_service,
+        pyramid_request,
+        mention_email_feature_enabled,
+        mention_email_subscribed_form,
+        is_instructor,
+    ):
         email_preferences_service.get_preferences.return_value = EmailPreferences(
-            h_userid=pyramid_request.authenticated_userid
+            is_instructor=is_instructor,
+            mention_email_feature_enabled=mention_email_feature_enabled,
+            h_userid=pyramid_request.authenticated_userid,
         )
         pyramid_request.params = {
             "mon": "on",
@@ -104,6 +134,7 @@ class TestEmailPreferencesViews:
             "fri": "on",
             "sun": "on",
             "foo": "bar",
+            "mention_email_subscribed": mention_email_subscribed_form,
         }
 
         result = views.set_preferences()
@@ -111,12 +142,17 @@ class TestEmailPreferencesViews:
         email_preferences_service.set_preferences.assert_called_once_with(
             EmailPreferences(
                 pyramid_request.authenticated_userid,
+                is_instructor=is_instructor,
+                mention_email_feature_enabled=mention_email_feature_enabled,
+                mention_email_subscribed=True
+                if not mention_email_feature_enabled
+                else mention_email_subscribed_form == "on",
                 mon=True,
-                tue=False,
+                tue=not is_instructor,
                 wed=True,
-                thu=False,
+                thu=not is_instructor,
                 fri=True,
-                sat=False,
+                sat=not is_instructor,
                 sun=True,
             )
         )

@@ -10,6 +10,7 @@ from lms.services.annotation_activity_email import (
     AnnotationActivityEmailService,
     factory,
 )
+from lms.services.email_preferences import EmailPreferences
 from lms.services.mailchimp import EmailRecipient, EmailSender
 from tests import factories
 
@@ -84,6 +85,36 @@ class TestAnnotationActivityEmailService:
     ):
         _ = request.getfixturevalue(fixture_name)
         db_session.flush()
+
+        assert not svc.send_mention(
+            "ANNOTATION_ID",
+            "ANNOTATION_TEXT",
+            "ANNOTATION_QUOTE",
+            mentioning_user.h_userid,
+            mentioned_user.h_userid,
+            assignment.id,
+        )
+
+        send.delay.assert_not_called()
+
+    def test_with_should_not_notify_unsubscribed(
+        self,
+        svc,
+        send,
+        db_session,
+        mentioning_user,
+        mentioned_user,
+        assignment,
+        email_preferences_service,
+    ):
+        db_session.flush()
+
+        email_preferences_service.get_preferences.return_value = EmailPreferences(
+            h_userid=mentioned_user.h_userid,
+            is_instructor=False,
+            mention_email_subscribed=False,
+            mention_email_feature_enabled=True,
+        )
 
         assert not svc.send_mention(
             "ANNOTATION_ID",

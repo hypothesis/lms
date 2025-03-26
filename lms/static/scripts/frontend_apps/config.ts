@@ -241,6 +241,10 @@ export type SelectedDays = Record<WeekDay, boolean>;
 export type EmailPreferences = {
   selectedDays: SelectedDays;
   flashMessage: string | null;
+
+  is_instructor: boolean;
+  mention_email_feature_enabled: boolean;
+  mention_email_subscribed: boolean;
 };
 
 /**
