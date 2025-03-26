@@ -45,10 +45,11 @@ class AnnotationActivityEmailService:
             >= ANNOTATION_NOTIFICATION_LIMIT
         )
 
-    def send_mention(
+    def send_mention(  # noqa: PLR0913
         self,
         annotation_id: str,
         annotation_text: str,
+        annotation_quote: str | None,
         mentioning_user_h_userid: str,
         mentioned_user_h_userid: str,
         assignment_id: int,
@@ -86,6 +87,7 @@ class AnnotationActivityEmailService:
             "assignment_title": assignment.title,
             "course_title": assignment.course.lms_name,
             "annotation_text": annotation_text,
+            "annotation_quote": annotation_quote,
             "preferences_url": self._email_preferences_service.preferences_url(
                 mentioned_user.h_userid, "mention"
             ),

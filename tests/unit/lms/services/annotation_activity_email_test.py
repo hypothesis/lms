@@ -31,6 +31,7 @@ class TestAnnotationActivityEmailService:
         svc.send_mention(
             "ANNOTATION_ID",
             "ANNOTATION_TEXT",
+            "ANNOTATION_QUOTE",
             mentioning_user.h_userid,
             mentioned_user.h_userid,
             assignment.id,
@@ -51,6 +52,7 @@ class TestAnnotationActivityEmailService:
             template_vars={
                 "assignment_title": assignment.title,
                 "annotation_text": "ANNOTATION_TEXT",
+                "annotation_quote": "ANNOTATION_QUOTE",
                 "course_title": assignment.course.lms_name,
                 "preferences_url": email_preferences_service.preferences_url.return_value,
             },
@@ -86,6 +88,7 @@ class TestAnnotationActivityEmailService:
         assert not svc.send_mention(
             "ANNOTATION_ID",
             "ANNOTATION_TEXT",
+            "ANNOTATION_QUOTE",
             mentioning_user.h_userid,
             mentioned_user.h_userid,
             assignment.id,

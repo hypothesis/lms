@@ -109,7 +109,8 @@ class AdminEmailViews:
 MENTION_EMAIL_TEMPLATE_VARS = {
     "course_title": "COURSE TITLE",
     "assignment_title": "ASSIGNMENT TITLE",
-    "annotation_text": "ANNOTATION TEXT",
+    "annotation_text": 'ANNOTATION TEXT <a data-hyp-mention="" data-userid="acct:1234567@lms.hypothes.is">@John Doe</a>',
+    "annotation_quote": "ANNOTATION QUOTE",
 }
 
 
