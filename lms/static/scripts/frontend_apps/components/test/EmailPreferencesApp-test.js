@@ -23,8 +23,17 @@ describe('EmailPreferencesApp', () => {
     $imports.$restore();
   });
 
-  function createComponent(flashMessage = null) {
-    const emailPreferences = { selectedDays, flashMessage };
+  function createComponent({
+    flashMessage = null,
+    isInstructor = true,
+    mentionsEnabled = false,
+  } = {}) {
+    const emailPreferences = {
+      selectedDays,
+      flashMessage,
+      is_instructor: isInstructor,
+      mention_email_feature_enabled: mentionsEnabled,
+    };
 
     return mount(
       <Config.Provider value={{ emailPreferences }}>
@@ -35,9 +44,9 @@ describe('EmailPreferencesApp', () => {
 
   function updateSelectedDays(wrapper, newSelectedDays) {
     wrapper
-      .find('EmailPreferences')
+      .find('EmailDigestPreferences')
       .props()
-      .updateSelectedDays(newSelectedDays);
+      .onSelectedDaysChange(newSelectedDays);
     wrapper.update();
   }
 
@@ -48,7 +57,7 @@ describe('EmailPreferencesApp', () => {
 
   it('loads preferences from config', () => {
     const wrapper = createComponent();
-    const preferencesComponent = wrapper.find('EmailPreferences');
+    const preferencesComponent = wrapper.find('EmailDigestPreferences');
 
     assert.isTrue(preferencesComponent.exists());
     assert.equal(preferencesComponent.prop('selectedDays'), selectedDays);
@@ -63,10 +72,13 @@ describe('EmailPreferencesApp', () => {
 
     updateSelectedDays(wrapper, newSelectedDays);
 
-    assert.deepEqual(wrapper.find('EmailPreferences').prop('selectedDays'), {
-      ...selectedDays,
-      ...newSelectedDays,
-    });
+    assert.deepEqual(
+      wrapper.find('EmailDigestPreferences').prop('selectedDays'),
+      {
+        ...selectedDays,
+        ...newSelectedDays,
+      },
+    );
   });
 
   [
@@ -83,7 +95,7 @@ describe('EmailPreferencesApp', () => {
     },
   ].forEach(({ newSelectedDays, toastMessagesAfterUpdate }) => {
     it('hides toast message if selected days are updated', () => {
-      const wrapper = createComponent('Success!');
+      const wrapper = createComponent({ flashMessage: 'Success!' });
 
       assert.equal(getToastMessages(wrapper).length, 1);
       updateSelectedDays(wrapper, newSelectedDays);
@@ -91,13 +103,14 @@ describe('EmailPreferencesApp', () => {
     });
   });
 
-  it('sets saving to true when preferences are saved', () => {
+  it('disables submit button when preferences are being saved', () => {
     const wrapper = createComponent();
 
-    wrapper.find('EmailPreferences').props().onSave();
-    wrapper.update();
+    wrapper.find('form').simulate('submit');
 
-    assert.isTrue(wrapper.find('EmailPreferences').prop('saving'));
+    assert.isTrue(
+      wrapper.find('Button[data-testid="save-button"]').prop('disabled'),
+    );
   });
 
   [
@@ -108,10 +121,24 @@ describe('EmailPreferencesApp', () => {
     },
   ].forEach(({ flashMessageFromConfig, expectedToastMessages }) => {
     it('renders flash message as toast message', () => {
-      const wrapper = createComponent(flashMessageFromConfig);
+      const wrapper = createComponent({ flashMessage: flashMessageFromConfig });
       const messages = getToastMessages(wrapper);
 
       assert.equal(messages.length, expectedToastMessages);
+    });
+  });
+
+  [true, false].forEach(isInstructor => {
+    it('shows EmailDigestPreferences only for instructors', () => {
+      const wrapper = createComponent({ isInstructor });
+      assert.equal(wrapper.exists('EmailDigestPreferences'), isInstructor);
+    });
+  });
+
+  [true, false].forEach(mentionsEnabled => {
+    it('shows EmailMentionsPreferences only if mentions are enabled', () => {
+      const wrapper = createComponent({ mentionsEnabled });
+      assert.equal(wrapper.exists('EmailMentionsPreferences'), mentionsEnabled);
     });
   });
 });

@@ -1,6 +1,8 @@
 import {
+  Button,
   InfoIcon,
   Link,
+  Panel,
   ToastMessages,
   useToastMessages,
 } from '@hypothesis/frontend-shared';
@@ -9,7 +11,8 @@ import { useCallback, useState } from 'preact/hooks';
 
 import type { SelectedDays, WeekDay } from '../config';
 import { useConfig } from '../config';
-import EmailPreferences from './EmailPreferences';
+import EmailDigestPreferences from './EmailDigestPreferences';
+import EmailMentionsPreferences from './EmailMentionsPreferences';
 
 export default function EmailPreferencesApp() {
   const { emailPreferences } = useConfig(['emailPreferences']);
@@ -71,15 +74,41 @@ export default function EmailPreferencesApp() {
           />
         </div>
       </div>
-      <div className="flex flex-col gap-y-4 py-8">
-        <div className="max-w-[450px] mx-auto">
-          <EmailPreferences
-            selectedDays={selectedDays}
-            updateSelectedDays={updateSelectedDays}
-            onSave={onSave}
-            saving={saving}
-          />
-        </div>
+      <div className="flex flex-col gap-y-4 pb-8 pt-4 md:pt-8 px-4">
+        <form
+          method="post"
+          onSubmit={onSave}
+          className="flex flex-col gap-3 mx-auto max-w-[450px]"
+        >
+          <Panel
+            title="Email notifications"
+            fullWidthHeader
+            buttons={
+              <Button
+                variant="primary"
+                type="submit"
+                disabled={saving}
+                data-testid="save-button"
+              >
+                Save
+              </Button>
+            }
+          >
+            <div className="flex flex-col gap-y-8">
+              {emailPreferences.is_instructor && (
+                <EmailDigestPreferences
+                  selectedDays={selectedDays}
+                  onSelectedDaysChange={updateSelectedDays}
+                />
+              )}
+              {emailPreferences.mention_email_feature_enabled && (
+                <EmailMentionsPreferences
+                  subscribed={emailPreferences.mention_email_subscribed}
+                />
+              )}
+            </div>
+          </Panel>
+        </form>
         <p className="text-center text-grey-8">
           <InfoIcon className="inline" /> Do you need help? Visit our{' '}
           <Link
