@@ -4,7 +4,7 @@ from dataclasses import asdict
 from sqlalchemy import exists, func, select
 
 from lms.models import Assignment, LMSUser, Notification
-from lms.services.email_preferences import EmailPreferencesService
+from lms.services.email_preferences import EmailPreferencesService, EmailTypes
 from lms.services.mailchimp import EmailRecipient, EmailSender
 from lms.tasks.mailchimp import send
 
@@ -64,6 +64,22 @@ class AnnotationActivityEmailService:
             select(Assignment).where(Assignment.id == assignment_id)
         ).scalar_one()
 
+        email_preferences = self._email_preferences_service.get_preferences(
+            mentioned_user.h_userid
+        )
+
+        if (
+            not email_preferences.mention_email_feature_enabled
+            or not email_preferences.mention_email_subscribed
+        ):
+            LOG.info(
+                "Skipping mention for annotation %r in assignment %r. %r",
+                annotation_id,
+                assignment_id,
+                "user unsubscribed",
+            )
+            return None
+
         if self._user_already_notified(annotation_id, mentioned_user):
             LOG.info(
                 "Skipping mention for annotation %r in assignment %r. %r",
@@ -89,7 +105,7 @@ class AnnotationActivityEmailService:
             "annotation_text": annotation_text,
             "annotation_quote": annotation_quote,
             "preferences_url": self._email_preferences_service.preferences_url(
-                mentioned_user.h_userid, "mention"
+                mentioned_user.h_userid, EmailTypes.MENTION
             ),
         }
         send.delay(
@@ -99,7 +115,7 @@ class AnnotationActivityEmailService:
             template_vars=email_vars,
             tags=["lms", "mention"],
             unsubscribe_url=self._email_preferences_service.unsubscribe_url(
-                mentioned_user.h_userid, "mention"
+                mentioned_user.h_userid, EmailTypes.MENTION
             ),
         )
 

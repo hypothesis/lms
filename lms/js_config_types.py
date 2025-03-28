@@ -62,7 +62,7 @@ class AutoGradingGrade(TypedDict):
     """Current auto-grading grade calculated based on the config and current number of annotations."""
 
     last_grade: float | None
-    """Last grade that was succefully sync to the LMS."""
+    """Last grade that was successfully sync to the LMS."""
 
     last_grade_date: datetime | None
     """Time when `last_grade` was synced to the LMS."""
@@ -134,7 +134,7 @@ class APIStudents(TypedDict):
 
 class DashboardRoutes(TypedDict):
     assignment: str
-    """Fetch a single assigment by ID"""
+    """Fetch a single assignment by ID"""
 
     students_metrics: str
 
@@ -148,7 +148,7 @@ class DashboardRoutes(TypedDict):
     courses: str
     """Paginated endpoint to fetch courses"""
     assignments: str
-    """Paginated endpoint to fetch assigments"""
+    """Paginated endpoint to fetch assignments"""
     students: str
     """Paginated endpoint to fetch students"""
 
@@ -172,3 +172,12 @@ class DashboardConfig(TypedDict):
     """Organization data for dashboard access scoped to one organization. For staff members only."""
 
     routes: DashboardRoutes
+
+
+class EmailPreferences(TypedDict):
+    is_instructor: bool
+    selectedDays: dict[str, bool]
+
+    mention_email_feature_enabled: bool
+    mention_email_subscribed: bool
+    flashMessage: str | None

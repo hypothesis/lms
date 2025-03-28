@@ -4,8 +4,9 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.security import remember
 from pyramid.view import forbidden_view_config, view_config, view_defaults
 
+from lms.js_config_types import EmailPreferences
 from lms.security import Permissions
-from lms.services import EmailPreferencesService
+from lms.services.email_preferences import EmailPreferencesService, EmailTypes
 
 LOG = logging.getLogger(__name__)
 
@@ -39,12 +40,16 @@ class EmailPreferencesViews:
     )
     def unsubscribe(self):
         """Unsubscribe the email and tag combination encoded in token."""
-        self.email_preferences_service.instructor_digest_unsubscribe(
-            self.request.identity.h_userid
+
+        self.email_preferences_service.unsubscribe(
+            self.request.identity.h_userid, self.request.identity.tag
         )
+        messages = {
+            EmailTypes.INSTRUCTOR_DIGEST: "You've been unsubscribed from student annotation email notifications.",
+            EmailTypes.MENTION: "You've been unsubscribed from mention emails.",
+        }
         self.request.session.flash(
-            "You've been unsubscribed from student annotation email notifications.",
-            "email_preferences_result",
+            messages[self.request.identity.tag], "email_preferences_result"
         )
 
         return HTTPFound(
@@ -83,8 +88,9 @@ class EmailPreferencesViews:
         return {
             "jsConfig": {
                 "mode": "email-preferences",
-                "emailPreferences": {
-                    "selectedDays": {
+                "emailPreferences": EmailPreferences(
+                    is_instructor=email_preferences.is_instructor,
+                    selectedDays={
                         "mon": email_preferences.mon,
                         "tue": email_preferences.tue,
                         "wed": email_preferences.wed,
@@ -93,8 +99,10 @@ class EmailPreferencesViews:
                         "sat": email_preferences.sat,
                         "sun": email_preferences.sun,
                     },
-                    "flashMessage": flash_messages[0] if flash_messages else None,
-                },
+                    mention_email_feature_enabled=email_preferences.mention_email_feature_enabled,
+                    mention_email_subscribed=email_preferences.mention_email_subscribed,
+                    flashMessage=flash_messages[0] if flash_messages else None,
+                ),
             }
         }
 
@@ -103,17 +111,26 @@ class EmailPreferencesViews:
         request_method="POST",
     )
     def set_preferences(self):
+        params = self.request.params
         email_preferences = self.email_preferences_service.get_preferences(
             self.request.authenticated_userid
         )
-        params = self.request.params
-        email_preferences.mon = params.get("mon") == "on"
-        email_preferences.tue = params.get("tue") == "on"
-        email_preferences.wed = params.get("wed") == "on"
-        email_preferences.thu = params.get("thu") == "on"
-        email_preferences.fri = params.get("fri") == "on"
-        email_preferences.sat = params.get("sat") == "on"
-        email_preferences.sun = params.get("sun") == "on"
+
+        if email_preferences.is_instructor:
+            email_preferences.mon = params.get("mon") == "on"
+            email_preferences.tue = params.get("tue") == "on"
+            email_preferences.wed = params.get("wed") == "on"
+            email_preferences.thu = params.get("thu") == "on"
+            email_preferences.fri = params.get("fri") == "on"
+            email_preferences.sat = params.get("sat") == "on"
+            email_preferences.sun = params.get("sun") == "on"
+
+        if email_preferences.mention_email_feature_enabled:
+            # Only set the mention_email_subscribed preference if the feature is enabled
+            # This avoids setting it to False if the feature is not yet enabled
+            email_preferences.mention_email_subscribed = (
+                params.get("mention_email_subscribed") == "on"
+            )
 
         self.email_preferences_service.set_preferences(email_preferences)
         self.request.session.flash("Preferences saved.", "email_preferences_result")

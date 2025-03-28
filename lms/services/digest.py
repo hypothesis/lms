@@ -15,7 +15,7 @@ from lms.models import (
     LTIRole,
     User,
 )
-from lms.services.email_preferences import EmailPreferencesService
+from lms.services.email_preferences import EmailPreferencesService, EmailTypes
 from lms.services.h_api import HAPI
 from lms.services.mailchimp import EmailRecipient, EmailSender
 from lms.tasks.mailchimp import send
@@ -60,7 +60,7 @@ class DigestService:
             return
 
         digest["preferences_url"] = self._email_preferences_service.preferences_url(
-            context.user_info.h_userid, "instructor_digest"
+            context.user_info.h_userid, EmailTypes.INSTRUCTOR_DIGEST
         )
 
         if override_to_email is None:
@@ -91,7 +91,7 @@ class DigestService:
             recipient=asdict(EmailRecipient(to_email, context.user_info.display_name)),
             template_vars=digest,
             unsubscribe_url=self._email_preferences_service.unsubscribe_url(
-                context.user_info.h_userid, "instructor_digest"
+                context.user_info.h_userid, EmailTypes.INSTRUCTOR_DIGEST
             ),
         )
 

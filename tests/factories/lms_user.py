@@ -11,3 +11,7 @@ LMSUser = make_factory(
     lms_api_user_id=USER_ID,
     h_userid=H_USERID,
 )
+
+LMSUserApplicationInstance = make_factory(
+    models.LMSUserApplicationInstance, FACTORY_CLASS=SQLAlchemyModelFactory
+)

@@ -7,9 +7,10 @@ These duplicate some of the information stored in User, the main differences bei
 """
 
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lms.db import Base
+from lms.models import ApplicationInstance
 from lms.models._mixins import CreatedUpdatedMixin
 
 
@@ -41,7 +42,7 @@ class LMSUser(CreatedUpdatedMixin, Base):
 
     lms_api_user_id: Mapped[str | None] = mapped_column()
     """
-    ID of the user in the propietary LMS API.
+    ID of the user in the proprietary LMS API.
     """
 
     h_userid: Mapped[str] = mapped_column(unique=True, index=True)
@@ -51,10 +52,20 @@ class LMSUser(CreatedUpdatedMixin, Base):
 
     display_name: Mapped[str | None] = mapped_column(index=True)
 
+    application_instances: Mapped[list[ApplicationInstance]] = relationship(
+        secondary="lms_user_application_instance",
+        order_by="desc(LMSUserApplicationInstance.updated)",
+        viewonly=True,
+    )
+
     @property
     def user_id(self) -> str:
-        """Alias lti_user_id to user_if for compatilbiity with models.User."""
+        """Alias lti_user_id to user_if for compatibility with models.User."""
         return self.lti_user_id
+
+    @property
+    def application_instance(self):
+        return self.application_instances[0]
 
 
 class LMSUserApplicationInstance(CreatedUpdatedMixin, Base):
@@ -69,7 +80,9 @@ class LMSUserApplicationInstance(CreatedUpdatedMixin, Base):
     application_instance_id: Mapped[int] = mapped_column(
         sa.ForeignKey("application_instances.id", ondelete="cascade"), index=True
     )
+    application_instance = relationship("ApplicationInstance")
 
     lms_user_id: Mapped[int] = mapped_column(
         sa.ForeignKey("lms_user.id", ondelete="cascade"), index=True
     )
+    lms_user = relationship("LMSUser")
