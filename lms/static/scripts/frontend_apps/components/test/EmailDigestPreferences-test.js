@@ -1,8 +1,8 @@
 import { mount } from '@hypothesis/frontend-testing';
 
-import EmailPreferences from '../EmailPreferences';
+import EmailDigestPreferences from '../EmailDigestPreferences';
 
-describe('EmailPreferences', () => {
+describe('EmailDigestPreferences', () => {
   let fakeUpdateSelectedDays;
   const initialSelectedDays = {
     sun: true,
@@ -20,9 +20,9 @@ describe('EmailPreferences', () => {
 
   function createComponent(props = {}) {
     return mount(
-      <EmailPreferences
+      <EmailDigestPreferences
         selectedDays={initialSelectedDays}
-        updateSelectedDays={fakeUpdateSelectedDays}
+        onSelectedDaysChange={fakeUpdateSelectedDays}
         {...props}
       />,
     );
@@ -86,23 +86,5 @@ describe('EmailPreferences', () => {
         [day]: !initialSelectedDays[day],
       });
     });
-  });
-
-  [true, false].forEach(saving => {
-    it('disables save button while saving', () => {
-      const wrapper = createComponent({ saving });
-      const button = wrapper.find('Button[data-testid="save-button"]');
-
-      assert.equal(button.prop('disabled'), saving);
-    });
-  });
-
-  it('saves preferences', () => {
-    const onSave = sinon.stub();
-    const wrapper = createComponent({ onSave });
-
-    wrapper.find('form').simulate('submit');
-
-    assert.called(onSave);
   });
 });
