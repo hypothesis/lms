@@ -545,9 +545,7 @@ class RosterService:
             if LTIRoleService.is_instructor(roles) or (
                 LTIRoleService.is_learner(roles)
                 and ai_settings.get_setting(
-                    ai_settings.fields[
-                        ai_settings.Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS
-                    ]
+                    ai_settings.Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS
                 )
             ):
                 email = member.get("email")

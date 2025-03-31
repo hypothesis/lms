@@ -192,9 +192,9 @@ class EmailPreferencesService:
         ai_settings = lms_user.application_instance.settings
 
         mention_email_feature_enabled = ai_settings.get_setting(
-            ai_settings.fields[ai_settings.Settings.HYPOTHESIS_MENTIONS]
+            ai_settings.Settings.HYPOTHESIS_MENTIONS
         ) and ai_settings.get_setting(
-            ai_settings.fields[ai_settings.Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS]
+            ai_settings.Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS
         )
         return EmailPreferences.from_user_preferences(
             is_instructor=is_instructor,
