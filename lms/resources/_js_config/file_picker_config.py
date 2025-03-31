@@ -47,10 +47,10 @@ class FilePickerConfig:
     def moodle_config(cls, request, application_instance):
         ai_settings = application_instance.settings
         files_enabled = ai_settings.get_setting(
-            ai_settings.fields[ai_settings.Settings.MOODLE_FILES_ENABLED]
+            ai_settings.Settings.MOODLE_FILES_ENABLED
         )
         pages_enabled = ai_settings.get_setting(
-            ai_settings.fields[ai_settings.Settings.MOODLE_PAGES_ENABLED]
+            ai_settings.Settings.MOODLE_PAGES_ENABLED
         )
 
         config = {"enabled": files_enabled, "pagesEnabled": pages_enabled}
