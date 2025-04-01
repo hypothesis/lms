@@ -2748,10 +2748,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/google.picker@npm:^0.0.49":
-  version: 0.0.49
-  resolution: "@types/google.picker@npm:0.0.49"
-  checksum: a31fbcb9aae749785cf9dac5db36e0a9a27c501697e2e1e406418ffb07fb949a4059389e8cc7de7715504473f592d971c8c5c90c91cc7b54ab0d2b15a0bd4682
+"@types/google.picker@npm:^0.0.50":
+  version: 0.0.50
+  resolution: "@types/google.picker@npm:0.0.50"
+  checksum: a90c4b554ea5484be5147a5d37afa1cdd99a5d2f726abfa152b343c99c3c62f377773a1993592175d6b82431fc9bb438039670642916129301b257d40f0a1726
   languageName: node
   linkType: hard
 
@@ -7770,7 +7770,7 @@ __metadata:
     "@trivago/prettier-plugin-sort-imports": ^5.2.2
     "@types/gapi": ^0.0.47
     "@types/google.accounts": ^0.0.15
-    "@types/google.picker": ^0.0.49
+    "@types/google.picker": ^0.0.50
     autoprefixer: ^10.4.20
     axe-core: ^4.10.3
     babel-plugin-istanbul: ^7.0.0
