@@ -10,7 +10,7 @@ aiohttp==3.11.9
     # via -r requirements/prod.in
 aiosignal==1.3.1
     # via aiohttp
-alembic==1.14.0
+alembic==1.15.2
     # via -r requirements/prod.in
 amqp==5.2.0
     # via kombu
@@ -244,7 +244,7 @@ transaction==4.0
     #   zope-sqlalchemy
 translationstring==1.4
     # via pyramid
-typing-extensions==4.9.0
+typing-extensions==4.13.0
     # via
     #   alembic
     #   pydantic
