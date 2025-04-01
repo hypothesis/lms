@@ -4,6 +4,7 @@ import pytest
 import requests
 from pyramid.httpexceptions import HTTPBadRequest
 
+from lms.error_code import ErrorCode
 from lms.models.oauth2_token import Service
 from lms.product.product import Routes
 from lms.services import ExternalRequestError, OAuth2TokenError, SerializableError
@@ -47,7 +48,7 @@ class TestOAuth2TokenError:
         error_body = views.oauth2_token_error()
 
         assert pyramid_request.response.status_code == 400
-        assert error_body == ErrorBody()
+        assert error_body == ErrorBody(error_code=ErrorCode.OAUTH2_AUTHORIZATION_ERROR)
 
 
 class TestExternalRequestError:
@@ -90,14 +91,6 @@ class TestExternalRequestError:
                 "validation_errors": context.validation_errors,
             },
         )
-
-    @pytest.mark.parametrize("message", [None, ""])
-    def test_it_injects_a_default_error_message(self, context, message, views):
-        context.message = message
-
-        error_body = views.external_request_error()
-
-        assert error_body.message == "External request failed"
 
     @pytest.fixture
     def context(self):

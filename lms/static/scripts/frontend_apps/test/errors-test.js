@@ -49,11 +49,7 @@ describe('isAuthorizationError', () => {
       expected: false,
     },
     {
-      error: new APIError(404, {}),
-      expected: true,
-    },
-    {
-      error: new APIError(404, { details: 'moose' }),
+      error: new APIError(404, { error_code: 'oauth2_authorization_error' }),
       expected: true,
     },
   ].forEach((testCase, idx) => {
