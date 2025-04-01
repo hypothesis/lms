@@ -18,3 +18,6 @@ class ErrorCode(StrEnum):
     REUSED_CONSUMER_KEY = "reused_consumer_key"
     CANVAS_SUBMISSION_COURSE_NOT_AVAILABLE = "canvas_submission_course_not_available"
     CANVAS_SUBMISSION_MAX_ATTEMPTS = "canvas_submission_max_attempts"
+
+    OAUTH2_AUTHORIZATION_ERROR = "oauth2_authorization_error"
+    """Show the authorization dialog on the front end."""

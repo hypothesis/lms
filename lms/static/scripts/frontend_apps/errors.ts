@@ -140,16 +140,9 @@ export function isAPIError(error: ErrorLike): error is APIError {
 
 /**
  * Should the error be treated as an authorization error?
- *
- * This is a special case. We're handling an APIError resulting from an API
- * request, but there are no further details in the response body to guide us.
- * This implicitly means that we're facing an authorization-related issue.
- *
- * Put another way, if an APIError has neither an errorCode nor a serverMessage,
- * it is considered an "authorization error".
  */
 export function isAuthorizationError(error: ErrorLike): boolean {
-  return isAPIError(error) && !error.serverMessage && !error.errorCode;
+  return isAPIError(error) && error.errorCode === 'oauth2_authorization_error';
 }
 
 /**

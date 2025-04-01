@@ -174,8 +174,10 @@ describe('BasicLTILaunchApp', () => {
     });
 
     it('displays authorization prompt if content URL fetch fails and we can re-authorize', async () => {
-      // Make the initial URL fetch request reject with an unspecified `APIError`.
-      fakeApiCall.rejects(new APIError(400, {}));
+      // Make the initial URL fetch request reject with an authorization error.
+      fakeApiCall.rejects(
+        new APIError(400, { error_code: 'oauth2_authorization_error' }),
+      );
 
       const wrapper = renderLTILaunchApp();
       await spinnerVisible(wrapper);
@@ -206,8 +208,10 @@ describe('BasicLTILaunchApp', () => {
     });
 
     it('does not create a second auth window when Authorize button is clicked twice', async () => {
-      // Make the initial URL fetch request reject with an unspecified `APIError`.
-      fakeApiCall.rejects(new APIError(400, {}));
+      // Make the initial URL fetch request reject with an authorization error.
+      fakeApiCall.rejects(
+        new APIError(400, { error_code: 'oauth2_authorization_error' }),
+      );
 
       const wrapper = renderLTILaunchApp();
       const errorDialog = await waitForElement(
@@ -798,7 +802,9 @@ describe('BasicLTILaunchApp', () => {
     it('shows an error dialog if the first request fails and second succeeds', async () => {
       const wrapper = renderLTILaunchApp();
       // Should show an error after the first request fails
-      contentUrlReject(new APIError(400, {}));
+      contentUrlReject(
+        new APIError(400, { error_code: 'oauth2_authorization_error' }),
+      );
       await waitForElement(
         wrapper,
         'LaunchErrorDialog[errorState="error-authorizing"]',
@@ -822,7 +828,9 @@ describe('BasicLTILaunchApp', () => {
       await contentVisible(wrapper);
 
       // Should show an error after failure
-      groupsCallReject(new APIError(400, {}));
+      groupsCallReject(
+        new APIError(400, { error_code: 'oauth2_authorization_error' }),
+      );
       await waitForElement(
         wrapper,
         'LaunchErrorDialog[errorState="error-authorizing"]',
@@ -846,8 +854,12 @@ describe('BasicLTILaunchApp', () => {
       it('shows an error dialog if the initial content/groups requests reject and second attempt also rejects', async () => {
         const wrapper = renderLTILaunchApp();
         // Both requests reject first
-        contentUrlReject(new APIError(400, {}));
-        groupsCallReject(new APIError(400, {}));
+        contentUrlReject(
+          new APIError(400, { error_code: 'oauth2_authorization_error' }),
+        );
+        groupsCallReject(
+          new APIError(400, { error_code: 'oauth2_authorization_error' }),
+        );
 
         const errorDialog = await waitForElement(
           wrapper,
@@ -869,8 +881,12 @@ describe('BasicLTILaunchApp', () => {
       it('shows an error dialog if contentUrl succeeds but groups rejects first', async () => {
         const wrapper = renderLTILaunchApp();
         // Both requests reject first
-        contentUrlReject(new APIError(400, {}));
-        groupsCallReject(new APIError(400, {}));
+        contentUrlReject(
+          new APIError(400, { error_code: 'oauth2_authorization_error' }),
+        );
+        groupsCallReject(
+          new APIError(400, { error_code: 'oauth2_authorization_error' }),
+        );
 
         const errorDialog = await waitForElement(
           wrapper,
@@ -878,7 +894,9 @@ describe('BasicLTILaunchApp', () => {
         );
         resetApiCalls();
         // groups still fails, but contentUrl does not.
-        groupsCallReject(new APIError(400, {}));
+        groupsCallReject(
+          new APIError(400, { error_code: 'oauth2_authorization_error' }),
+        );
         // Click the "Authorize" button.
         act(() => {
           errorDialog.prop('onRetry')();
@@ -891,8 +909,12 @@ describe('BasicLTILaunchApp', () => {
         const wrapper = renderLTILaunchApp();
 
         // Make initial content URL and groups requests fail.
-        contentUrlReject(new APIError(400, {}));
-        groupsCallReject(new APIError(400, {}));
+        contentUrlReject(
+          new APIError(400, { error_code: 'oauth2_authorization_error' }),
+        );
+        groupsCallReject(
+          new APIError(400, { error_code: 'oauth2_authorization_error' }),
+        );
 
         resetApiCalls();
 

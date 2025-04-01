@@ -15,6 +15,7 @@ from pyramid.view import (
     view_defaults,
 )
 
+from lms.error_code import ErrorCode
 from lms.events import LTIEvent
 from lms.services import (
     CanvasAPIPermissionError,
@@ -55,10 +56,6 @@ class APIExceptionViews:
        indicates that something went wrong and has a [Try again] button that
        opens the OAuth 2 authorize route. The "message" string
        should be rendered by the frontend somewhere in the error dialog.
-
-    If no "error_code" or "message" is present the frontend will show a
-    standard authorization dialog (not an error dialog) and the button that
-    opens the OAuth 2 authorize route will be labelled [Authorize].
 
     3. "details": Optional further error details to show to the user in the
        error dialog, for debugging and support.
@@ -148,15 +145,8 @@ class APIExceptionViews:
 
         report_exception()
 
-        # It's important that this exception view always returns a non-empty
-        # message even if ExternalRequestError.message is None because an error
-        # response JSON body of {} tells the frontend to show the authorization
-        # dialog, whereas {"message": "..."} tells the frontend to show the
-        # error dialog.
-        message = self.context.message or "External request failed"
-
         return ErrorBody(
-            message=message,
+            message=self.context.message,
             details={
                 "request": {
                     "method": self.context.method,
@@ -173,7 +163,7 @@ class APIExceptionViews:
     @exception_view_config(context=OAuth2TokenError)
     def oauth2_token_error(self):
         LOG.debug("Exception view for: OAuth2TokenError")
-        return ErrorBody()
+        return ErrorBody(error_code=ErrorCode.OAUTH2_AUTHORIZATION_ERROR)
 
     @exception_view_config(context=HTTPBadRequest)
     def http_bad_request(self):

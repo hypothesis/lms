@@ -195,10 +195,10 @@ describe('LMSFilePicker', () => {
     assert.deepEqual(pathItems3[1], fakeFolders[0]);
   });
 
-  it('shows the authorization prompt if fetching files fails with an APIError that has no `serverMessage`', async () => {
+  it('shows the authorization prompt if fetching files fails with an APIError that has `oauth2_authorization_code`', async () => {
     fakeApiCall.rejects(
       new APIError('Not authorized', {
-        /** without serverMessage */
+        error_code: 'oauth2_authorization_error',
       }),
     );
 
@@ -230,7 +230,7 @@ describe('LMSFilePicker', () => {
   it('shows the "Authorize" and "Try again" buttons after 2 failed authorization requests', async () => {
     fakeApiCall.rejects(
       new APIError('Not authorized', {
-        /** without serverMessage */
+        error_code: 'oauth2_authorization_error',
       }),
     );
 
