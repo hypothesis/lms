@@ -359,7 +359,7 @@ six==1.16.0
     #   hubspot-api-client
     #   mailchimp-transactional
     #   python-dateutil
-sqlalchemy==2.0.36
+sqlalchemy==2.0.40
     # via
     #   -r requirements/prod.txt
     #   alembic
