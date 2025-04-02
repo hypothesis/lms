@@ -1,6 +1,7 @@
 from dataclasses import asdict, dataclass
 from datetime import date, datetime
 from logging import getLogger
+from typing import TYPE_CHECKING
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import Date, and_, exists, func, or_, select, union
@@ -21,6 +22,9 @@ from lms.models import (
 )
 from lms.services.h_api import HAPI
 from lms.services.organization import OrganizationService
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 LOG = getLogger(__name__)
 
@@ -170,7 +174,7 @@ class OrganizationUsageReportService:
                 f"No courses with activity found for {organization.public_id}"  # noqa: EM102
             )
 
-        lms_courses_with_annos = self._db.scalars(
+        lms_courses_with_annos: Sequence[int] = self._db.scalars(
             # The report is based in courses so we query either
             # courses that match the groups with annos or the parent coursers of segments.
             union(
