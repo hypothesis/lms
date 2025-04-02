@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta  # noqa: A005
+from datetime import datetime, timedelta
 
 from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
 from pyramid.renderers import render

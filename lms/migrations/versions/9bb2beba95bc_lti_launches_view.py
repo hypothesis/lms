@@ -39,7 +39,7 @@ def upgrade():
             JOIN grouping
                 ON event.course_id = grouping.id
             WHERE event.type_id = {launch_event_type_id}
-        )"""
+        )"""  # noqa: S608
     )
 
 

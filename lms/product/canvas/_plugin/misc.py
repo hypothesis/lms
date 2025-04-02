@@ -1,13 +1,16 @@
 import json
 import re
 from functools import lru_cache
-from typing import cast
+from typing import TYPE_CHECKING, cast
 from urllib.parse import unquote, urlencode, urlparse
 
 from lms.js_config_types import AutoGradingConfig
 from lms.models import Assignment
 from lms.product.plugin.misc import AssignmentConfig, MiscPlugin
 from lms.services.vitalsource import VSBookLocation
+
+if TYPE_CHECKING:
+    from lms.js_config_types import AutoGradingConfig
 
 
 class CanvasMiscPlugin(MiscPlugin):
@@ -61,7 +64,7 @@ class CanvasMiscPlugin(MiscPlugin):
         ).get("auto_grading_config"):
             # Auto grading is a complex structure, deserialize it beforehand
             assignment_config["auto_grading_config"] = cast(
-                AutoGradingConfig, json.loads(auto_grading_config)
+                "AutoGradingConfig", json.loads(auto_grading_config)
             )
 
         return assignment_config
