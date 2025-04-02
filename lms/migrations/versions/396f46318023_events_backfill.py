@@ -60,7 +60,7 @@ def upgrade():
         GROUP BY lti_launches.id, lti_launches.created, application_instances.id
         -- Ordering will keep new rows physically sorted on disk which should later help while querying
         ORDER BY lti_launches.created ASC
-    """
+    """  # noqa: S608
     )
     print("\tInserted lti_launches rows into events:", result.rowcount)  # noqa: T201
 
