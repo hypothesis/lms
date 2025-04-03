@@ -34,3 +34,4 @@ sqlparse
 tabulate
 webargs
 xmltodict
+sqlalchemy[asyncio]
