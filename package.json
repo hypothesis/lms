@@ -52,7 +52,7 @@
     "@hypothesis/frontend-testing": "^1.5.0",
     "@types/gapi": "^0.0.47",
     "@types/google.accounts": "^0.0.15",
-    "@types/google.picker": "^0.0.49",
+    "@types/google.picker": "^0.0.50",
     "axe-core": "^4.10.3",
     "babel-plugin-istanbul": "^7.0.0",
     "babel-plugin-mockable-imports": "^2.0.1",
