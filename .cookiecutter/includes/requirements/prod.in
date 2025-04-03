@@ -1,4 +1,5 @@
 aiohttp
+multidict > 6.0.4  # Required to avoid compilation due to deprecated C-API.
 alembic
 celery
 data-tasks
