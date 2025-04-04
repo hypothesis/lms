@@ -127,6 +127,36 @@ class TestAnnotationActivityEmailService:
 
         send.delay.assert_not_called()
 
+    def test_with_should_not_notify_feature_disabled(
+        self,
+        svc,
+        send,
+        db_session,
+        mentioning_user,
+        mentioned_user,
+        assignment,
+        email_preferences_service,
+    ):
+        db_session.flush()
+
+        email_preferences_service.get_preferences.return_value = EmailPreferences(
+            h_userid=mentioned_user.h_userid,
+            is_instructor=False,
+            mention_email_subscribed=True,
+            mention_email_feature_enabled=False,
+        )
+
+        assert not svc.send_mention(
+            "ANNOTATION_ID",
+            "ANNOTATION_TEXT",
+            "ANNOTATION_QUOTE",
+            mentioning_user.h_userid,
+            mentioned_user.h_userid,
+            assignment.id,
+        )
+
+        send.delay.assert_not_called()
+
     @pytest.fixture
     def notification_for_mentioned_user(
         self, mentioned_user, mentioning_user, assignment

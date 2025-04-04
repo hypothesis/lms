@@ -68,33 +68,27 @@ class AnnotationActivityEmailService:
             mentioned_user.h_userid
         )
 
-        if (
-            not email_preferences.mention_email_feature_enabled
-            or not email_preferences.mention_email_subscribed
-        ):
-            LOG.info(
-                "Skipping mention for annotation %r in assignment %r. %r",
-                annotation_id,
-                assignment_id,
-                "user unsubscribed",
+        if not email_preferences.mention_email_feature_enabled:
+            self._log_skip_notification(
+                annotation_id, assignment_id, "feature disabled"
+            )
+            return None
+
+        if not email_preferences.mention_email_subscribed:
+            self._log_skip_notification(
+                annotation_id, assignment_id, "user unsubscribed"
             )
             return None
 
         if self._user_already_notified(annotation_id, mentioned_user):
-            LOG.info(
-                "Skipping mention for annotation %r in assignment %r. %r",
-                annotation_id,
-                assignment_id,
-                "user already notified",
+            self._log_skip_notification(
+                annotation_id, assignment_id, "user already notified"
             )
             return None
 
         if self._over_notification_limit_for_annotation(annotation_id):
-            LOG.info(
-                "Skipping mention for annotation %r in assignment %r. %r",
-                annotation_id,
-                assignment_id,
-                "over annotation limit",
+            self._log_skip_notification(
+                annotation_id, assignment_id, "over annotation limit"
             )
             return None
 
@@ -128,6 +122,14 @@ class AnnotationActivityEmailService:
         )
         self._db.add(notification)
         return notification
+
+    def _log_skip_notification(self, annotation_id, assignment_id, reason):
+        LOG.info(
+            "Skipping mention for annotation %r in assignment %r. %r",
+            annotation_id,
+            assignment_id,
+            reason,
+        )
 
 
 def factory(_context, request):
