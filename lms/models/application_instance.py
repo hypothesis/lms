@@ -167,9 +167,7 @@ class ApplicationSettings(JSONSettings):
             default=True,
         ),
         Settings.HYPOTHESIS_MENTIONS: JSONSetting(
-            Settings.HYPOTHESIS_MENTIONS,
-            SettingFormat.TRI_STATE,
-            default=False,
+            Settings.HYPOTHESIS_MENTIONS, SettingFormat.TRI_STATE, default=True
         ),
     }
 
