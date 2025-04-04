@@ -16,8 +16,8 @@ class Notification(CreatedUpdatedMixin, Base):
     """
 
     class Type(enum.StrEnum):
-        REPLY = "reply"
-        MENTION = "mention"
+        REPLY = "REPLY"
+        MENTION = "MENTION"
 
     __tablename__ = "notification"
 
