@@ -182,6 +182,12 @@ class TestApplicationSettings:
                 "hypothesis.mentions",
                 SettingFormat.TRI_STATE,
             ),
+            (
+                "hypothesis",
+                "pdf_image_annotation",
+                "hypothesis.pdf_image_annotation",
+                SettingFormat.TRI_STATE,
+            ),
         ]
 
 
