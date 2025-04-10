@@ -129,6 +129,7 @@
                             {{ settings_checkbox("Use alternative parameter for LTI1.3 grading", "hypothesis", "lti_13_sourcedid_for_grading", default=False) }}
                             {{ tri_state_settings_checkbox("Collect student emails", fields[Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS]) }}
                             {{ tri_state_settings_checkbox("Mentions", fields[Settings.HYPOTHESIS_MENTIONS]) }}
+                            {{ tri_state_settings_checkbox("PDF image annotation", fields[Settings.HYPOTHESIS_PDF_IMAGE_ANNOTATION]) }}
                         </fieldset>
                         <fieldset class="box">
                             <legend class="label has-text-centered">Canvas settings</legend>

@@ -312,6 +312,26 @@ class TestBasicLaunchViews:
 
         assert result == {}
 
+    @pytest.mark.parametrize("enable", [True, False])
+    def test__show_document_enables_client_features(
+        self, svc, context, pyramid_request, assignment, enable
+    ):
+        pyramid_request.lti_user.application_instance.settings.set(
+            "hypothesis", "mentions", enable
+        )
+        pyramid_request.lti_user.application_instance.settings.set(
+            "hypothesis", "pdf_image_annotation", enable
+        )
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        enabled_features = {
+            call.args[0] for call in context.js_config.enable_client_feature.mock_calls
+        }
+
+        expected_features = {"at_mentions", "pdf_image_annotation"} if enable else set()
+        assert enabled_features == expected_features
+
     @pytest.mark.parametrize("use_toolbar_editing", [True, False])
     @pytest.mark.parametrize("use_toolbar_grading", [True, False])
     @pytest.mark.parametrize("is_gradable", [True, False])

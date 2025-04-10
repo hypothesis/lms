@@ -67,6 +67,7 @@ class ApplicationSettings(JSONSettings):
         )
         HYPOTHESIS_COLLECT_STUDENT_EMAILS = "hypothesis.collect_student_emails"
         HYPOTHESIS_MENTIONS = "hypothesis.mentions"
+        HYPOTHESIS_PDF_IMAGE_ANNOTATION = "hypothesis.pdf_image_annotation"
 
     fields: Mapping[Settings, JSONSetting] = {
         Settings.BLACKBOARD_FILES_ENABLED: JSONSetting(
@@ -168,6 +169,11 @@ class ApplicationSettings(JSONSettings):
         ),
         Settings.HYPOTHESIS_MENTIONS: JSONSetting(
             Settings.HYPOTHESIS_MENTIONS, SettingFormat.TRI_STATE, default=True
+        ),
+        Settings.HYPOTHESIS_PDF_IMAGE_ANNOTATION: JSONSetting(
+            Settings.HYPOTHESIS_PDF_IMAGE_ANNOTATION,
+            SettingFormat.TRI_STATE,
+            default=False,
         ),
     }
 

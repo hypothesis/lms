@@ -264,6 +264,11 @@ class BasicLaunchViews:
         ):
             self.context.js_config.enable_client_feature("at_mentions")
 
+        if ai_settings.get_setting(
+            ai_settings.fields[ai_settings.Settings.HYPOTHESIS_PDF_IMAGE_ANNOTATION]
+        ):
+            self.context.js_config.enable_client_feature("pdf_image_annotation")
+
         # Run any non standard code for the current product
         self._misc_plugin.post_launch_assignment_hook(
             self.request, self.context.js_config, assignment
