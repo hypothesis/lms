@@ -73,7 +73,7 @@ function SyncErrorMessage({ grades }: { grades: StudentGradingSync[] }) {
     <div
       className={classnames(
         'rounded px-2 py-1',
-        'font-bold text-grade-error bg-grade-error-light',
+        'font-bold text-red-dark bg-red-light',
       )}
     >
       Error syncing {count} {count === 1 ? 'grade' : 'grades'}

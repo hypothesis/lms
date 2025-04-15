@@ -43,8 +43,8 @@ function AnnotationCount({
       </div>
       <div
         className={classnames('rounded-full p-1', {
-          'bg-grade-success-light text-grade-success': requirementWasMet,
-          'bg-grade-error-light text-grade-error': !requirementWasMet,
+          'bg-green-light text-green-dark': requirementWasMet,
+          'bg-red-light text-red-dark': !requirementWasMet,
         })}
       >
         {requirementWasMet ? <CheckIcon /> : <CancelIcon />}
