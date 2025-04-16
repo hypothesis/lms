@@ -15,7 +15,7 @@ FROM python:3.11.11-alpine3.19
 LABEL authors="Hypothes.is Project and contributors"
 
 # Install system build and runtime dependencies.
-RUN apk add libpq supervisor
+RUN apk add libpq supervisor git
 
 # Create the lms user, group, home directory and package directory.
 RUN addgroup -S lms \
