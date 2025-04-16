@@ -25,7 +25,7 @@ export default function StudentStatusBadge({
         'px-1 py-0.5 rounded cursor-auto font-bold uppercase text-[0.65rem]',
         {
           'bg-grey-7 text-white': type === 'new' || type === 'drop',
-          'bg-grade-error-light text-grade-error': type === 'error',
+          'bg-red-light text-red-dark': type === 'error',
           'bg-grey-2 text-grey-7': type === 'syncing',
         },
       )}

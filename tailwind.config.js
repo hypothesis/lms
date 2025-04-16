@@ -17,16 +17,6 @@ export default /** @type {Partial<import('tailwindcss').Config>} */ ({
       animation: {
         gradeSubmitSuccess: 'gradeSubmitSuccess 2s ease-out forwards',
       },
-      colors: {
-        grade: {
-          success: '#005c3d',
-          'success-light': '#dfebe7',
-          error: '#891b1d',
-          'error-light': '#f0e2e3',
-          warning: '#774903',
-          'warning-light': '#fef7ec',
-        },
-      },
       fontFamily: {
         sans: [
           '"Helvetica Neue"',
