@@ -18,6 +18,7 @@ class Member(TypedDict):
     """Structure of the members returned by the name and roles LTI API."""
 
     email: str
+    given_name: str
     family_name: str
     name: str
     picture: str
