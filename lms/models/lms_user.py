@@ -51,6 +51,12 @@ class LMSUser(CreatedUpdatedMixin, Base):
     email: Mapped[str | None] = mapped_column()
 
     display_name: Mapped[str | None] = mapped_column(index=True)
+    """Display name that we have obtained by combining LTI fields."""
+
+    given_name: Mapped[str | None] = mapped_column()
+    family_name: Mapped[str | None] = mapped_column()
+    name: Mapped[str | None] = mapped_column()
+    """These are verbatim values from the LTI launch."""
 
     application_instances: Mapped[list[ApplicationInstance]] = relationship(
         secondary="lms_user_application_instance",
