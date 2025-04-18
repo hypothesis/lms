@@ -21,7 +21,7 @@ from lms.models import (
     RoleType,
 )
 from lms.models.h_user import get_h_userid, get_h_username
-from lms.models.lti_user import display_name
+from lms.models.lti_user import display_name as get_display_name
 from lms.services.canvas_api.client import CanvasAPIClient
 from lms.services.canvas_api.factory import canvas_api_client_factory
 from lms.services.d2l_api.client import D2LAPIClient
@@ -509,10 +509,15 @@ class RosterService:
             lms_api_user_id = self._get_lms_api_user_id(
                 member, application_instance.family
             )
-            name = display_name(
-                given_name=member.get("name", ""),
-                family_name=member.get("family_name", ""),
-                full_name="",
+
+            given_name = member.get("given_name", None)
+            family_name = member.get("family_name", None)
+            name = member.get("name", None)
+
+            display_name = get_display_name(
+                given_name=given_name or "",
+                family_name=family_name or "",
+                full_name=name or "",
                 custom_display_name="",
             )
 
@@ -541,7 +546,10 @@ class RosterService:
                     "lti_user_id": lti_user_id,
                     "lti_v13_user_id": lti_v13_user_id,
                     "h_userid": h_userid,
-                    "display_name": name,
+                    "display_name": display_name,
+                    "given_name": given_name,
+                    "family_name": family_name,
+                    "name": name,
                     "lms_api_user_id": lms_api_user_id,
                     "email": email,
                 }

@@ -104,12 +104,18 @@ class UserService:
                     "email": user.email,
                     "display_name": user.display_name,
                     "lms_api_user_id": lms_api_user_id,
+                    "given_name": lti_params.get("lis_person_name_given"),
+                    "family_name": lti_params.get("lis_person_name_family"),
+                    "name": lti_params.get("lis_person_name_full"),
                 }
             ],
             index_elements=["h_userid"],
             update_columns=[
                 "updated",
                 "display_name",
+                "given_name",
+                "family_name",
+                "name",
                 "email",
                 (
                     "lti_v13_user_id",
