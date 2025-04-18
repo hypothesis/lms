@@ -89,6 +89,13 @@ class TestUserService:
         assert lms_user.updated == user.updated
         assert lms_user.lti_v13_user_id == pyramid_request.lti_params.v13.get("sub")
         assert lms_user.lms_api_user_id == "lms_api_user_id"
+        assert lms_user.given_name == pyramid_request.lti_params.get(
+            "lis_person_name_given"
+        )
+        assert lms_user.family_name == pyramid_request.lti_params.get(
+            "lis_person_name_family"
+        )
+        assert lms_user.name == pyramid_request.lti_params.get("lis_person_name_full")
 
     def test_upsert_lms_user_doesnt_clear_lti_v13_user_id(
         self, service, lti_user, pyramid_request, db_session
