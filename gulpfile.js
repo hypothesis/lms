@@ -57,7 +57,7 @@ gulp.task(
   gulp.parallel('build-css', () =>
     runTests({
       bootstrapFile: 'lms/static/scripts/bootstrap.js',
-      karmaConfig: 'lms/static/scripts/karma.config.cjs',
+      vitestConfig: 'vitest.config.js',
       rollupConfig: 'rollup-tests.config.js',
       testsPattern: 'lms/static/scripts/**/*-test.js',
     }),

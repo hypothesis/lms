@@ -54,7 +54,7 @@ describe('Server', () => {
   let listener;
   let receiveMessage;
 
-  beforeEach('set up the test server', () => {
+  beforeEach(() => {
     // The test server normally runs on http://localhost:9876, but may be
     // on a higher port if multiple instances are running.
     // Use window.location.origin to be safe.
@@ -69,11 +69,11 @@ describe('Server', () => {
     server.register('registeredMethodErrorName', registeredMethodError);
   });
 
-  afterEach('tear down the test server', () => {
+  afterEach(() => {
     server.off();
   });
 
-  beforeEach('listen for JSON-RPC responses', () => {
+  beforeEach(() => {
     receiveMessage = sinon.stub();
 
     listener = event => {
@@ -91,7 +91,7 @@ describe('Server', () => {
     window.addEventListener('message', listener);
   });
 
-  afterEach('tear down the JSON-RPC response listener', () => {
+  afterEach(() => {
     window.removeEventListener('message', listener);
   });
 
