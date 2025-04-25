@@ -54,6 +54,7 @@ class LMSUser(CreatedUpdatedMixin, Base):
     """Display name that we have obtained by combining LTI fields."""
 
     given_name: Mapped[str | None] = mapped_column()
+    middle_name: Mapped[str | None] = mapped_column()
     family_name: Mapped[str | None] = mapped_column()
     name: Mapped[str | None] = mapped_column()
     """These are verbatim values from the LTI launch."""

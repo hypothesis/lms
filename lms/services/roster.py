@@ -512,6 +512,7 @@ class RosterService:
 
             given_name = member.get("given_name", None)
             family_name = member.get("family_name", None)
+            middle_name = member.get("middle_name", None)
             name = member.get("name", None)
 
             display_name = get_display_name(
@@ -549,6 +550,7 @@ class RosterService:
                     "display_name": display_name,
                     "given_name": given_name,
                     "family_name": family_name,
+                    "middle_name": middle_name,
                     "name": name,
                     "lms_api_user_id": lms_api_user_id,
                     "email": email,
