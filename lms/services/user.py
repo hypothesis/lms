@@ -105,6 +105,7 @@ class UserService:
                     "display_name": user.display_name,
                     "lms_api_user_id": lms_api_user_id,
                     "given_name": lti_params.get("lis_person_name_given"),
+                    "middle_name": lti_params.get("middle_name"),
                     "family_name": lti_params.get("lis_person_name_family"),
                     "name": lti_params.get("lis_person_name_full"),
                 }
@@ -114,6 +115,7 @@ class UserService:
                 "updated",
                 "display_name",
                 "given_name",
+                "middle_name",
                 "family_name",
                 "name",
                 "email",
