@@ -510,10 +510,10 @@ class RosterService:
                 member, application_instance.family
             )
 
-            given_name = member.get("given_name", None)
-            family_name = member.get("family_name", None)
-            middle_name = member.get("middle_name", None)
-            name = member.get("name", None)
+            given_name = member.get("given_name", None) or None
+            family_name = member.get("family_name", None) or None
+            middle_name = member.get("middle_name", None) or None
+            name = member.get("name", None) or None
 
             display_name = get_display_name(
                 given_name=given_name or "",
