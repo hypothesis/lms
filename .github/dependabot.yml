@@ -32,6 +32,10 @@ updates:
     typescript-types:
       patterns:
         - '@types/*'
+    vitest:
+      patterns:
+        - 'vitest'
+        - '@vitest/*'
 - package-ecosystem: "docker"
   directory: "/"
   schedule:

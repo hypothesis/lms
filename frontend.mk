@@ -21,6 +21,7 @@ build/manifest.json: node_modules/.uptodate
 node_modules/.uptodate: package.json yarn.lock
 	@echo installing javascript dependencies
 	@yarn install
+	@yarn playwright install chromium
 	@touch $@
 
 # Make some of the targets from Makefile depend on manifest.json.
