@@ -34,7 +34,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-virtual": "^3.0.2",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
-    "autoprefixer": "^10.4.20",
+    "autoprefixer": "^10.4.21",
     "classnames": "^2.5.1",
     "focus-visible": "^5.2.1",
     "gulp": "^5.0.0",
