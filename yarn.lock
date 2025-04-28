@@ -5936,7 +5936,7 @@ __metadata:
     normalize.css: ^8.0.1
     playwright: ^1.52.0
     postcss: ^8.4.47
-    preact: ^10.25.1
+    preact: ^10.26.5
     prettier: 3.4.2
     rollup: ^4.38.0
     sass: ^1.80.5
@@ -6975,10 +6975,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact@npm:^10.18.1, preact@npm:^10.25.1":
+"preact@npm:^10.18.1":
   version: 10.25.1
   resolution: "preact@npm:10.25.1"
   checksum: 7b31f82acfc5eaccc70c19b55ff2bc8edb3d636dfb84e254c9258871c69e1652876efe4bb3a5f21bf521386b001bc6c8831e535d41eecbe0f31c13a0e2a062a3
+  languageName: node
+  linkType: hard
+
+"preact@npm:^10.26.5":
+  version: 10.26.5
+  resolution: "preact@npm:10.26.5"
+  checksum: 3ef769e82bdb26314e51f02d09aea9ba566cad291504a5d79833055b1ff3ca7db647516315d2278498261881c61949917aac05cc56f172c32d013796378c304b
   languageName: node
   linkType: hard
 
