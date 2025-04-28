@@ -40,7 +40,7 @@
     "gulp": "^5.0.0",
     "normalize.css": "^8.0.1",
     "postcss": "^8.4.47",
-    "preact": "^10.25.1",
+    "preact": "^10.26.5",
     "rollup": "^4.38.0",
     "sass": "^1.80.5",
     "tailwindcss": "^3.4.10",
