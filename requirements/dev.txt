@@ -90,7 +90,7 @@ decorator==5.1.1
     # via ipython
 executing==2.0.1
     # via stack-data
-factory-boy==3.3.1
+factory-boy==3.3.3
     # via -r requirements/dev.in
 faker==21.0.0
     # via factory-boy

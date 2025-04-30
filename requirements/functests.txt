@@ -86,7 +86,7 @@ cryptography==44.0.1
     #   pyjwt
 data-tasks==0.0.5
     # via -r requirements/prod.txt
-factory-boy==3.3.1
+factory-boy==3.3.3
     # via
     #   -r requirements/functests.in
     #   pytest-factoryboy
