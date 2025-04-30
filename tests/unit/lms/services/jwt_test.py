@@ -165,11 +165,11 @@ class TestJWTService:
 
         return jwt.encode(payload, secret, algorithm=algorithm, headers=headers)
 
-    @pytest.fixture(autouse=True)
-    def jwk_endpoint(self):
-        keys = {"keys": [{"kid": "KID", "kty": "RSA", "n": "1000", "e": "500"}]}
-
-        httpretty.register_uri("GET", "http://jwk.com", body=json.dumps(keys))
+    # @pytest.fixture(autouse=True)
+    # def jwk_endpoint(self):
+    #     keys = {"keys": [{"kid": "KID", "kty": "RSA", "n": "1000", "e": "500"}]}
+    #
+    #     httpretty.register_uri("GET", "http://jwk.com", body=json.dumps(keys))
 
     @pytest.fixture
     def jwt(self, patch):
