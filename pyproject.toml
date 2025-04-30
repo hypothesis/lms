@@ -75,6 +75,7 @@ parallel = true
 source = ["lms", "tests/unit"]
 omit = [
     "*/lms/__main__.py",
+    "*/lms/_version.py",
     "*/lms/scripts/init_db.py",
     "lms/pshell.py",
     "lms/migrations/*",
