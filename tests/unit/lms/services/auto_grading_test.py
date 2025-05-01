@@ -113,7 +113,7 @@ class TestAutoGradingService:
         assert last_grades.get(student_2.h_userid).grade == 4
 
     @pytest.mark.parametrize(
-        "grading_type,activity_calculation,required_annotations, required_replies,annotations,replies,expected_grade",
+        "grading_type,activity_calculation,required_annotations,required_replies,annotations,replies,expected_grade",
         [
             ("all_or_nothing", "cumulative", 15, None, 5, 5, 0),
             ("all_or_nothing", "cumulative", 15, None, 10, 6, 1),
@@ -121,9 +121,11 @@ class TestAutoGradingService:
             ("all_or_nothing", "separate", 10, 5, 10, 5, 1),
             ("all_or_nothing", "separate", 10, 0, 9, 4, 0),
             ("all_or_nothing", "separate", 10, None, 9, 4, 0),
-            ("scaled", "cumulative", 15, None, 5, 5, 0.67),
+            ("scaled", "cumulative", 3, None, 1, 0, 0.333),
+            ("scaled", "cumulative", 3, None, 2, 0, 0.667),
+            ("scaled", "cumulative", 15, None, 5, 5, 0.667),
             ("scaled", "cumulative", 15, None, 10, 10, 1),
-            ("scaled", "separate", 10, 5, 8, 2, 0.67),
+            ("scaled", "separate", 10, 5, 8, 2, 0.667),
             ("scaled", "separate", 10, 5, 5, 1, 0.4),
             # In scaled+separate cases, extra annos/replies should be ignored
             ("scaled", "separate", 3, 2, 0, 3, 0.4),

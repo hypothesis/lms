@@ -143,7 +143,16 @@ class AutoGradingService:
                 raise ValueError("Unknown auto grading configuration")  # noqa: EM101, TRY003
 
         grade = min(1, grade)  # Proportional grades are capped at 1
-        return round(grade, 2)
+        # We round here to avoid "ugly" grades like 0.3333333 but we keep 3 decimal places to have enough precision
+        # for the LMS own rounding.
+        #
+        # For example 0.33 (out of 1) is rounding as
+        # 3 decimal places as this seems
+        # to be the point where the LMS rounding kicks in
+        # For example 0.33 (of 1) becomes 0.99 in Canvas
+        # but
+        # 0.333 (of 1) becomes 1 in Canvas
+        return round(grade, 3)
 
 
 def factory(_context, request):
