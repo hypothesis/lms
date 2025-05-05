@@ -3880,13 +3880,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff@npm:^5.2.0":
-  version: 5.2.0
-  resolution: "diff@npm:5.2.0"
-  checksum: 12b63ca9c36c72bafa3effa77121f0581b4015df18bc16bac1f8e263597735649f1a173c26f7eba17fb4162b073fee61788abe49610e6c70a2641fe1895443fd
-  languageName: node
-  linkType: hard
-
 "diff@npm:^7.0.0":
   version: 7.0.0
   resolution: "diff@npm:7.0.0"
@@ -6209,7 +6202,7 @@ __metadata:
     babel-plugin-mockable-imports: ^2.0.1
     chai: ^5.2.0
     classnames: ^2.5.1
-    diff: ^5.2.0
+    diff: ^7.0.0
     enzyme: ^3.11.0
     enzyme-adapter-preact-pure: ^4.1.0
     eslint: ^9.23.0
