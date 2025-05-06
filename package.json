@@ -65,7 +65,7 @@
     "eslint": "^9.26.0",
     "eslint-config-hypothesis": "^3.3.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
-    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^15.11.0",
     "navigation-api-types": "^0.5.1",
@@ -73,7 +73,7 @@
     "prettier": "3.4.2",
     "sinon": "^19.0.2",
     "typescript": "^5.2.2",
-    "typescript-eslint": "^8.29.0",
+    "typescript-eslint": "^8.32.0",
     "vitest": "^3.1.2"
   },
   "prettier": {
