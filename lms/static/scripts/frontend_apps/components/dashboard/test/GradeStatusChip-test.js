@@ -8,10 +8,18 @@ describe('GradeStatusChip', () => {
     return mount(<GradeStatusChip grade={grade} />);
   }
 
-  [0, 0.2, 0.48, 0.77, 0.92, 1].forEach(grade => {
+  [
+    [0, '0'],
+    [0.2, '20'],
+    [0.33330004, '33.33'],
+    [0.48, '48'],
+    [0.77, '77'],
+    [0.92, '92'],
+    [1, '100'],
+  ].forEach(([grade, expected]) => {
     it('renders valid grades as percentage', () => {
       const wrapper = renderComponent(grade);
-      assert.equal(wrapper.text(), `${grade * 100}%`);
+      assert.equal(wrapper.text(), `${expected}%`);
     });
   });
 
