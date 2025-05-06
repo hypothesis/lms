@@ -56,7 +56,7 @@ gulp.task(
   'test',
   gulp.parallel('build-css', () =>
     runTests({
-      bootstrapFile: 'lms/static/scripts/bootstrap.js',
+      bootstrapFile: 'lms/static/scripts/frontend_apps/test/bootstrap.js',
       vitestConfig: 'vitest.config.js',
       rollupConfig: 'rollup-tests.config.js',
       testsPattern: 'lms/static/scripts/**/*-test.js',
