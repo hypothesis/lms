@@ -18,7 +18,7 @@
 
     // Tests and test infrastructure
     "**/test/*.js",
-    "bootstrap.js",
+    "frontend_apps/test/bootstrap.js",
     "test-util/*.js"
   ]
 }

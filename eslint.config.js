@@ -1,23 +1,22 @@
 import hypothesisBase from 'eslint-config-hypothesis/base';
 import hypothesisJSX from 'eslint-config-hypothesis/jsx';
 import hypothesisTS from 'eslint-config-hypothesis/ts';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
 
-export default [
-  {
-    ignores: [
-      '.tox/**/*',
-      '.yalc/**/*',
-      '.yarn/**/*',
-      'build/**/*',
-      '**/coverage/**/*',
-      'docs/_build/*',
-    ],
-  },
+export default defineConfig(
+  globalIgnores([
+    '.tox/**/*',
+    '.yalc/**/*',
+    '.yarn/**/*',
+    'build/**/*',
+    '**/coverage/**/*',
+    'docs/_build/*',
+  ]),
 
-  ...hypothesisBase,
-  ...hypothesisJSX,
-  ...hypothesisTS,
+  hypothesisBase,
+  hypothesisJSX,
+  hypothesisTS,
 
   // Additional rules that require type information. These can only be run
   // on files included in the TS project by tsconfig.json.
@@ -44,4 +43,4 @@ export default [
       },
     },
   },
-];
+);
