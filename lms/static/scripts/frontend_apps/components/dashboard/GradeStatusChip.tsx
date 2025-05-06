@@ -9,6 +9,19 @@ export type GradeStatusChipProps = {
 };
 
 /**
+ * Format a grade from 0 to 1 to a string. If the grade is an integer, it
+ * will be returned as an integer string. Otherwise, it will be returned
+ * with two decimal places.
+ */
+function formatGrade(grade: number): string {
+  const scaledGrade = grade * 100;
+
+  return Number.isInteger(scaledGrade)
+    ? scaledGrade.toString()
+    : scaledGrade.toFixed(2);
+}
+
+/**
  * A badge where the corresponding color combination is calculated from a grade
  * from 0 to 1, following the next table:
  *
@@ -36,7 +49,7 @@ export default function GradeStatusChip({ grade }: GradeStatusChipProps) {
         },
       )}
     >
-      {grade * 100}
+      {formatGrade(grade)}
       {!gradeIsInvalid && '%'}
     </div>
   );
