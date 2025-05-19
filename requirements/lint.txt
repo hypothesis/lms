@@ -635,7 +635,7 @@ pip==23.3.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pip-tools
-setuptools==78.1.0
+setuptools==78.1.1
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
