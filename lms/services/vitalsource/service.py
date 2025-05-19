@@ -14,8 +14,10 @@ class VitalSourceService:
     H_SKUS = [  # noqa: RUF012
         # Current SKU
         "HYPOTHESISLMSAPPR180",
-        # VSBN
+        # Numercial VSBN
         "979-8-9925278-0-3",
+        # R180 Version of the SKU
+        "9798992527803R180",
         # Legacy SKU
         "HYPOTHESISLMSAPP",
     ]
