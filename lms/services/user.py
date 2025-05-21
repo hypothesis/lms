@@ -75,9 +75,7 @@ class UserService:
         if lti_user.is_instructor or (
             lti_user.is_learner
             and ai_settings.get_setting(
-                ai_settings.fields[
-                    ai_settings.Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS
-                ]
+                ai_settings.Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS
             )
         ):
             # Always store instructor emails
