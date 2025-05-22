@@ -319,12 +319,28 @@ class RosterService:
         )
         application_instance = self._get_application_instance(lms_course)
 
-        roster = self._lti_names_roles_service.get_context_memberships(
-            application_instance.lti_registration,
-            # We won't use the names and roles endpoint for groups, we need to pass a URL from the Canvas extension to the API.
-            # https://canvas.instructure.com/doc/api/names_and_role.html#method.lti/ims/names_and_roles.group_index
-            f"https://{application_instance.lms_host()}/api/lti/groups/{canvas_group.lms_id}/names_and_roles",
-        )
+        try:
+            roster = self._lti_names_roles_service.get_context_memberships(
+                application_instance.lti_registration,
+                # We won't use the names and roles endpoint for groups, we need to pass a URL from the Canvas extension to the API.
+                # https://canvas.instructure.com/doc/api/names_and_role.html#method.lti/ims/names_and_roles.group_index
+                f"https://{application_instance.lms_host()}/api/lti/groups/{canvas_group.lms_id}/names_and_roles",
+            )
+
+        except ExternalRequestError as err:
+            ignored_errors = [
+                # Canvas, group as been removed
+                "The specified resource does not exist."
+            ]
+
+            if err.response_body and any(
+                error in err.response_body for error in ignored_errors
+            ):
+                LOG.error("Fetching assignment roster failed: %s", err.response_body)  # noqa: TRY400
+                # We ignore this type of error, just stop here.
+                return
+
+            raise
 
         # Insert any users we might be missing in the DB
         lms_users_by_lti_user_id = {

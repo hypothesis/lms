@@ -496,7 +496,7 @@ class TestRosterService:
             "Tool does not have access to rlid or rlid does not exist",
         ],
     )
-    def test_fetch_assignment_roster_retries_with_lti_v11_id(
+    def test_fetch_assignment_roster_ignores_known_errors(
         self, svc, lti_names_roles_service, assignment, known_error
     ):
         lti_names_roles_service.get_context_memberships.side_effect = (
@@ -515,6 +515,36 @@ class TestRosterService:
 
         with pytest.raises(ExternalRequestError):
             svc.fetch_assignment_roster(assignment)
+
+    @pytest.mark.parametrize(
+        "known_error",
+        ["The specified resource does not exist."],
+    )
+    @pytest.mark.usefixtures("lti_v13_application_instance")
+    def test_fetch_canvas_roster_ignores_known_errors(
+        self, svc, lti_names_roles_service, lms_course, known_error, db_session
+    ):
+        canvas_group = factories.LMSSegment(type="canvas_group", lms_course=lms_course)
+        db_session.flush()
+
+        lti_names_roles_service.get_context_memberships.side_effect = (
+            ExternalRequestError(response=Mock(text=known_error))
+        )
+
+        # Method finishes without re-raising the exception
+        assert not svc.fetch_canvas_group_roster(canvas_group)
+
+    def test_fetch_canvas_group_roster_raises_external_request_error(
+        self, svc, lti_names_roles_service, lms_course, db_session
+    ):
+        canvas_group = factories.LMSSegment(type="canvas_group", lms_course=lms_course)
+        db_session.flush()
+        lti_names_roles_service.get_context_memberships.side_effect = (
+            ExternalRequestError()
+        )
+
+        with pytest.raises(ExternalRequestError):
+            svc.fetch_canvas_group_roster(canvas_group)
 
     def test_fetch_canvas_group_roster(
         self,
