@@ -306,9 +306,10 @@ class TestBasicLaunchViews:
             pyramid_request, context.js_config, assignment
         )
         if mentions_feature and collect_student_emails:
-            context.js_config.enable_client_feature.assert_called_once_with(
-                "at_mentions"
-            )
+            assert context.js_config.enable_client_feature.call_args_list == [
+                mock.call("at_mentions"),
+                mock.call("pdf_image_annotation"),
+            ]
 
         assert result == {}
 
