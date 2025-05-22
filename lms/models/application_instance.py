@@ -173,7 +173,7 @@ class ApplicationSettings(JSONSettings):
         Settings.HYPOTHESIS_PDF_IMAGE_ANNOTATION: JSONSetting(
             Settings.HYPOTHESIS_PDF_IMAGE_ANNOTATION,
             SettingFormat.TRI_STATE,
-            default=False,
+            default=True,
         ),
     }
 
