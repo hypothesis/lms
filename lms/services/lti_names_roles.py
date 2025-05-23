@@ -7,6 +7,7 @@ https://www.imsglobal.org/ltiadvantage
 
 import logging
 from typing import Any, TypedDict
+from urllib.parse import parse_qs, urlparse
 
 from lms.models import LTIRegistration
 from lms.services.ltia_http import LTIAHTTPService
@@ -76,6 +77,12 @@ class LTINamesRolesService:
         return members
 
     def _make_request(self, lti_registration, service_url, query):
+        existing_query_params = parse_qs(urlparse(service_url).query)
+        if "rlid" in existing_query_params and "rlid" in query:
+            # Some LMSes include the resource_link_id in the service_url
+            # Avoid adding it again to the query params
+            del query["rlid"]
+
         return self._ltia_service.request(
             lti_registration,
             "GET",
