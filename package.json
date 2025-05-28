@@ -86,6 +86,6 @@
       "@trivago/prettier-plugin-sort-imports"
     ]
   },
-  "browserslist": "chrome 92, firefox 90, safari 14.1",
+  "browserslist": "chrome 110, firefox 115, safari 16.4",
   "packageManager": "yarn@3.6.1"
 }
