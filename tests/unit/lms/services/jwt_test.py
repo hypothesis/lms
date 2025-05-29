@@ -1,9 +1,7 @@
 import copy
 import datetime
-import json
 from unittest.mock import create_autospec, sentinel
 
-import httpretty
 import jwt
 import pytest
 from freezegun import freeze_time
@@ -164,12 +162,6 @@ class TestJWTService:
             payload["exp"] = datetime.datetime.utcnow() + lifetime  # noqa: DTZ003
 
         return jwt.encode(payload, secret, algorithm=algorithm, headers=headers)
-
-    @pytest.fixture(autouse=True)
-    def jwk_endpoint(self):
-        keys = {"keys": [{"kid": "KID", "kty": "RSA", "n": "1000", "e": "500"}]}
-
-        httpretty.register_uri("GET", "http://jwk.com", body=json.dumps(keys))
 
     @pytest.fixture
     def jwt(self, patch):
