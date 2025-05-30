@@ -339,13 +339,15 @@ class JSConfig:
             },
         }
 
-    def enable_file_picker_mode(
+    def enable_file_picker_mode(  # noqa: PLR0913
         self,
         form_action,
         form_fields,
         course: Course,
         assignment: Assignment | None = None,
-        prompt_for_title=False,  # noqa: FBT002
+        *,
+        prompt_for_title=False,
+        prompt_for_gradable=False,
     ):
         """
         Put the JavaScript code into "file picker" mode.
@@ -373,6 +375,7 @@ class JSConfig:
                     "formAction": form_action,
                     "formFields": form_fields,
                     "promptForTitle": prompt_for_title,
+                    "promptForGradable": prompt_for_gradable,
                     # Enable auto grading everywhere except in Sakai
                     "autoGradingEnabled": self._application_instance.tool_consumer_info_product_family_code
                     != "sakai",
