@@ -84,6 +84,7 @@ def deep_linking_launch(context, request):
         },
         course=course,
         prompt_for_title=request.product.plugin.misc.deep_linking_prompt_for_title,
+        prompt_for_gradable=request.product.plugin.misc.deep_linking_prompt_for_gradable,
     )
 
     context.js_config.add_deep_linking_api()
@@ -94,7 +95,9 @@ class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
     content_item_return_url = fields.Str(required=True)
     content = fields.Dict(required=True)
     group_set = fields.Str(required=False, allow_none=True)
+
     title = fields.Str(required=False, allow_none=True)
+    assignment_gradable_max_points = fields.Int(required=False, allow_none=True)
 
     auto_grading_config = fields.Nested(
         AutoGradingConfigSchema, required=False, allow_none=True
@@ -144,6 +147,9 @@ class DeepLinkingFieldsViews:
         }
         if title := assignment_configuration.get("title"):
             content_item["title"] = title
+
+        if gradable_max_points := assignment_configuration.get("gradable_max_points"):
+            content_item["lineItem"] = {"scoreMaximum": gradable_max_points}
 
         now = datetime.utcnow()  # noqa: DTZ003
         message = {
@@ -263,6 +269,11 @@ class DeepLinkingFieldsViews:
 
         if title := request.parsed_params.get("title"):
             params["title"] = title
+
+        if gradable_max_points := request.parsed_params.get(
+            "assignment_gradable_max_points"
+        ):
+            params["gradable_max_points"] = gradable_max_points
 
         if auto_grading_config := request.parsed_params.get("auto_grading_config"):
             # Custom params must be str, encode these settings as JSON
