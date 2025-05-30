@@ -106,6 +106,7 @@ class TestDeepLinkingLaunch:
             },
             course=course_service.get_from_launch.return_value,
             prompt_for_title=misc_plugin.deep_linking_prompt_for_title,
+            prompt_for_gradable=misc_plugin.deep_linking_prompt_for_gradable,
         )
         context.js_config.add_deep_linking_api.assert_called_once()
 
@@ -128,6 +129,7 @@ class TestDeepLinkingLaunch:
 class TestDeepLinkingFieldsView:
     @freeze_time("2022-04-04")
     @pytest.mark.parametrize("title", [None, "title"])
+    @pytest.mark.parametrize("gradable_max_points", [None, 10])
     def test_it_for_v13(
         self,
         jwt_service,
@@ -139,9 +141,15 @@ class TestDeepLinkingFieldsView:
         misc_plugin,
         _get_assignment_configuration,  # noqa: PT019
         title,
+        gradable_max_points,
     ):
+        _get_assignment_configuration.return_value = {}
         if title:
-            _get_assignment_configuration.return_value = {"title": title}
+            _get_assignment_configuration.return_value["title"] = title
+        if gradable_max_points:
+            _get_assignment_configuration.return_value["gradable_max_points"] = (
+                gradable_max_points
+            )
 
         fields = views.file_picker_to_form_fields_v13()
 
@@ -168,6 +176,11 @@ class TestDeepLinkingFieldsView:
             message["https://purl.imsglobal.org/spec/lti-dl/claim/content_items"][0][
                 "title"
             ] = title
+
+        if gradable_max_points:
+            message["https://purl.imsglobal.org/spec/lti-dl/claim/content_items"][0][
+                "lineItem"
+            ] = {"scoreMaximum": gradable_max_points}
 
         jwt_service.encode_with_private_key.assert_called_once_with(message)
         LTIEvent.from_request.assert_called_once_with(
@@ -271,6 +284,7 @@ class TestDeepLinkingFieldsView:
         [
             ({}, {}),
             ({"title": "title"}, {"title": "title"}),
+            ({"assignment_gradable_max_points": 1}, {"gradable_max_points": 1}),
             ({"group_set": "1"}, {"group_set": "1"}),
             (
                 {"group_set": "1", "title": "title"},

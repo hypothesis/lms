@@ -10,6 +10,8 @@ import {
   Input,
   Scroll,
   SpinnerOverlay,
+  Checkbox,
+  CheckboxCheckedFilledIcon,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
@@ -189,6 +191,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       formAction,
       formFields,
       promptForTitle,
+      promptForGradable,
     },
   } = useConfig(['api', 'filePicker']);
 
@@ -230,7 +233,10 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   // Whether there are additional configuration options to present after the
   // user has selected the content for the assignment.
   const showDetailsScreen =
-    enableGroupConfig || promptForTitle || autoGradingEnabled;
+    enableGroupConfig ||
+    promptForTitle ||
+    promptForGradable ||
+    autoGradingEnabled;
 
   let currentStep: PickerStep;
   if (editingContent) {
@@ -250,6 +256,12 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   const [title, setTitle] = useState(
     promptForTitle ? 'Hypothesis assignment' : null,
   );
+
+  const [isAssignmentGradable, setIsAssignmentGradable] = useState(false);
+  const [assignmentGradableMaxPoints, setIsAssignmentGradableMaxPoints] =
+    useState(100);
+  const gradableMaxInputId = useUniqueId('gradable-max-input');
+
   const titleInputId = useUniqueId('title-input');
 
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
@@ -290,6 +302,9 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
           content,
           group_set: groupConfig.useGroupSet ? groupConfig.groupSet : null,
           title,
+          assignment_gradable_max_points: isAssignmentGradable
+            ? assignmentGradableMaxPoints
+            : null,
         };
         setDeepLinkingFields(
           await apiCall({
@@ -316,6 +331,8 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       groupConfig.useGroupSet,
       title,
       autoGradingConfigToSave,
+      isAssignmentGradable,
+      assignmentGradableMaxPoints,
     ],
   );
 
@@ -462,6 +479,58 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                         />
                       </>
                     )}
+                    {promptForGradable && (
+                      <>
+                        <div className="sm:col-span-2 border-b" />
+                        <PanelLabel isCurrentStep>
+                          Gradable assignment
+                        </PanelLabel>
+                        <div className="flex flex-col gap-y-3">
+                          <Checkbox
+                            checked={isAssignmentGradable}
+                            checkedIcon={CheckboxCheckedFilledIcon}
+                            onChange={e =>
+                              setIsAssignmentGradable(
+                                (e.target as HTMLInputElement).checked,
+                              )
+                            }
+                          >
+                            Make this assignment gradable
+                          </Checkbox>
+                          {isAssignmentGradable && (
+                            <>
+                              <div className="flex gap-2 items-center">
+                                <label
+                                  className="grow flex justify-between items-center"
+                                  htmlFor={gradableMaxInputId}
+                                >
+                                  <span className="uppercase font-semibold">
+                                    Points
+                                  </span>
+                                </label>
+
+                                <Input
+                                  id={gradableMaxInputId}
+                                  classes="max-w-14"
+                                  type="number"
+                                  required
+                                  min={0}
+                                  value={assignmentGradableMaxPoints}
+                                  onChange={e =>
+                                    setIsAssignmentGradableMaxPoints(
+                                      Number(
+                                        (e.target as HTMLInputElement).value,
+                                      ),
+                                    )
+                                  }
+                                />
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </>
+                    )}
+
                     {autoGradingEnabled && (
                       <>
                         <div className="sm:col-span-2 border-b" />
