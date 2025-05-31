@@ -36,7 +36,7 @@ mdurl==0.1.2
     # via markdown-it-py
 packaging==23.2
     # via build
-pip-sync-faster==0.0.4
+pip-sync-faster==0.0.5
     # via -r requirements/template.in
 pip-tools==7.4.1
     # via
