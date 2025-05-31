@@ -190,7 +190,7 @@ httpretty==1.1.4
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-hubspot-api-client==10.0.0
+hubspot-api-client==11.1.0
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
@@ -464,6 +464,7 @@ requests==2.32.3
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+    #   hubspot-api-client
     #   mailchimp-transactional
     #   requests-oauthlib
 requests-oauthlib==2.0.0
