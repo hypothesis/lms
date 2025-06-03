@@ -99,8 +99,7 @@ class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
     group_set = fields.Str(required=False, allow_none=True)
 
     title = fields.Str(required=False, allow_none=True)
-    assignment_gradable_max_points = fields.Int(required=False, allow_none=True)
-
+    assignment_gradable_max_points = fields.Float(required=False, allow_none=True)
     auto_grading_config = fields.Nested(
         AutoGradingConfigSchema, required=False, allow_none=True
     )

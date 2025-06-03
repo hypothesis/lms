@@ -10,8 +10,6 @@ import {
   Input,
   Scroll,
   SpinnerOverlay,
-  Checkbox,
-  CheckboxCheckedFilledIcon,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
@@ -257,9 +255,8 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     promptForTitle ? 'Hypothesis assignment' : null,
   );
 
-  const [isAssignmentGradable, setIsAssignmentGradable] = useState(false);
-  const [assignmentGradableMaxPoints, setIsAssignmentGradableMaxPoints] =
-    useState(100);
+  const [assignmentGradableMaxPoints, setAssignmentGradableMaxPoints] =
+    useState('');
   const gradableMaxInputId = useUniqueId('gradable-max-input');
 
   const titleInputId = useUniqueId('title-input');
@@ -302,9 +299,10 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
           content,
           group_set: groupConfig.useGroupSet ? groupConfig.groupSet : null,
           title,
-          assignment_gradable_max_points: isAssignmentGradable
-            ? assignmentGradableMaxPoints
-            : null,
+          assignment_gradable_max_points:
+            assignmentGradableMaxPoints === ''
+              ? null
+              : Number(assignmentGradableMaxPoints),
         };
         setDeepLinkingFields(
           await apiCall({
@@ -331,7 +329,6 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       groupConfig.useGroupSet,
       title,
       autoGradingConfigToSave,
-      isAssignmentGradable,
       assignmentGradableMaxPoints,
     ],
   );
@@ -482,52 +479,22 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                     {promptForGradable && (
                       <>
                         <div className="sm:col-span-2 border-b" />
-                        <PanelLabel isCurrentStep>
-                          Gradable assignment
+                        <PanelLabel isCurrentStep verticalAlign="center">
+                          Max points
                         </PanelLabel>
-                        <div className="flex flex-col gap-y-3">
-                          <Checkbox
-                            checked={isAssignmentGradable}
-                            checkedIcon={CheckboxCheckedFilledIcon}
-                            onChange={e =>
-                              setIsAssignmentGradable(
-                                (e.target as HTMLInputElement).checked,
-                              )
-                            }
-                          >
-                            Make this assignment gradable
-                          </Checkbox>
-                          {isAssignmentGradable && (
-                            <>
-                              <div className="flex gap-2 items-center">
-                                <label
-                                  className="grow flex justify-between items-center"
-                                  htmlFor={gradableMaxInputId}
-                                >
-                                  <span className="uppercase font-semibold">
-                                    Max points
-                                  </span>
-                                </label>
-
-                                <Input
-                                  id={gradableMaxInputId}
-                                  classes="max-w-14"
-                                  type="number"
-                                  required
-                                  min={0}
-                                  value={assignmentGradableMaxPoints}
-                                  onChange={e =>
-                                    setIsAssignmentGradableMaxPoints(
-                                      Number(
-                                        (e.target as HTMLInputElement).value,
-                                      ),
-                                    )
-                                  }
-                                />
-                              </div>
-                            </>
-                          )}
-                        </div>
+                        <Input
+                          data-testid="gradable-max-input"
+                          id={gradableMaxInputId}
+                          type="number"
+                          placeholder={'ex: 100'}
+                          min={0}
+                          value={assignmentGradableMaxPoints}
+                          onChange={e =>
+                            setAssignmentGradableMaxPoints(
+                              (e.target as HTMLInputElement).value,
+                            )
+                          }
+                        />
                       </>
                     )}
 
