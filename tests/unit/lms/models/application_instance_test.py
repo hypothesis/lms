@@ -172,6 +172,12 @@ class TestApplicationSettings:
             ),
             (
                 "hypothesis",
+                "prompt_for_gradable",
+                "hypothesis.prompt_for_gradable",
+                SettingFormat.TRI_STATE,
+            ),
+            (
+                "hypothesis",
                 "collect_student_emails",
                 "hypothesis.collect_student_emails",
                 SettingFormat.TRI_STATE,

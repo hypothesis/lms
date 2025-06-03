@@ -40,8 +40,9 @@ class MiscPlugin:
     # Whether or not to prompt for an assignment title while deep linking.
     deep_linking_prompt_for_title = True
 
-    # Whether or not to ask if the new assignment should be gradable
-    deep_linking_prompt_for_gradable = False
+    def deep_linking_prompt_for_gradable(self, _application_instance) -> bool:
+        """Whether or not to ask if the new assignment should be gradable."""
+        return False
 
     def post_launch_assignment_hook(
         self, request, js_config, assignment

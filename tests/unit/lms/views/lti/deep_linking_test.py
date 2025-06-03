@@ -106,7 +106,7 @@ class TestDeepLinkingLaunch:
             },
             course=course_service.get_from_launch.return_value,
             prompt_for_title=misc_plugin.deep_linking_prompt_for_title,
-            prompt_for_gradable=misc_plugin.deep_linking_prompt_for_gradable,
+            prompt_for_gradable=misc_plugin.deep_linking_prompt_for_gradable.return_value,
         )
         context.js_config.add_deep_linking_api.assert_called_once()
 

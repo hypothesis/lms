@@ -84,7 +84,9 @@ def deep_linking_launch(context, request):
         },
         course=course,
         prompt_for_title=request.product.plugin.misc.deep_linking_prompt_for_title,
-        prompt_for_gradable=request.product.plugin.misc.deep_linking_prompt_for_gradable,
+        prompt_for_gradable=request.product.plugin.misc.deep_linking_prompt_for_gradable(
+            request.lti_user.application_instance
+        ),
     )
 
     context.js_config.add_deep_linking_api()

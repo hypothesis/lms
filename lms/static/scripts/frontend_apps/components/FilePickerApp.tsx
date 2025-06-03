@@ -505,7 +505,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                                   htmlFor={gradableMaxInputId}
                                 >
                                   <span className="uppercase font-semibold">
-                                    Points
+                                    Max points
                                   </span>
                                 </label>
 
