@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Mapping
 from enum import StrEnum
+from typing import Literal
 from urllib.parse import urlparse
 
 import sqlalchemy as sa
@@ -68,6 +69,7 @@ class ApplicationSettings(JSONSettings):
         HYPOTHESIS_COLLECT_STUDENT_EMAILS = "hypothesis.collect_student_emails"
         HYPOTHESIS_MENTIONS = "hypothesis.mentions"
         HYPOTHESIS_PDF_IMAGE_ANNOTATION = "hypothesis.pdf_image_annotation"
+        HYPOTHESIS_PROMPT_FOR_GRADABLE = "hypothesis.prompt_for_gradable"
 
     fields: Mapping[Settings, JSONSetting] = {
         Settings.BLACKBOARD_FILES_ENABLED: JSONSetting(
@@ -161,6 +163,11 @@ class ApplicationSettings(JSONSettings):
         ),
         Settings.HYPOTHESIS_LTI_13_SOURCEDID_FOR_GRADING: JSONSetting(
             Settings.HYPOTHESIS_LTI_13_SOURCEDID_FOR_GRADING, SettingFormat.BOOLEAN
+        ),
+        Settings.HYPOTHESIS_PROMPT_FOR_GRADABLE: JSONSetting(
+            Settings.HYPOTHESIS_PROMPT_FOR_GRADABLE,
+            SettingFormat.TRI_STATE,
+            default=False,
         ),
         Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS: JSONSetting(
             Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS,
@@ -347,7 +354,7 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
             )
 
     @property
-    def lti_version(self) -> str:
+    def lti_version(self) -> Literal["LTI-1p0", "1.3.0"]:
         """
         LTI version of this instance based on the presence of a registration.
 

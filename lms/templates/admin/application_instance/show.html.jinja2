@@ -132,6 +132,12 @@
                             {{ tri_state_settings_checkbox("PDF image annotation", fields[Settings.HYPOTHESIS_PDF_IMAGE_ANNOTATION]) }}
                         </fieldset>
                         <fieldset class="box">
+                            <legend class="label has-text-centered">Grading settings</legend>
+                            {{ settings_checkbox("Use alternative parameter for LTI1.3 grading", "hypothesis", "lti_13_sourcedid_for_grading", default=False) }}
+                            {{ tri_state_settings_checkbox("Prompt for gradable on creation", fields[Settings.HYPOTHESIS_PROMPT_FOR_GRADABLE]) }}
+                        </fieldset>
+ 
+                        <fieldset class="box">
                             <legend class="label has-text-centered">Canvas settings</legend>
                             {{ macros.disabled_text_field("API domain", instance.custom_canvas_api_domain) }}
                             {# Note the mismatch between canvas nomenclature and ours #}
