@@ -362,6 +362,7 @@ class JSConfig:
         :param course: Currently active course
         :param assignment: Currently active assignment
         :param prompt_for_title: Whether or not to prompt for a title while configuring the assignment
+        :param prompt_for_gradable: Whether or not to prompt for a max score while configuring the assignment
         """
 
         args = self._request, self._application_instance

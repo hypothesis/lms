@@ -69,6 +69,7 @@ class TestDeepLinkingLaunch:
             },
             "moodle": {"enabled": False, "pagesEnabled": False},
             "promptForTitle": True,
+            "promptForGradable": False,
             "vitalSource": {"enabled": False},
             "youtube": {"enabled": Any()},
         }

@@ -52,6 +52,7 @@ describe('FilePickerApp', () => {
         formAction: 'https://www.shinylms.com/',
         formFields: { hidden_field: 'hidden_value' },
         promptForTitle: false,
+        promptForGradable: false,
       },
     };
 
@@ -91,6 +92,12 @@ describe('FilePickerApp', () => {
     assert.deepEqual(fieldsComponent.props(), {
       children: [],
       fields: fields,
+    });
+  }
+
+  function clickContinueButton(wrapper) {
+    interact(wrapper, () => {
+      wrapper.find('Button[data-testid="save-button"]').props().onClick();
     });
   }
 
@@ -198,6 +205,7 @@ describe('FilePickerApp', () => {
           title: null,
           group_set: null,
           auto_grading_config: null,
+          assignment_gradable_max_points: null,
         },
       });
 
@@ -380,12 +388,6 @@ describe('FilePickerApp', () => {
       });
     });
 
-    function clickContinueButton(wrapper) {
-      interact(wrapper, () => {
-        wrapper.find('Button[data-testid="save-button"]').props().onClick();
-      });
-    }
-
     [true, false].forEach(useGroupSet => {
       it('submits form when "Continue" button is clicked', () => {
         const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
@@ -504,6 +506,104 @@ describe('FilePickerApp', () => {
     assert.isFunction(onCancel);
     interact(wrapper, onCancel);
     assert.isFalse(wrapper.exists('ErrorModal'));
+  });
+
+  context('when promptForGradable is enabled', () => {
+    const deepLinkingAPIPath = '/lti/1.3/deep_linking/form_fields';
+    const deepLinkingAPIData = { some: 'data' };
+    let fakeAPICall;
+    let fakeFormFields;
+
+    beforeEach(() => {
+      fakeConfig.filePicker.deepLinkingAPI = {
+        path: deepLinkingAPIPath,
+        data: deepLinkingAPIData,
+      };
+      fakeConfig.filePicker.promptForGradable = true;
+
+      fakeAPICall = sinon.stub();
+      fakeFormFields = { JWT: 'JWT VALUE' };
+
+      fakeAPICall
+        .withArgs(sinon.match({ path: deepLinkingAPIPath }))
+        .resolves(fakeFormFields);
+
+      $imports.$mock({
+        '../utils/api': { apiCall: fakeAPICall },
+      });
+    });
+
+    [true, false].forEach(promptForGradable => {
+      it('displays "max points" input on details screen when promptForGradable is enabled', () => {
+        fakeConfig.filePicker.promptForGradable = promptForGradable;
+
+        const wrapper = renderFilePicker();
+        selectContent(wrapper, 'https://example.com');
+        const gradableCheckbox = wrapper.find(
+          'input[data-testid="gradable-max-input"]',
+        );
+
+        assert.equal(gradableCheckbox.exists(), promptForGradable);
+      });
+    });
+
+    it('includes max points when submitting form', async () => {
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+      selectContent(wrapper, 'https://example.com');
+
+      const pointsInput = wrapper.find(
+        'input[data-testid="gradable-max-input"]',
+      );
+      pointsInput.getDOMNode().value = '10';
+      pointsInput.simulate('change');
+
+      clickContinueButton(wrapper);
+
+      await waitFor(() => fakeAPICall.called);
+      assert.calledWith(fakeAPICall, {
+        authToken: 'DUMMY_AUTH_TOKEN',
+        path: deepLinkingAPIPath,
+        data: {
+          ...deepLinkingAPIData,
+          content: { type: 'url', url: 'https://example.com' },
+          title: null,
+          group_set: null,
+          auto_grading_config: null,
+          assignment_gradable_max_points: 10,
+        },
+      });
+
+      await waitFor(() => onSubmit.called);
+
+      wrapper.update();
+      checkHiddenFormFields(wrapper, {
+        fields: fakeFormFields,
+      });
+    });
+
+    it('submits null when empty', async () => {
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      selectContent(wrapper, 'https://example.com');
+
+      clickContinueButton(wrapper);
+
+      await waitFor(() => fakeAPICall.called);
+      assert.calledWith(fakeAPICall, {
+        authToken: 'DUMMY_AUTH_TOKEN',
+        path: deepLinkingAPIPath,
+        data: {
+          ...deepLinkingAPIData,
+          content: { type: 'url', url: 'https://example.com' },
+          title: null,
+          group_set: null,
+          auto_grading_config: null,
+          assignment_gradable_max_points: null,
+        },
+      });
+    });
   });
 
   context('when editing an existing assignment', () => {
