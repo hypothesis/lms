@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, NotRequired, TypedDict
 from pyramid.request import Request
 
 from lms.js_config_types import AutoGradingConfig
-from lms.models import Assignment, LTIParams
+from lms.models import ApplicationInstance, Assignment, LTIParams
 from lms.services.html_service import strip_html_tags
 
 if TYPE_CHECKING:
@@ -15,6 +15,25 @@ class AssignmentConfig(TypedDict):
     document_url: str | None
     group_set_id: str | None
     auto_grading_config: NotRequired[AutoGradingConfig | None]
+
+
+class DeepLinkingPromptForGradableMixin:
+    def deep_linking_prompt_for_gradable(
+        self, application_instance: ApplicationInstance
+    ) -> bool:
+        """
+        Whether or not to ask if the new assignment should be gradable.
+
+        We'll only prompt for gradable assignments if the
+        `HYPOTHESIS_PROMPT_FOR_GRADABLE` setting is enabled and we are in LTI1.3
+        """
+        if application_instance.lti_version == "LTI-1p0":
+            return False
+
+        ai_settings = application_instance.settings
+        return ai_settings.get_setting(
+            ai_settings.fields[ai_settings.Settings.HYPOTHESIS_PROMPT_FOR_GRADABLE]
+        )
 
 
 class MiscPlugin:
