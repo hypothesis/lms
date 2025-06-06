@@ -1,4 +1,4 @@
-from lms.product.plugin.course_copy import (  # noqa: INP001
+from lms.product.plugin.course_copy import (
     CourseCopyFilesHelper,
     CourseCopyGroupsHelper,
 )
