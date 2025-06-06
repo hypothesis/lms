@@ -91,9 +91,9 @@ class JSONSettings(MutableDict):
     >>> model.settings.changed()
     """
 
-    fields: Mapping[Any, JSONSetting] | None = None
+    fields: Mapping[Any, JSONSetting]
     """
-    An optional spec for the acceptable fields and types.
+    An spec for the acceptable fields and types.
     """
 
     def get(self, group: str, key: str, default=None):  # type: ignore[override]
@@ -109,7 +109,12 @@ class JSONSettings(MutableDict):
         """
         return super().get(group, {}).get(key, default)
 
-    def get_setting(self, setting: JSONSetting):
+    def get_setting(self, setting_name: str) -> Any:
+        setting = self.fields.get(setting_name)
+        if not setting:
+            err = f"Unknown setting for type {self.__class__.__name__}: {setting_name}"
+            raise ValueError(err)
+
         value = self.get(setting.group, setting.key, setting.default)
         if value is None:  # None is used a sentinel for "unset" or "default"
             value = setting.default
