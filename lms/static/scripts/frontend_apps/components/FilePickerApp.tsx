@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   CardActions,
+  InfoIcon,
   CardContent,
   CardHeader,
   Link,
@@ -10,6 +11,8 @@ import {
   Input,
   Scroll,
   SpinnerOverlay,
+  IconButton,
+  Popover,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
@@ -275,6 +278,13 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   > | null>(null);
 
   const formRef = useRef<HTMLFormElement>(null);
+  const iconRef = useRef<HTMLButtonElement | null>(null);
+
+  /**
+   * Flag indicating whether the popover with information about the
+   * assignment gradable max points input is open.
+   */
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   const submit = useCallback(
     async (content: Content) => {
@@ -481,6 +491,16 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                         <div className="sm:col-span-2 border-b" />
                         <PanelLabel isCurrentStep verticalAlign="center">
                           Max points
+                          <IconButton
+                            icon={InfoIcon}
+                            title="About thumbnail descriptions"
+                            onClick={() => setPopoverOpen(!popoverOpen)}
+                            expanded={popoverOpen}
+                            elementRef={iconRef}
+                            // The icon uses `w-em` for sizing, so this sets the size. Chosen to
+                            // match icons in the AnnotationActionBar.
+                            classes="text-[16px]"
+                          />
                         </PanelLabel>
                         <Input
                           data-testid="gradable-max-input"
@@ -495,6 +515,32 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                             )
                           }
                         />
+                        <Popover
+                          open={popoverOpen}
+                          align="right"
+                          anchorElementRef={iconRef}
+                          onClose={() => setPopoverOpen(false)}
+                          classes={classnames(
+                            // Small gap to create separation between input and
+                            // popover.
+                            'mt-1',
+                            // Align popover towards right side of card.
+                            'w-80 max-w-[100vw]',
+                            'p-2 text-sm',
+                          )}
+                        >
+                          <div className="flex flex-col gap-y-2">
+                            Activating this feature will use the grading options
+                            you set in Hypothesis.
+                            <Link
+                              href="https://example.com"
+                              underline="always"
+                              target="_blank"
+                            >
+                              Learn more about grading options
+                            </Link>
+                          </div>
+                        </Popover>
                       </>
                     )}
 
