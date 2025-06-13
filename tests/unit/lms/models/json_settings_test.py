@@ -63,10 +63,18 @@ class TestJSONSettings:
         ],
     )
     def test_get_setting(self, settings, group, key, default, expected_value):
-        assert (
-            settings.get_setting(JSONSetting(f"{group}.{key}", default=default))
-            == expected_value
-        )
+        settings.fields = {
+            f"{group}.{key}": JSONSetting(f"{group}.{key}", default=default)
+        }
+        assert settings.get_setting(f"{group}.{key}") == expected_value
+
+    def test_get_setting_raises_for_unknown_setting(self, settings):
+        settings.fields = {}
+        with pytest.raises(
+            ValueError,
+            match="Unknown setting for type JSONSettings: non_existing.setting",
+        ):
+            settings.get_setting("non_existing.setting")
 
     def test_get_raw_setting(self, settings):
         assert settings.get_raw_setting(JSONSetting("test_group.key_with_none")) is None
