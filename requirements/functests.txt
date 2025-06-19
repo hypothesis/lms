@@ -379,7 +379,7 @@ tzdata==2023.3
     # via
     #   -r prod.txt
     #   celery
-urllib3==2.2.2
+urllib3==2.5.0
     # via
     #   -r prod.txt
     #   hubspot-api-client

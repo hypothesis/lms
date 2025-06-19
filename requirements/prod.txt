@@ -253,7 +253,7 @@ typing-extensions==4.13.0
     #   sqlalchemy
 tzdata==2023.3
     # via celery
-urllib3==2.2.2
+urllib3==2.5.0
     # via
     #   hubspot-api-client
     #   mailchimp-transactional
