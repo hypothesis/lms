@@ -604,6 +604,23 @@ describe('FilePickerApp', () => {
         },
       });
     });
+
+    it('opens popover when clicking info button', async () => {
+      const wrapper = renderFilePicker();
+
+      selectContent(wrapper, 'https://example.com');
+      clickContinueButton(wrapper);
+      await waitFor(() => fakeAPICall.called);
+
+      assert.isFalse(wrapper.find('Popover').prop('open'));
+      wrapper.find('IconButton').props().onClick();
+      wrapper.update();
+      assert.isTrue(wrapper.find('Popover').prop('open'));
+
+      wrapper.find('Popover').props().onClose();
+      wrapper.update();
+      assert.isFalse(wrapper.find('Popover').prop('open'));
+    });
   });
 
   context('when editing an existing assignment', () => {

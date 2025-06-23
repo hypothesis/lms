@@ -279,12 +279,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
 
   const formRef = useRef<HTMLFormElement>(null);
   const iconRef = useRef<HTMLButtonElement | null>(null);
-
-  /**
-   * Flag indicating whether the popover with information about the
-   * assignment gradable max points input is open.
-   */
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [maxPointsPopoverOpen, setMaxPointsPopoverOpen] = useState(false);
 
   const submit = useCallback(
     async (content: Content) => {
@@ -490,17 +485,23 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                       <>
                         <div className="sm:col-span-2 border-b" />
                         <PanelLabel isCurrentStep verticalAlign="center">
-                          Max points
-                          <IconButton
-                            icon={InfoIcon}
-                            title="About thumbnail descriptions"
-                            onClick={() => setPopoverOpen(!popoverOpen)}
-                            expanded={popoverOpen}
-                            elementRef={iconRef}
-                            // The icon uses `w-em` for sizing, so this sets the size. Chosen to
-                            // match icons in the AnnotationActionBar.
-                            classes="text-[16px]"
-                          />
+                          <div className="flex items-center sm:justify-end">
+                            Max points
+                            <IconButton
+                              icon={InfoIcon}
+                              title="About max points"
+                              onClick={() =>
+                                setMaxPointsPopoverOpen(open => !open)
+                              }
+                              expanded={maxPointsPopoverOpen}
+                              elementRef={iconRef}
+                              // Align right side of the icon with the right
+                              // edge of the text labels above and below.
+                              // Do it by setting negative margin that
+                              // compensates for the button's padding.
+                              classes="text-[16px] -mr-2 touch:-mr-[12px]"
+                            />
+                          </div>
                         </PanelLabel>
                         <Input
                           data-testid="gradable-max-input"
@@ -516,24 +517,18 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                           }
                         />
                         <Popover
-                          open={popoverOpen}
-                          align="right"
+                          open={maxPointsPopoverOpen}
                           anchorElementRef={iconRef}
-                          onClose={() => setPopoverOpen(false)}
-                          classes={classnames(
-                            // Small gap to create separation between input and
-                            // popover.
-                            'mt-1',
-                            // Align popover towards right side of card.
-                            'w-80 max-w-[100vw]',
-                            'p-2 text-sm',
-                          )}
+                          onClose={() => setMaxPointsPopoverOpen(false)}
+                          classes="p-2"
+                          placement="above"
+                          arrow
                         >
                           <div className="flex flex-col gap-y-2">
-                            Activating this feature will use the grading options
-                            you set in Hypothesis.
+                            (Optional) Add a Max Points value here instead of
+                            using your LMS grading settings.
                             <Link
-                              href="https://example.com"
+                              href="https://web.hypothes.is/help/max-points-in-hypothesis-enabled-readings/"
                               underline="always"
                               target="_blank"
                             >
