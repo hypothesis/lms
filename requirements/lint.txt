@@ -543,7 +543,7 @@ tzdata==2023.3
     #   -r functests.txt
     #   -r tests.txt
     #   celery
-urllib3==2.2.2
+urllib3==2.5.0
     # via
     #   -r functests.txt
     #   -r tests.txt
