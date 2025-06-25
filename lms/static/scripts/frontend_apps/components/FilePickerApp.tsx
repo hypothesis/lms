@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   CardActions,
+  InfoIcon,
   CardContent,
   CardHeader,
   Link,
@@ -10,6 +11,8 @@ import {
   Input,
   Scroll,
   SpinnerOverlay,
+  IconButton,
+  Popover,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
@@ -275,6 +278,8 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   > | null>(null);
 
   const formRef = useRef<HTMLFormElement>(null);
+  const iconRef = useRef<HTMLButtonElement | null>(null);
+  const [maxPointsPopoverOpen, setMaxPointsPopoverOpen] = useState(false);
 
   const submit = useCallback(
     async (content: Content) => {
@@ -480,7 +485,23 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                       <>
                         <div className="sm:col-span-2 border-b" />
                         <PanelLabel isCurrentStep verticalAlign="center">
-                          Max points
+                          <div className="flex items-center sm:justify-end">
+                            Max points
+                            <IconButton
+                              icon={InfoIcon}
+                              title="About max points"
+                              onClick={() =>
+                                setMaxPointsPopoverOpen(open => !open)
+                              }
+                              expanded={maxPointsPopoverOpen}
+                              elementRef={iconRef}
+                              // Align right side of the icon with the right
+                              // edge of the text labels above and below.
+                              // Do it by setting negative margin that
+                              // compensates for the button's padding.
+                              classes="text-[16px] -mr-2 touch:-mr-[12px]"
+                            />
+                          </div>
                         </PanelLabel>
                         <Input
                           data-testid="gradable-max-input"
@@ -495,6 +516,26 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                             )
                           }
                         />
+                        <Popover
+                          open={maxPointsPopoverOpen}
+                          anchorElementRef={iconRef}
+                          onClose={() => setMaxPointsPopoverOpen(false)}
+                          classes="p-2"
+                          placement="above"
+                          arrow
+                        >
+                          <div className="flex flex-col gap-y-2">
+                            (Optional) Add a Max Points value here instead of
+                            using your LMS grading settings.
+                            <Link
+                              href="https://web.hypothes.is/help/max-points-in-hypothesis-enabled-readings/"
+                              underline="always"
+                              target="_blank"
+                            >
+                              Learn more about grading options
+                            </Link>
+                          </div>
+                        </Popover>
                       </>
                     )}
 
