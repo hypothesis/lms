@@ -525,14 +525,14 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                           arrow
                         >
                           <div className="flex flex-col gap-y-2">
-                            (Optional) Add a Max Points value here instead of
+                            Optionally add a max points value here instead of
                             using your LMS grading settings.
                             <Link
                               href="https://web.hypothes.is/help/max-points-in-hypothesis-enabled-readings/"
                               underline="always"
                               target="_blank"
                             >
-                              Learn more about grading options
+                              Learn more about our max points feature
                             </Link>
                           </div>
                         </Popover>
