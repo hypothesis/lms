@@ -2744,17 +2744,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/google.accounts@npm:^0.0.16":
-  version: 0.0.16
-  resolution: "@types/google.accounts@npm:0.0.16"
-  checksum: 3628306593cdf1d99c342efe294ddc07622aafd128d9c2dafc682530178467eef9ac2533a124e7a3b5b9626ad420b344080dc14bb10225a403b2e77be9c9bf41
+"@types/google.accounts@npm:^0.0.17":
+  version: 0.0.17
+  resolution: "@types/google.accounts@npm:0.0.17"
+  checksum: 0eca1db4b97ff83075af3179e66b7416556e3f0eeb2f09b73483f602c45cdb858671b9ca773a554ff07446403434b8e55ad21c635b41a53cfdbd6f5ffa533e06
   languageName: node
   linkType: hard
 
-"@types/google.picker@npm:^0.0.50":
-  version: 0.0.50
-  resolution: "@types/google.picker@npm:0.0.50"
-  checksum: a90c4b554ea5484be5147a5d37afa1cdd99a5d2f726abfa152b343c99c3c62f377773a1993592175d6b82431fc9bb438039670642916129301b257d40f0a1726
+"@types/google.picker@npm:^0.0.51":
+  version: 0.0.51
+  resolution: "@types/google.picker@npm:0.0.51"
+  checksum: eb00a23d7cf482b30fe85048687018e88aaed99f398ac90e393b503c6ac181820bd10c41b1c777fa710593ba4555c2aef971d10ec6c591febfdc61ebb4feb0d8
   languageName: node
   linkType: hard
 
@@ -6521,8 +6521,8 @@ __metadata:
     "@rollup/plugin-virtual": ^3.0.2
     "@trivago/prettier-plugin-sort-imports": ^5.2.2
     "@types/gapi": ^0.0.47
-    "@types/google.accounts": ^0.0.16
-    "@types/google.picker": ^0.0.50
+    "@types/google.accounts": ^0.0.17
+    "@types/google.picker": ^0.0.51
     "@vitest/browser": ^3.1.4
     "@vitest/coverage-istanbul": ^3.1.4
     "@vitest/eslint-plugin": ^1.2.1
