@@ -202,7 +202,7 @@ multidict==6.3.2
     #   yarl
 newrelic==10.10.0
     # via -r requirements/prod.txt
-oauthlib==3.2.2
+oauthlib==3.3.1
     # via
     #   -r requirements/prod.txt
     #   requests-oauthlib
