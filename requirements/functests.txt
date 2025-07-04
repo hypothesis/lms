@@ -32,7 +32,7 @@ attrs==23.1.0
     #   referencing
 beautifulsoup4==4.12.2
     # via webtest
-billiard==4.2.0
+billiard==4.2.1
     # via
     #   -r requirements/prod.txt
     #   celery
@@ -42,7 +42,7 @@ cachetools==5.3.2
     # via
     #   -r requirements/prod.txt
     #   google-auth
-celery==5.4.0
+celery==5.5.3
     # via -r requirements/prod.txt
 certifi==2024.7.4
     # via
@@ -167,7 +167,7 @@ jsonschema-specifications==2023.12.1
     # via
     #   -r requirements/prod.txt
     #   jsonschema
-kombu==5.3.4
+kombu==5.5.4
     # via
     #   -r requirements/prod.txt
     #   celery
@@ -203,6 +203,7 @@ packaging==23.2
     #   -r requirements/prod.txt
     #   build
     #   gunicorn
+    #   kombu
     #   marshmallow
     #   pytest
     #   pytest-factoryboy
@@ -375,10 +376,10 @@ typing-extensions==4.13.0
     #   pydantic-core
     #   pytest-factoryboy
     #   sqlalchemy
-tzdata==2023.3
+tzdata==2025.2
     # via
     #   -r requirements/prod.txt
-    #   celery
+    #   kombu
 urllib3==2.2.2
     # via
     #   -r requirements/prod.txt
