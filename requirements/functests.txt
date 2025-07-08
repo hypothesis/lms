@@ -258,9 +258,9 @@ pycparser==2.21
     #   cffi
 pycryptodomex==3.21.0
     # via -r requirements/prod.txt
-pydantic==2.9.2
+pydantic==2.11.7
     # via -r requirements/prod.txt
-pydantic-core==2.23.4
+pydantic-core==2.33.2
     # via
     #   -r requirements/prod.txt
     #   pydantic
@@ -376,6 +376,11 @@ typing-extensions==4.13.0
     #   pydantic-core
     #   pytest-factoryboy
     #   sqlalchemy
+    #   typing-inspection
+typing-inspection==0.4.1
+    # via
+    #   -r requirements/prod.txt
+    #   pydantic
 tzdata==2025.2
     # via
     #   -r requirements/prod.txt
