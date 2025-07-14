@@ -16,6 +16,9 @@ describe('ClientRPC', () => {
   let FakeJWT;
   let fakeJwt;
 
+  let fakeIncrementUnsavedCount;
+  let fakeDecrementUnsavedCount;
+
   beforeEach(() => {
     clientConfig = {
       showHighlights: true,
@@ -58,12 +61,19 @@ describe('ClientRPC', () => {
 
     authToken = 'dummy-auth-token';
 
+    fakeIncrementUnsavedCount = sinon.stub();
+    fakeDecrementUnsavedCount = sinon.stub();
+
     $imports.$mock({
       '../utils/api': {
         apiCall: fakeApiCall,
       },
       '../utils/jwt': {
         JWT: FakeJWT,
+      },
+      '../utils/unsaved-changes': {
+        incrementUnsavedCount: fakeIncrementUnsavedCount,
+        decrementUnsavedCount: fakeDecrementUnsavedCount,
       },
       '../../postmessage_json_rpc': {
         Server: FakeServer,
@@ -280,6 +290,60 @@ describe('ClientRPC', () => {
         'showContentInfo',
         [contentInfo],
       );
+    });
+  });
+
+  describe('"reportUnsavedChanges" RPC handler', () => {
+    it('is registered', () => {
+      createClientRPC();
+      assert.calledWith(fakeServerInstance.register, 'reportUnsavedChanges');
+    });
+
+    it('calls incrementUnsavedCount when unsaved changes are reported', () => {
+      createClientRPC();
+      const [, callback] = fakeServerInstance.register.args.find(
+        ([method]) => method === 'reportUnsavedChanges',
+      );
+
+      callback({ unsaved: true });
+
+      assert.calledOnce(fakeIncrementUnsavedCount);
+      assert.notCalled(fakeDecrementUnsavedCount);
+    });
+
+    it('calls decrementUnsavedCount when unsaved changes are cleared', () => {
+      createClientRPC();
+      const [, callback] = fakeServerInstance.register.args.find(
+        ([method]) => method === 'reportUnsavedChanges',
+      );
+
+      // First set to true to establish state
+      callback({ unsaved: true });
+      fakeIncrementUnsavedCount.resetHistory();
+      fakeDecrementUnsavedCount.resetHistory();
+
+      // Then set to false to clear unsaved changes
+      callback({ unsaved: false });
+
+      assert.calledOnce(fakeDecrementUnsavedCount);
+      assert.notCalled(fakeIncrementUnsavedCount);
+    });
+
+    it('does not increment or decrement unsaved count when state has not changed', () => {
+      createClientRPC();
+      const [, callback] = fakeServerInstance.register.args.find(
+        ([method]) => method === 'reportUnsavedChanges',
+      );
+
+      // First call with unsaved: true
+      callback({ unsaved: true });
+      assert.calledOnce(fakeIncrementUnsavedCount);
+      fakeIncrementUnsavedCount.resetHistory();
+
+      // Second call with same state
+      callback({ unsaved: true });
+      assert.notCalled(fakeIncrementUnsavedCount);
+      assert.notCalled(fakeDecrementUnsavedCount);
     });
   });
 });

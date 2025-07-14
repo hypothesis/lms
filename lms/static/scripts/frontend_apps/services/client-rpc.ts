@@ -4,6 +4,10 @@ import { Server, call as rpcCall } from '../../postmessage_json_rpc';
 import type { ClientConfig } from '../config';
 import { apiCall } from '../utils/api';
 import { JWT } from '../utils/jwt';
+import {
+  incrementUnsavedCount,
+  decrementUnsavedCount,
+} from '../utils/unsaved-changes';
 
 export type User = {
   displayName: string;
@@ -18,6 +22,12 @@ export type AnnotationEventData = {
     id: string;
     isShared: boolean;
   };
+};
+
+/** Argument for `reportUnsavedChanges` message. */
+type UnsavedChangesData = {
+  /** True if the Hypothesis client has unsaved changes to an annotation. */
+  unsaved: boolean;
 };
 
 /**
@@ -134,6 +144,29 @@ export class ClientRPC extends TinyEmitter {
       'reportActivity',
       (eventType: AnnotationEventType, data: AnnotationEventData) => {
         this.emit('annotationActivity', eventType, data);
+      },
+    );
+
+    // Listen for client notifications about unsaved changes.
+    //
+    // This is used to work around a restriction in desktop Safari where
+    // cross-origin iframes cannot use `beforeunload` to prevent tabs being
+    // closed. If the LMS frontend is the top-level frame, then we can work
+    // around this by having the client notify the LMS frontend, which then
+    // adds a "beforeunload" listener.
+    let clientHasUnsavedChanges = false;
+    this._server.register(
+      'reportUnsavedChanges',
+      (state: UnsavedChangesData) => {
+        if (clientHasUnsavedChanges === state.unsaved) {
+          return;
+        }
+        clientHasUnsavedChanges = state.unsaved;
+        if (state.unsaved) {
+          incrementUnsavedCount();
+        } else {
+          decrementUnsavedCount();
+        }
       },
     );
 
