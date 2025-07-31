@@ -121,7 +121,7 @@ h-pyramid-sentry==1.2.4
     # via -r requirements/prod.txt
 h-testkit==1.0.1
     # via -r requirements/functests.in
-h-vialib==1.3.1
+h-vialib==1.3.2
     # via -r requirements/prod.txt
 httpretty==1.1.4
     # via -r requirements/functests.in
