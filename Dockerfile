@@ -1,5 +1,5 @@
 # Stage 1: Build frontend assets.
-FROM node:24.3.0-alpine as frontend-build
+FROM node:24.4.1-alpine as frontend-build
 
 ENV NODE_ENV production
 COPY .babelrc rollup.config.js tailwind.config.js gulpfile.js package.json .yarnrc.yml yarn.lock /tmp/frontend-build/
