@@ -37,7 +37,7 @@
     "autoprefixer": "^10.4.21",
     "classnames": "^2.5.1",
     "focus-visible": "^5.2.1",
-    "gulp": "^5.0.0",
+    "gulp": "^5.0.1",
     "normalize.css": "^8.0.1",
     "postcss": "^8.4.47",
     "preact": "^10.26.5",
