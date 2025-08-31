@@ -417,7 +417,7 @@ webob==1.8.8
     #   h-vialib
     #   pyramid
     #   webtest
-webtest==3.0.4
+webtest==3.0.6
     # via -r requirements/functests.in
 wheel==0.42.0
     # via pip-tools
