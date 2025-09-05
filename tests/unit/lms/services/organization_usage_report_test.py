@@ -163,17 +163,19 @@ class TestOrganizationUsageReportService:
         factories.LMSCourseApplicationInstance(
             lms_course=lms_course_child, application_instance=ai_child_org
         )
+
+        # Course last used before the start date
+        factories.Course(
+            application_instance=ai_root_org,
+            updated=since - timedelta(days=2),
+            created=since - timedelta(days=2),
+        )
+
         # Course created after the until date
-        course_created_after_date = factories.Course(
-            application_instance=ai_child_org,
+        factories.Course(
+            application_instance=ai_root_org,
+            updated=until + timedelta(days=1),
             created=until + timedelta(days=1),
-        )
-        lms_course_created_after_date = factories.LMSCourse(
-            h_authority_provided_id=course_created_after_date.authority_provided_id,
-            created=until + timedelta(days=1),
-        )
-        factories.LMSCourseApplicationInstance(
-            lms_course=lms_course_created_after_date, application_instance=ai_child_org
         )
 
         # Annotations in one section and in the other course
@@ -217,6 +219,9 @@ class TestOrganizationUsageReportService:
 
         report = svc.usage_report(org_with_parent.parent, since, until)
 
+        # Make sure only the expected groups were passed to h, excluding any
+        # filtered out based on date range or because they aren't associated
+        # with the organization.
         h_api.get_groups.assert_called_once_with(
             Any.list.containing(
                 [
@@ -224,7 +229,7 @@ class TestOrganizationUsageReportService:
                     course_child.authority_provided_id,
                     section.authority_provided_id,
                 ]
-            ),
+            ).only(),
             since,
             until,
         )
