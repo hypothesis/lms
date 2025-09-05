@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from logging import getLogger
 from typing import TYPE_CHECKING
 
@@ -141,12 +141,26 @@ class OrganizationUsageReportService:
         organization_children = self._organization_service.get_hierarchy_ids(
             organization.id, include_parents=False
         )
+
+        # A threshold to allow for the delay in between the user launching an
+        # assignment and annotating in it.
+        since_threshold = timedelta(days=1)
+
         # All the groups that can hold annotations (courses and segments) from this org
         groups_from_org = self._db.scalars(
             select(Grouping.authority_provided_id)
             .join(ApplicationInstance)
             .where(
                 ApplicationInstance.organization_id.in_(organization_children),
+                # Exclude groups which were last updated before the start of the
+                # usage report period.
+                #
+                # In order to annotate in a group, an assignment must be
+                # launched. When an assignment is launched, the groups used
+                # by that assignment are updated. Hence we can use the group's
+                # updated time as a proxy for whether the group _may_ have been
+                # annotated after a given date.
+                Grouping.updated >= (since - since_threshold),
                 # If a group was created after the date we are interested, exclude it
                 Grouping.created <= until,
             )
