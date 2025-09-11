@@ -7,8 +7,6 @@ import {
 } from '@hypothesis/frontend-build';
 import gulp from 'gulp';
 
-import tailwindConfig from './tailwind.config.js';
-
 gulp.task('build-js', () => buildJS('./rollup.config.js'));
 gulp.task('watch-js', () => watchJS('./rollup.config.js'));
 
@@ -17,11 +15,11 @@ gulp.task('build-css', () =>
     [
       './lms/static/styles/canvas_pages/canvas_pages.scss',
       './lms/static/styles/moodle_pages/moodle_pages.scss',
-      './lms/static/styles/frontend_apps.scss',
+      './lms/static/styles/frontend_apps.css',
       './lms/static/styles/lms.scss',
       './lms/static/styles/ui-playground.scss',
     ],
-    { tailwindConfig },
+    { autoprefixer: false, tailwind: true },
   ),
 );
 

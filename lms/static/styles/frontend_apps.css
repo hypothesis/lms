@@ -1,0 +1,45 @@
+/* CSS Entry point for front-end (preact) app */
+
+@import 'tailwindcss' source(none);
+
+@config '../../../tailwind.config.js';
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+
+  /* Base typography styling */
+  body {
+    @apply font-sans;
+    @apply text-tiny;
+    @apply text-grey-9;
+  }
+
+  /* See https://tailwindcss.com/docs/upgrade-guide#default-border-color. */
+  * {
+    border-color: #dbdbdb;
+  }
+}
+
+/* See https://tailwindcss.com/docs/upgrade-guide#default-ring-width-and-color. */
+@theme {
+  --default-ring-width: 2px;
+  --default-ring-color: #59a7e8;
+}
+
+@layer components {
+  /* A warning banner shown at the top of the view in unsupported browsers.
+     This is styled to match warning toasts and banners in the Hypothesis client. */
+  .browser-check-warning {
+    @apply fixed left-[5px] top-[5px] right-[5px];
+    @apply flex items-center;
+    @apply bg-white border-[2px] border-solid border-yellow-notice;
+    @apply p-3;
+
+    /* In case the frontend app does load (partially or fully),
+       raise the banner above any content that it renders. */
+    z-index: 10000;
+  }
+}
