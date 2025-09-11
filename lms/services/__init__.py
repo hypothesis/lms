@@ -179,7 +179,7 @@ def includeme(config):  # noqa: PLR0915
     # Importing them here to:
     # - Don't pollute the lms.services namespace
     # - Ease some circular-dependency problems
-    from lms.product.plugin.course_copy import (
+    from lms.product.plugin.course_copy import (  # noqa: PLC0415
         CourseCopyFilesHelper,
         CourseCopyGroupsHelper,
     )

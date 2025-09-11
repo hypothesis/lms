@@ -9,13 +9,13 @@ from lms import models, services, tasks
 
 
 def setup(env):
-    from h_testkit import (
-        set_factoryboy_sqlalchemy_session,  # type: ignore  # noqa: PGH003
+    from h_testkit import (  # noqa: PLC0415
+        set_factoryboy_sqlalchemy_session,
     )
 
     sys.path = ["."] + sys.path  # noqa: RUF005
 
-    from tests import factories
+    from tests import factories  # noqa: PLC0415
 
     sys.path = sys.path[1:]
 
