@@ -184,7 +184,7 @@ class TestLTI11GradingService:
 
         with pytest.raises(
             ExternalRequestError,
-            match="<imsx_description>An error occurred.</imsx_description>",
+            match="<imsx_description>An error occurred\\.</imsx_description>",
         ):
             svc_method(sentinel.grading_id)
 
