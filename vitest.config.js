@@ -1,5 +1,4 @@
 import { SummaryReporter } from '@hypothesis/frontend-testing/vitest';
-import glob from 'glob';
 import { defineConfig } from 'vitest/config';
 
 import { excludeFromCoverage } from './rollup-tests.config.js';
@@ -20,7 +19,7 @@ export default defineConfig({
 
     // CSS bundles, relied upon by accessibility tests (eg. for color-contrast
     // checks).
-    setupFiles: glob.sync('./build/styles/*.css'),
+    setupFiles: ['./build/styles/frontend_apps.css'],
     include: [
       // Test bundle
       './build/scripts/tests.bundle.js',

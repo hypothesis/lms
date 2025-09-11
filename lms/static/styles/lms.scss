@@ -1,5 +1,7 @@
 // CSS entry point for back-end app
-@use 'normalize.css/normalize';
+
+// Align with Tailwind cascade layers. See https://tailwindcss.com/docs/preflight.
+@layer theme, base, components, utilities;
 
 $color-text: #202020;
 
@@ -9,14 +11,19 @@ $sans-font-family: 'Helvetica Neue', Helvetica, Arial, 'Lucida Grande',
 
 $normal-font-size: 13px;
 
-* {
-  box-sizing: border-box;
-}
+// Add legacy reset to base layer so they don't override Tailwind styles.
+@layer base {
+  @meta.load-css ('normalize.css/normalize');
 
-body {
-  font-family: $sans-font-family;
-  font-size: $normal-font-size;
-  color: $color-text;
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: $sans-font-family;
+    font-size: $normal-font-size;
+    color: $color-text;
+  }
 }
 
 .content {
