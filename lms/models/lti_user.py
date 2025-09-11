@@ -72,21 +72,21 @@ class LTIUser:
     @property
     def is_instructor(self):
         """Whether this user is an instructor."""
-        from lms.services.lti_role_service import LTIRoleService
+        from lms.services.lti_role_service import LTIRoleService  # noqa: PLC0415
 
         return LTIRoleService.is_instructor(self.effective_lti_roles)
 
     @property
     def is_learner(self):
         """Whether this user is a learner."""
-        from lms.services.lti_role_service import LTIRoleService
+        from lms.services.lti_role_service import LTIRoleService  # noqa: PLC0415
 
         return LTIRoleService.is_learner(self.effective_lti_roles)
 
     @property
     def is_admin(self):
         """Whether this user is an admin."""
-        from lms.services.lti_role_service import LTIRoleService
+        from lms.services.lti_role_service import LTIRoleService  # noqa: PLC0415
 
         return LTIRoleService.is_admin(self.effective_lti_roles)
 

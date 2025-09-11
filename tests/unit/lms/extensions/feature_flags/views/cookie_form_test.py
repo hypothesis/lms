@@ -49,6 +49,9 @@ class Redirect302To:
             and other.location == self.location
         )
 
+    def __hash__(self):  # pragma: nocover
+        return hash(self.location)
+
 
 @pytest.fixture(autouse=True)
 def FeatureFlagsCookieHelper(patch):

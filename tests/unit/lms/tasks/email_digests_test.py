@@ -335,7 +335,7 @@ class TestSendInstructorEmailDigests:
         )
 
     def test_it_crashes_if_created_before_is_invalid(self, h_userid):
-        with pytest.raises(ValueError, match="^Invalid isoformat string"):
+        with pytest.raises(ValueError, match=r"^Invalid isoformat string"):
             send_instructor_email_digest(h_userid=h_userid, created_before="invalid")
 
     @pytest.fixture
