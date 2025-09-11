@@ -81,7 +81,7 @@ click-repl==0.3.0
     # via
     #   -r requirements/prod.txt
     #   celery
-coverage[toml]==7.8.0
+coverage[toml]==7.10.6
     # via pytest-cov
 cryptography==44.0.1
     # via
@@ -238,7 +238,9 @@ plaster-pastedeploy==1.0.1
     #   -r requirements/prod.txt
     #   pyramid
 pluggy==1.5.0
-    # via pytest
+    # via
+    #   pytest
+    #   pytest-cov
 prompt-toolkit==3.0.43
     # via
     #   -r requirements/prod.txt
@@ -312,7 +314,7 @@ pytest==8.3.3
     #   pytest-cov
     #   pytest-factoryboy
     #   pytest-xdist
-pytest-cov==6.1.1
+pytest-cov==7.0.0
     # via -r requirements/tests.in
 pytest-factoryboy==2.7.0
     # via -r requirements/tests.in
