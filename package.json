@@ -36,7 +36,6 @@
     "@tailwindcss/postcss": "^4.1.13",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "classnames": "^2.5.1",
-    "focus-visible": "^5.2.1",
     "gulp": "^5.0.1",
     "normalize.css": "^8.0.1",
     "postcss": "^8.4.47",

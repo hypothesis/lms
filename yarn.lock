@@ -5510,13 +5510,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"focus-visible@npm:^5.2.1":
-  version: 5.2.1
-  resolution: "focus-visible@npm:5.2.1"
-  checksum: 9da7388e703315a8f933bb4fec4e2be5f1d655dfc91c388d1802ad53a99e1fa31a5be90866b7db83d48d8f7f771dd2df7d51445a37f48f7069823eceb5f34e64
-  languageName: node
-  linkType: hard
-
 "for-each@npm:^0.3.3":
   version: 0.3.3
   resolution: "for-each@npm:0.3.3"
@@ -6993,7 +6986,6 @@ __metadata:
     eslint-plugin-jsx-a11y: ^6.10.2
     eslint-plugin-react: ^7.37.5
     eslint-plugin-react-hooks: ^5.2.0
-    focus-visible: ^5.2.1
     globals: ^15.11.0
     gulp: ^5.0.1
     navigation-api-types: ^0.5.1

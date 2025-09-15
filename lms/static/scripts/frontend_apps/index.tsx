@@ -1,4 +1,3 @@
-import 'focus-visible';
 import { render } from 'preact';
 // Enable debugging checks and devtools. Removed in prod builds by Rollup config.
 import 'preact/debug';
