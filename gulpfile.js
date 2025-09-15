@@ -19,7 +19,7 @@ gulp.task('build-css', () =>
       './lms/static/styles/lms.scss',
       './lms/static/styles/ui-playground.scss',
     ],
-    { autoprefixer: false, tailwind: true },
+    { tailwind: true },
   ),
 );
 
