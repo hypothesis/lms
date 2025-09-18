@@ -225,7 +225,7 @@ export default function SubmitGradeForm({
                 'disabled:opacity-50',
                 'border border-r-0 rounded-r-none',
                 {
-                  'animate-gradeSubmitSuccess': gradeSaved,
+                  'animate-grade-submit-success': gradeSaved,
                 },
               )}
               data-testid="grade-input"

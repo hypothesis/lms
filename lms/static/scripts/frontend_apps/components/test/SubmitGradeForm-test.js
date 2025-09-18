@@ -201,7 +201,7 @@ describe('SubmitGradeForm', () => {
       await waitForGradeFetch(wrapper);
 
       assert.isTrue(
-        wrapper.find(inputSelector).hasClass('animate-gradeSubmitSuccess'),
+        wrapper.find(inputSelector).hasClass('animate-grade-submit-success'),
       );
     });
 
@@ -215,7 +215,7 @@ describe('SubmitGradeForm', () => {
 
       wrapper.find(inputSelector).simulate('input');
       assert.isFalse(
-        wrapper.find(inputSelector).hasClass('animate-gradeSubmitSuccess'),
+        wrapper.find(inputSelector).hasClass('animate-grade-submit-success'),
       );
     });
 

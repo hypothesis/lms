@@ -2,7 +2,10 @@
 
 @import 'tailwindcss' source(none);
 
-@config '../../../tailwind.config.js';
+@source '../**/*.{js,ts,tsx}';
+@source '../../../node_modules/@hypothesis/frontend-shared/lib/**/*.js';
+
+@import '@hypothesis/frontend-shared/tailwind-config.css';
 
 @layer base {
   html,
@@ -23,8 +26,19 @@
   }
 }
 
-/* See https://tailwindcss.com/docs/upgrade-guide#default-ring-width-and-color. */
 @theme {
+  --animate-grade-submit-success: grade-submit-success 2s ease-out forwards;
+
+  @keyframes grade-submit-success {
+    0% { background-color: var(--color-green-success); }
+    100% { background-color: transparent; }
+  }
+
+  --font-sans: "Helvetica Neue", Helvetica, Arial, Lucida Grande, sans-serif;
+  --text-tiny: 13px;
+  --text-tiny--line-height: 15px;
+
+  /* See https://tailwindcss.com/docs/upgrade-guide#default-ring-width-and-color. */
   --default-ring-width: 2px;
   --default-ring-color: #59a7e8;
 }
