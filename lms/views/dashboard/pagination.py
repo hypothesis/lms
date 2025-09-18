@@ -19,7 +19,7 @@ MAX_ITEMS_PER_PAGE = 100
 """Maximum number of items to return in paginated endpoints"""
 
 
-def _get_cursor_value[T](items: list[T], cursor_columns: list) -> str:
+def _get_cursor_value(items: list[T], cursor_columns: list) -> str:
     last_element = items[-1]
     # Get the relevant values from the last element on the page
     values = [getattr(last_element, column.key) for column in cursor_columns]
@@ -38,7 +38,7 @@ def _get_next_url(current_url, cursor_value) -> str:
     return urlunparse(parsed_url._replace(query=new_query_string))
 
 
-def get_page[T](
+def get_page(
     request, items_query: Select[tuple[T, *tuple[Any]]], cursor_columns: list
 ) -> tuple[list[T], Pagination]:
     """Return the first page and pagination metadata from a query."""
