@@ -299,7 +299,7 @@ pytest==8.3.3
     # via
     #   -r requirements/functests.in
     #   pytest-factoryboy
-pytest-factoryboy==2.7.0
+pytest-factoryboy==2.8.1
     # via -r requirements/functests.in
 python-dateutil==2.8.2
     # via
