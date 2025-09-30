@@ -3102,10 +3102,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/google.accounts@npm:^0.0.17":
-  version: 0.0.17
-  resolution: "@types/google.accounts@npm:0.0.17"
-  checksum: 0eca1db4b97ff83075af3179e66b7416556e3f0eeb2f09b73483f602c45cdb858671b9ca773a554ff07446403434b8e55ad21c635b41a53cfdbd6f5ffa533e06
+"@types/google.accounts@npm:^0.0.18":
+  version: 0.0.18
+  resolution: "@types/google.accounts@npm:0.0.18"
+  checksum: e8ce2703451e60bbba29fb524c3fc198a6ecd3633b7a35511409fed92246eb84443a6d0e8c98a6c98a0b600b546b89d2e999d50ce566a74a53f9dddd8039f6c1
   languageName: node
   linkType: hard
 
@@ -6969,7 +6969,7 @@ __metadata:
     "@tailwindcss/postcss": ^4.1.13
     "@trivago/prettier-plugin-sort-imports": ^5.2.2
     "@types/gapi": ^0.0.47
-    "@types/google.accounts": ^0.0.17
+    "@types/google.accounts": ^0.0.18
     "@types/google.picker": ^0.0.51
     "@vitest/browser": ^3.2.4
     "@vitest/coverage-istanbul": ^3.2.4

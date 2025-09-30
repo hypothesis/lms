@@ -49,7 +49,7 @@
   "devDependencies": {
     "@hypothesis/frontend-testing": "^1.7.1",
     "@types/gapi": "^0.0.47",
-    "@types/google.accounts": "^0.0.17",
+    "@types/google.accounts": "^0.0.18",
     "@types/google.picker": "^0.0.51",
     "@vitest/browser": "^3.2.4",
     "@vitest/coverage-istanbul": "^3.2.4",
