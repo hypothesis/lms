@@ -277,6 +277,8 @@ pydantic-core==2.33.2
     # via
     #   -r requirements/prod.txt
     #   pydantic
+pygments==2.19.2
+    # via pytest
 pyjwt[crypto]==2.10.1
     # via
     #   -r requirements/prod.txt
@@ -308,7 +310,7 @@ pyramid-services==2.2
     # via -r requirements/prod.txt
 pyramid-tm==2.6
     # via -r requirements/prod.txt
-pytest==8.3.3
+pytest==8.4.2
     # via
     #   -r requirements/tests.in
     #   pytest-cov

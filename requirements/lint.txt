@@ -384,6 +384,11 @@ pydantic-core==2.33.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pydantic
+pygments==2.19.2
+    # via
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   pytest
 pyjwt[crypto]==2.10.1
     # via
     #   -r requirements/functests.txt
@@ -431,7 +436,7 @@ pyramid-tm==2.6
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-pytest==8.3.3
+pytest==8.4.2
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
