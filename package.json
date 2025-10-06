@@ -41,7 +41,7 @@
     "postcss": "^8.4.47",
     "preact": "^10.26.5",
     "rollup": "^4.52.4",
-    "sass": "^1.80.5",
+    "sass": "^1.93.2",
     "tailwindcss": "^4.1.13",
     "tiny-emitter": "^2.1.0",
     "wouter-preact": "^3.7.1"
