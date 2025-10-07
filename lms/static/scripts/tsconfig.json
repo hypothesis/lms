@@ -10,7 +10,8 @@
     "noEmit": true,
     "strict": true,
     "target": "ES2020",
-    "useUnknownInCatchVariables": false
+    "useUnknownInCatchVariables": false,
+    "skipLibCheck": true
   },
   "include": ["**/*.js", "**/*.ts", "**/*.tsx"],
   "exclude": [
