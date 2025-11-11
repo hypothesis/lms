@@ -597,7 +597,7 @@ webob==1.8.8
     #   h-vialib
     #   pyramid
     #   webtest
-webtest==3.0.6
+webtest==3.0.7
     # via -r requirements/functests.txt
 wheel==0.42.0
     # via
