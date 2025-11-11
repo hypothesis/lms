@@ -52,6 +52,7 @@
     "@types/google.accounts": "^0.0.18",
     "@types/google.picker": "^0.0.51",
     "@vitest/browser": "^4.0.8",
+    "@vitest/browser-playwright": "^4.0.8",
     "@vitest/coverage-istanbul": "^4.0.8",
     "@vitest/eslint-plugin": "^1.4.2",
     "axe-core": "^4.10.3",
