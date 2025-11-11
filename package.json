@@ -51,9 +51,10 @@
     "@types/gapi": "^0.0.47",
     "@types/google.accounts": "^0.0.18",
     "@types/google.picker": "^0.0.51",
-    "@vitest/browser": "^3.2.4",
-    "@vitest/coverage-istanbul": "^3.2.4",
-    "@vitest/eslint-plugin": "^1.3.16",
+    "@vitest/browser": "^4.0.8",
+    "@vitest/browser-playwright": "^4.0.8",
+    "@vitest/coverage-istanbul": "^4.0.8",
+    "@vitest/eslint-plugin": "^1.4.2",
     "axe-core": "^4.10.3",
     "babel-plugin-istanbul": "^7.0.0",
     "babel-plugin-mockable-imports": "^2.0.1",
@@ -72,7 +73,7 @@
     "sinon": "^19.0.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.3",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.8"
   },
   "prettier": {
     "arrowParens": "avoid",
