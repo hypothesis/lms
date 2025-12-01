@@ -67,7 +67,7 @@ greenlet==3.1.1
     # via sqlalchemy
 gunicorn==23.0.0
     # via -r requirements/prod.in
-h-api==1.1.0
+h-api==1.1.1
     # via -r requirements/prod.in
 h-assets==1.0.7
     # via -r requirements/prod.in
@@ -83,8 +83,6 @@ idna==3.7
     # via
     #   requests
     #   yarl
-importlib-metadata==7.0.1
-    # via h-api
 importlib-resources==6.5.2
     # via
     #   -r requirements/prod.in
@@ -285,8 +283,6 @@ xmltodict==1.0.2
     # via -r requirements/prod.in
 yarl==1.17.2
     # via aiohttp
-zipp==3.19.1
-    # via importlib-metadata
 zope-deprecation==5.0
     # via
     #   pyramid

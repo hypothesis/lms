@@ -119,7 +119,7 @@ greenlet==3.1.1
     #   sqlalchemy
 gunicorn==23.0.0
     # via -r requirements/prod.txt
-h-api==1.1.0
+h-api==1.1.1
     # via -r requirements/prod.txt
 h-assets==1.0.7
     # via -r requirements/prod.txt
@@ -145,10 +145,7 @@ idna==3.7
     #   requests
     #   yarl
 importlib-metadata==7.0.1
-    # via
-    #   -r requirements/prod.txt
-    #   h-api
-    #   pip-sync-faster
+    # via pip-sync-faster
 importlib-resources==6.5.2
     # via
     #   -r requirements/prod.txt
@@ -447,9 +444,7 @@ yarl==1.17.2
     #   -r requirements/prod.txt
     #   aiohttp
 zipp==3.19.1
-    # via
-    #   -r requirements/prod.txt
-    #   importlib-metadata
+    # via importlib-metadata
 zope-deprecation==5.0
     # via
     #   -r requirements/prod.txt
