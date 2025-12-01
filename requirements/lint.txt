@@ -375,11 +375,11 @@ pycryptodomex==3.21.0
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-pydantic==2.11.7
+pydantic==2.12.5
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-pydantic-core==2.33.2
+pydantic-core==2.41.5
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
@@ -536,7 +536,7 @@ translationstring==1.4
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
-typing-extensions==4.13.0
+typing-extensions==4.15.0
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
@@ -547,7 +547,7 @@ typing-extensions==4.13.0
     #   pytest-factoryboy
     #   sqlalchemy
     #   typing-inspection
-typing-inspection==0.4.1
+typing-inspection==0.4.2
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
