@@ -47,6 +47,24 @@ class TestBasicClient:
             Any.request.with_url(expected_url), timeout=sentinel.timeout
         )
 
+    @pytest.mark.parametrize(
+        "headers,expected_user_agent",
+        [
+            (None, "Hypothesis/1.0 (lms)"),
+            ({}, "Hypothesis/1.0 (lms)"),
+            ({"User-Agent": "Something else"}, "Something else"),
+        ],
+    )
+    def test_expected_user_agent_is_sent(
+        self, basic_client, http_session, Schema, headers, expected_user_agent
+    ):
+        basic_client.send(
+            "any", "any", schema=Schema, timeout=sentinel.timeout, headers=headers
+        )
+
+        request = http_session.send.call_args[0][0]
+        assert request.headers["User-Agent"] == expected_user_agent
+
     @pytest.mark.parametrize("method", ("GET", "POST", "PATCH"))
     def test_send_uses_the_request_method(
         self, basic_client, Schema, method, http_session

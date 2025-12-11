@@ -86,6 +86,11 @@ class BasicClient:
 
             params["per_page"] = self.PAGINATION_PER_PAGE
 
+        # Canvas requires a User-Agent header to be set.
+        # See https://community.instructure.com/en/discussion/658205/enforcing-user-agent-header-for-canvas-api-requests
+        headers = headers or {}
+        headers["User-Agent"] = headers.get("User-Agent", "Hypothesis/1.0 (lms)")
+
         request = requests.Request(
             method, self._get_url(path, params, url_stub), headers=headers
         ).prepare()
