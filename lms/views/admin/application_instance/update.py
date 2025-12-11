@@ -81,7 +81,7 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
             value = value.strip() if value else None
 
             if field.format in [SettingFormat.BOOLEAN, SettingFormat.TRI_STATE]:
-                setting_value = field.format.value(value)  # type: ignore[operator]
+                setting_value = field.format.value(value)
                 ai.settings.set(field.group, field.key, setting_value)
 
             elif field.format == SettingFormat.AES_SECRET:
