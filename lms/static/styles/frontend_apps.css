@@ -51,7 +51,7 @@
     @apply flex items-center;
     @apply border-[2px] border-solid border-yellow-notice;
     background-color: white;
-    @apply p-3;
+    padding: 0.75rem;
 
     /* In case the frontend app does load (partially or fully),
        raise the banner above any content that it renders. */
