@@ -33,7 +33,7 @@
     "@rollup/plugin-replace": "^6.0.3",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-virtual": "^3.0.2",
-    "@tailwindcss/postcss": "<=4.1.13 || >=4.1.18",
+    "@tailwindcss/postcss": "<=4.1.19 || >=4.1.18",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "classnames": "^2.5.1",
     "gulp": "^5.0.1",
