@@ -1,7 +1,6 @@
 import json
 from unittest.mock import Mock, sentinel
 
-import httpretty
 import pytest
 import requests
 
@@ -326,11 +325,6 @@ class TestCanvasAPIError:
     @pytest.fixture
     def canvas_api_invalid_response(self):
         """Return a successful (200 OK) response with an invalid body."""
-        httpretty.register_uri(
-            httpretty.GET, "https://example.com", status=200, body="Invalid"
-        )
-        canvas_api_invalid_response = requests.get(
-            "https://example.com", timeout=(10, 10)
-        )
-        canvas_api_invalid_response.body = "x" * 1000
-        return canvas_api_invalid_response
+        response = factories.requests.Response(status_code=200, raw="Invalid")
+        response.body = "x" * 1000
+        return response
