@@ -40,7 +40,7 @@
     "normalize.css": "^8.0.1",
     "postcss": "^8.4.47",
     "preact": "^10.26.5",
-    "rollup": "^4.53.3",
+    "rollup": "^4.54.0",
     "sass": "^1.93.2",
     "tailwindcss": "<=4.1.13 || >=4.1.18",
     "tiny-emitter": "^2.1.0",
