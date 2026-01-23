@@ -3,8 +3,9 @@
 
 @use 'frontend_apps';
 
-// Include the CSS for the Library components themselves
-@use '@hypothesis/frontend-shared/styles/library';
+// TODO: Re-enable once @hypothesis/frontend-shared pre-compiles library.css
+// See: https://github.com/hypothesis/frontend-shared - Tailwind v4 breaks @apply in imported CSS
+// @use '@hypothesis/frontend-shared/styles/library';
 
 // TODO: Obviate the need for these overrides/customizations
 
