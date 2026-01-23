@@ -98,7 +98,7 @@ factory-boy==3.3.3
     #   pytest-factoryboy
 faker==21.0.0
     # via factory-boy
-freezegun==1.5.1
+freezegun==1.5.5
     # via -r requirements/tests.in
 frozenlist==1.4.1
     # via
