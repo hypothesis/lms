@@ -215,7 +215,7 @@ rpds-py==0.15.2
     #   referencing
 rsa==4.9
     # via google-auth
-sentry-sdk==2.35.1
+sentry-sdk==2.50.0
     # via
     #   -r requirements/prod.in
     #   h-pyramid-sentry
