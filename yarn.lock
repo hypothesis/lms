@@ -7059,7 +7059,7 @@ __metadata:
     eslint-plugin-react-hooks: ^7.0.1
     globals: ^15.11.0
     gulp: ^5.0.1
-    navigation-api-types: ^0.5.1
+    navigation-api-types: ^0.6.1
     normalize.css: ^8.0.1
     playwright: ^1.55.1
     postcss: ^8.4.47
@@ -7441,10 +7441,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"navigation-api-types@npm:^0.5.1":
-  version: 0.5.1
-  resolution: "navigation-api-types@npm:0.5.1"
-  checksum: 42783a2546e0af948c65f1c4a47effe8257e5155626ae42df8d06ad2b1f3404f7e32816edc09c0e8acefb723ea5a6f6314ab2ae84efc51e0e4f9a8d144cd4208
+"navigation-api-types@npm:^0.6.1":
+  version: 0.6.1
+  resolution: "navigation-api-types@npm:0.6.1"
+  checksum: 0d3f48c5325fa4646926e371fcc8b9cf9a9bf7867261ec618b373a503d8602c8e1a2d514899a1ef01b2ab06a13aaaf6e9837b69a4d6fe32f844c413d0cb52f15
   languageName: node
   linkType: hard
 
