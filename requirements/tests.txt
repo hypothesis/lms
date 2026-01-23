@@ -249,7 +249,7 @@ propcache==0.2.0
     #   yarl
 psutil==5.9.7
     # via pytest-xdist
-psycopg2==2.9.10
+psycopg2==2.9.11
     # via
     #   -r requirements/prod.txt
     #   data-tasks
