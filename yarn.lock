@@ -3246,10 +3246,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/google.picker@npm:^0.0.51":
-  version: 0.0.51
-  resolution: "@types/google.picker@npm:0.0.51"
-  checksum: eb00a23d7cf482b30fe85048687018e88aaed99f398ac90e393b503c6ac181820bd10c41b1c777fa710593ba4555c2aef971d10ec6c591febfdc61ebb4feb0d8
+"@types/google.picker@npm:^0.0.52":
+  version: 0.0.52
+  resolution: "@types/google.picker@npm:0.0.52"
+  checksum: d4932730d9df6526571044258426bb7745eec5920447e7b2c488f1af1c2ab588699a48c69766b760104ffaa1559554c4230e9cb504dcb70c710efbb4a723a11e
   languageName: node
   linkType: hard
 
@@ -7048,7 +7048,7 @@ __metadata:
     "@trivago/prettier-plugin-sort-imports": ^5.2.2
     "@types/gapi": ^0.0.47
     "@types/google.accounts": ^0.0.18
-    "@types/google.picker": ^0.0.51
+    "@types/google.picker": ^0.0.52
     "@vitest/browser": ^4.0.14
     "@vitest/browser-playwright": ^4.0.14
     "@vitest/coverage-istanbul": ^4.0.14

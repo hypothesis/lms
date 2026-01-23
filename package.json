@@ -50,7 +50,7 @@
     "@hypothesis/frontend-testing": "^1.7.1",
     "@types/gapi": "^0.0.47",
     "@types/google.accounts": "^0.0.18",
-    "@types/google.picker": "^0.0.51",
+    "@types/google.picker": "^0.0.52",
     "@vitest/browser": "^4.0.14",
     "@vitest/browser-playwright": "^4.0.14",
     "@vitest/coverage-istanbul": "^4.0.14",
