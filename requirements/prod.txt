@@ -25,7 +25,7 @@ billiard==4.2.1
     # via celery
 cachetools==5.3.2
     # via google-auth
-celery==5.5.3
+celery==5.6.2
     # via -r requirements/prod.in
 certifi==2024.7.4
     # via
@@ -98,7 +98,7 @@ jsonschema==4.20.0
     # via h-api
 jsonschema-specifications==2023.12.1
     # via jsonschema
-kombu==5.5.4
+kombu==5.6.2
     # via celery
 mailchimp-transactional==1.0.56
     # via -r requirements/prod.in
@@ -256,6 +256,8 @@ typing-inspection==0.4.2
     # via pydantic
 tzdata==2025.2
     # via kombu
+tzlocal==5.3.1
+    # via celery
 urllib3==2.6.3
     # via
     #   hubspot-api-client

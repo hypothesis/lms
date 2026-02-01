@@ -61,7 +61,7 @@ cachetools==5.3.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   google-auth
-celery==5.5.3
+celery==5.6.2
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
@@ -247,7 +247,7 @@ jsonschema-specifications==2023.12.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   jsonschema
-kombu==5.5.4
+kombu==5.6.2
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
@@ -556,6 +556,11 @@ tzdata==2025.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   kombu
+tzlocal==5.3.1
+    # via
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
+    #   celery
 urllib3==2.6.3
     # via
     #   -r requirements/functests.txt

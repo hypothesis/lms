@@ -40,7 +40,7 @@ cachetools==5.3.2
     # via
     #   -r requirements/prod.txt
     #   google-auth
-celery==5.5.3
+celery==5.6.2
     # via -r requirements/prod.txt
 certifi==2024.7.4
     # via
@@ -146,7 +146,7 @@ jsonschema-specifications==2023.12.1
     # via
     #   -r requirements/prod.txt
     #   jsonschema
-kombu==5.5.4
+kombu==5.6.2
     # via
     #   -r requirements/prod.txt
     #   celery
@@ -362,6 +362,10 @@ tzdata==2025.2
     # via
     #   -r requirements/prod.txt
     #   kombu
+tzlocal==5.3.1
+    # via
+    #   -r requirements/prod.txt
+    #   celery
 urllib3==2.6.3
     # via
     #   -r requirements/prod.txt
