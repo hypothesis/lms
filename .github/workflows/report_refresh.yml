@@ -13,7 +13,7 @@ jobs:
     with:
       App: ${{ github.event.repository.name }}
       Env: 'prod'
-      Timeout: 7200
+      Timeout: 14400 # 4 hours
       Region: 'all'
       Command: 'newrelic-admin run-program python bin/run_data_task.py --config-file conf/production.ini --task report/refresh'
     secrets: inherit
