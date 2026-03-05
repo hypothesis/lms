@@ -22,6 +22,7 @@ pytestmark = pytest.mark.usefixtures(
     "h_api",
     "vitalsource_service",
     "jstor_service",
+    "youtube_service",
     "misc_plugin",
 )
 
@@ -420,6 +421,34 @@ class TestAddDocumentURL:
             "itemId": "DOI",
         }
         assert js_config.asdict()["viaUrl"] == jstor_service.via_url.return_value
+
+    def test_youtube_assignment_sets_client_flag(
+        self, js_config, youtube_service, course, assignment, via_url
+    ):
+        youtube_service.enabled = True
+        js_config.add_document_url("https://www.youtube.com/watch?v=abc123")
+        js_config.enable_lti_launch_mode(course, assignment)
+        config = js_config.asdict()
+        assert config["hypothesisClient"]["youtubeAssignment"] is True
+        via_url.assert_called_once()
+
+    def test_youtube_disabled_does_not_set_client_flag(
+        self, js_config, youtube_service, course, assignment, via_url
+    ):
+        youtube_service.enabled = False
+        js_config.add_document_url("https://www.youtube.com/watch?v=abc123")
+        js_config.enable_lti_launch_mode(course, assignment)
+        config = js_config.asdict()
+        assert config["hypothesisClient"].get("youtubeAssignment") is not True
+
+    def test_non_youtube_url_does_not_set_client_flag(
+        self, js_config, youtube_service, course, assignment, via_url
+    ):
+        youtube_service.enabled = True
+        js_config.add_document_url("https://example.com/article")
+        js_config.enable_lti_launch_mode(course, assignment)
+        config = js_config.asdict()
+        assert config["hypothesisClient"].get("youtubeAssignment") is not True
 
 
 class TestAddCanvasSpeedgraderSettings:
