@@ -1,5 +1,5 @@
 from datetime import timedelta
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import create_autospec, patch, sentinel
 
 import pytest
 from h_matchers import Any
@@ -7,7 +7,7 @@ from h_matchers import Any
 from lms.models import Grouping, LTIParams
 from lms.product.product import Routes
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
-from lms.resources._js_config import JSConfig
+from lms.resources._js_config import JSConfig, _youtube_video_id_from_url
 from lms.security import Identity, Permissions
 from lms.services import HAPIError
 from lms.views.api.sync import APISyncSchema
@@ -459,6 +459,14 @@ class TestAddDocumentURL:
         js_config.enable_lti_launch_mode(course, assignment)
         config = js_config.asdict()
         assert config["hypothesisClient"].get("youtubeAssignment") is not True
+
+    def test_youtube_video_id_from_url_returns_none_on_parse_error(self):
+        """Cover the except (ValueError, AttributeError) branch."""
+        with patch("lms.resources._js_config.urlparse", side_effect=ValueError):
+            assert (
+                _youtube_video_id_from_url("https://www.youtube.com/watch?v=abc")
+                is None
+            )
 
 
 class TestAddCanvasSpeedgraderSettings:
