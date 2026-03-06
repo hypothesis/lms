@@ -433,7 +433,7 @@ class TestAddDocumentURL:
         via_url.assert_called_once()
 
     def test_youtube_disabled_does_not_set_client_flag(
-        self, js_config, youtube_service, course, assignment, via_url
+        self, js_config, youtube_service, course, assignment, via_url  # noqa: ARG002
     ):
         youtube_service.enabled = False
         js_config.add_document_url("https://www.youtube.com/watch?v=abc123")
@@ -442,7 +442,7 @@ class TestAddDocumentURL:
         assert config["hypothesisClient"].get("youtubeAssignment") is not True
 
     def test_non_youtube_url_does_not_set_client_flag(
-        self, js_config, youtube_service, course, assignment, via_url
+        self, js_config, youtube_service, course, assignment, via_url  # noqa: ARG002
     ):
         youtube_service.enabled = True
         js_config.add_document_url("https://example.com/article")
