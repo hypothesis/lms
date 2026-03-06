@@ -29,7 +29,8 @@ from lms.views.helpers import via_url
 
 # Regex to extract YouTube video ID (same URL patterns as frontend utils/youtube.ts)
 _YOUTUBE_VIDEO_ID_RE = re.compile(
-    r"(?:youtu\.be/|v/|u/\w/|embed/|shorts/|live/|watch\?v=|&v=)([^#&?]*)"
+    r"(?:youtu\.be/|v/|u/\w/|embed/|shorts/|live/|watch\?v=|&v=)([^#&?]*)",
+    re.IGNORECASE,
 )
 
 
@@ -39,7 +40,7 @@ def _youtube_video_id_from_url(url: str) -> str | None:
         parsed = urlparse(url)
         if parsed.scheme not in ("http", "https"):
             return None
-        if parsed.netloc not in ("www.youtube.com", "youtube.com", "youtu.be"):
+        if parsed.netloc.lower() not in ("www.youtube.com", "youtube.com", "youtu.be"):
             return None
         match = _YOUTUBE_VIDEO_ID_RE.search(url)
         return match.group(1) if match and match.group(1) else None

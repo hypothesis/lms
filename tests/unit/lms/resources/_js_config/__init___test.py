@@ -432,6 +432,43 @@ class TestAddDocumentURL:
         assert config["hypothesisClient"]["youtubeAssignment"] is True
         via_url.assert_called_once()
 
+    @pytest.mark.parametrize(
+        "url,sets_youtube_assignment",
+        [
+            # Supported YouTube URL patterns (regex + host check)
+            ("https://www.youtube.com/watch?v=abc123", True),
+            ("https://youtube.com/watch?v=def456", True),
+            ("https://youtu.be/ghi789", True),
+            ("https://www.youtube.com/embed/jkl012", True),
+            ("https://www.youtube.com/shorts/mno345", True),
+            ("https://www.youtube.com/live/pqr678", True),
+            # Negative: wrong host
+            ("https://example.com/article", False),
+            ("https://vimeo.com/123456", False),
+            # Negative: wrong scheme (host would be ok but scheme fails)
+            ("ftp://www.youtube.com/watch?v=abc", False),
+        ],
+    )
+    def test_youtube_assignment_detection_per_url_pattern(
+        self,
+        js_config,
+        youtube_service,
+        course,
+        assignment,
+        via_url,  # noqa: ARG002
+        url,
+        sets_youtube_assignment,
+    ):
+        """Lock down detection for each URL pattern and negative cases."""
+        youtube_service.enabled = True
+        js_config.add_document_url(url)
+        js_config.enable_lti_launch_mode(course, assignment)
+        config = js_config.asdict()
+        if sets_youtube_assignment:
+            assert config["hypothesisClient"]["youtubeAssignment"] is True
+        else:
+            assert config["hypothesisClient"].get("youtubeAssignment") is not True
+
     def test_youtube_disabled_does_not_set_client_flag(
         self,
         js_config,
@@ -467,6 +504,11 @@ class TestAddDocumentURL:
                 _youtube_video_id_from_url("https://www.youtube.com/watch?v=abc")
                 is None
             )
+
+    def test_youtube_video_id_from_url_is_case_insensitive_for_host(self):
+        """Host is normalized so YouTube.com / YOUTUBE.COM work like the frontend."""
+        assert _youtube_video_id_from_url("https://YouTube.com/watch?v=xyz") == "xyz"
+        assert _youtube_video_id_from_url("https://YOUTU.BE/xyz") == "xyz"
 
 
 class TestAddCanvasSpeedgraderSettings:
