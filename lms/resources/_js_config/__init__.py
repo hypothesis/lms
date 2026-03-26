@@ -3,6 +3,7 @@ import re
 from datetime import timedelta
 from enum import Enum, StrEnum
 from typing import Any
+from urllib.parse import urlparse
 
 from lms.error_code import ErrorCode
 from lms.events import LTIEvent
@@ -21,9 +22,30 @@ from lms.services import (
     JSTORService,
     OrganizationService,
     VitalSourceService,
+    YouTubeService,
 )
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
+
+# Regex to extract YouTube video ID (same URL patterns as frontend utils/youtube.ts)
+_YOUTUBE_VIDEO_ID_RE = re.compile(
+    r"(?:youtu\.be/|v/|u/\w/|embed/|shorts/|live/|watch\?v=|&v=)([^#&?]*)",
+    re.IGNORECASE,
+)
+
+
+def _youtube_video_id_from_url(url: str) -> str | None:
+    """Return the YouTube video ID if url is a YouTube URL, else None."""
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            return None
+        if parsed.netloc.lower() not in ("www.youtube.com", "youtube.com", "youtu.be"):
+            return None
+        match = _YOUTUBE_VIDEO_ID_RE.search(url)
+        return match.group(1) if match and match.group(1) else None
+    except (ValueError, AttributeError):
+        return None
 
 
 class JSConfig:
@@ -168,6 +190,9 @@ class JSConfig:
             }
         else:
             self._config["viaUrl"] = via_url(self._request, document_url)
+            youtube_service = self._request.find_service(iface=YouTubeService)
+            if youtube_service.enabled and _youtube_video_id_from_url(document_url):
+                self._hypothesis_client["youtubeAssignment"] = True
 
     def _update_focus_config(self, updates: dict):
         """
