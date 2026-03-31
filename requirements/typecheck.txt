@@ -150,6 +150,8 @@ kombu==5.5.4
     # via
     #   -r requirements/prod.txt
     #   celery
+librt==0.8.1
+    # via mypy
 mailchimp-transactional==1.0.56
     # via -r requirements/prod.txt
 mako==1.3.0
@@ -171,7 +173,7 @@ multidict==6.3.2
     #   -r requirements/prod.txt
     #   aiohttp
     #   yarl
-mypy==1.14.1
+mypy==1.20.0
     # via -r requirements/typecheck.in
 mypy-extensions==1.0.0
     # via mypy
@@ -194,6 +196,8 @@ pastedeploy==3.1.0
     # via
     #   -r requirements/prod.txt
     #   plaster-pastedeploy
+pathspec==1.0.4
+    # via mypy
 pip-sync-faster==0.0.5
     # via -r requirements/typecheck.in
 pip-tools==7.5.2
