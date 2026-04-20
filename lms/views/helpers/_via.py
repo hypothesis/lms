@@ -3,6 +3,7 @@
 from urllib.parse import urlencode, urlparse, urlunparse
 
 from h_vialib import ViaClient
+from h_vialib.secure import ViaSecureURL
 
 __all__ = ["via_url"]
 
@@ -72,7 +73,7 @@ def via_video_url(
     """
 
     via_service_url = urlparse(request.registry.settings["via_url"])
-    return urlunparse(
+    unsigned_url = urlunparse(
         (
             via_service_url.scheme,
             via_service_url.netloc,
@@ -90,3 +91,6 @@ def via_video_url(
             "",
         )
     )
+
+    secure_url = ViaSecureURL(request.registry.settings["via_secret"])
+    return secure_url.create(unsigned_url)
