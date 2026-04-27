@@ -98,7 +98,6 @@ class TestViaVideoURL:
                 "url": canonical_url,
                 "media_url": download_url,
                 "transcript": transcript_url,
-                "via.sec": Any.string(),
             }
         )
 
