@@ -442,7 +442,7 @@ pytest==8.4.2
     #   pytest-cov
     #   pytest-factoryboy
     #   pytest-xdist
-pytest-cov==7.0.0
+pytest-cov==7.1.0
     # via -r requirements/tests.txt
 pytest-factoryboy==2.8.1
     # via
