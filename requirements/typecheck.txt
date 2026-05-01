@@ -342,7 +342,7 @@ types-oauthlib==3.2.0.20240806
     # via -r requirements/typecheck.in
 types-requests==2.32.4.20250611
     # via -r requirements/typecheck.in
-types-xmltodict==0.14.0.20241009
+types-xmltodict==1.0.1.20260113
     # via -r requirements/typecheck.in
 typing-extensions==4.15.0
     # via
