@@ -102,7 +102,7 @@ kombu==5.5.4
     # via celery
 mailchimp-transactional==1.0.56
     # via -r prod.in
-mako==1.3.0
+mako==1.3.12
     # via alembic
 markupsafe==2.1.3
     # via
