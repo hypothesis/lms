@@ -28,7 +28,7 @@ TEST_SETTINGS = {
     "oauth2_state_secret": "test_oauth2_state_secret",
     "onedrive_client_id": "test_one_drive_client_id",
     "session_cookie_secret": "notasecret",
-    "via_secret": "not_a_secret",
+    "via_secret": "not_a_real_secret",
     "blackboard_api_client_id": "test_blackboard_api_client_id",
     "blackboard_api_client_secret": "test_blackboard_api_client_secret",
     "vitalsource_api_key": "test_vs_api_key",
