@@ -21,6 +21,7 @@ from lms.services.roster import RosterService, factory
 from tests import factories
 
 
+@pytest.mark.xdist_group("RosterService")
 class TestRosterService:
     @pytest.mark.parametrize(
         "create_roster,expected",
