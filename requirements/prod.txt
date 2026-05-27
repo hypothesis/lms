@@ -33,7 +33,7 @@ certifi==2024.7.4
     #   mailchimp-transactional
     #   requests
     #   sentry-sdk
-cffi==1.16.0
+cffi==2.0.0
     # via cryptography
 charset-normalizer==3.3.2
     # via requests
@@ -49,7 +49,7 @@ click-plugins==1.1.1
     # via celery
 click-repl==0.3.0
     # via celery
-cryptography==46.0.0
+cryptography==46.0.7
     # via
     #   joserfc
     #   pyjwt

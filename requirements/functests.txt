@@ -51,7 +51,7 @@ certifi==2024.7.4
     #   mailchimp-transactional
     #   requests
     #   sentry-sdk
-cffi==1.16.0
+cffi==2.0.0
     # via
     #   -r prod.txt
     #   cryptography
@@ -79,7 +79,7 @@ click-repl==0.3.0
     # via
     #   -r prod.txt
     #   celery
-cryptography==46.0.0
+cryptography==46.0.7
     # via
     #   -r prod.txt
     #   joserfc
@@ -136,8 +136,6 @@ idna==3.7
     #   -r prod.txt
     #   requests
     #   yarl
-importlib-metadata==7.0.1
-    # via pip-sync-faster
 importlib-resources==6.5.2
     # via
     #   -r prod.txt
@@ -430,8 +428,6 @@ yarl==1.17.2
     # via
     #   -r prod.txt
     #   aiohttp
-zipp==3.19.1
-    # via importlib-metadata
 zope-deprecation==5.0
     # via
     #   -r prod.txt

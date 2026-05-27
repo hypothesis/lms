@@ -73,7 +73,7 @@ certifi==2024.7.4
     #   mailchimp-transactional
     #   requests
     #   sentry-sdk
-cffi==1.16.0
+cffi==2.0.0
     # via
     #   -r functests.txt
     #   -r tests.txt
@@ -111,7 +111,7 @@ coverage[toml]==7.10.6
     # via
     #   -r tests.txt
     #   pytest-cov
-cryptography==46.0.0
+cryptography==46.0.7
     # via
     #   -r functests.txt
     #   -r tests.txt
@@ -205,11 +205,6 @@ idna==3.7
     #   -r tests.txt
     #   requests
     #   yarl
-importlib-metadata==7.0.1
-    # via
-    #   -r functests.txt
-    #   -r tests.txt
-    #   pip-sync-faster
 importlib-resources==6.5.2
     # via
     #   -r functests.txt
@@ -617,11 +612,6 @@ yarl==1.17.2
     #   -r functests.txt
     #   -r tests.txt
     #   aiohttp
-zipp==3.19.1
-    # via
-    #   -r functests.txt
-    #   -r tests.txt
-    #   importlib-metadata
 zope-deprecation==5.0
     # via
     #   -r functests.txt
