@@ -391,7 +391,7 @@ tzdata==2025.2
     # via
     #   -r prod.txt
     #   kombu
-urllib3==2.6.3
+urllib3==2.7.0
     # via
     #   -r prod.txt
     #   hubspot-api-client
