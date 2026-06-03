@@ -8,7 +8,7 @@ aiohappyeyeballs==2.6.1
     # via
     #   -r prod.txt
     #   aiohttp
-aiohttp==3.13.3
+aiohttp==3.14.0
     # via -r prod.txt
 aiosignal==1.4.0
     # via
@@ -377,6 +377,7 @@ translationstring==1.4
 typing-extensions==4.15.0
     # via
     #   -r prod.txt
+    #   aiohttp
     #   aiosignal
     #   alembic
     #   pydantic
