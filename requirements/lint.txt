@@ -584,7 +584,7 @@ webargs==8.7.1
     # via
     #   -r functests.txt
     #   -r tests.txt
-webob==1.8.8
+webob==1.8.10
     # via
     #   -r functests.txt
     #   -r tests.txt
