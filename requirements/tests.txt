@@ -83,7 +83,7 @@ click-repl==0.3.0
     #   celery
 coverage[toml]==7.10.6
     # via pytest-cov
-cryptography==46.0.7
+cryptography==48.0.1
     # via
     #   -r prod.txt
     #   joserfc
