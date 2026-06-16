@@ -9,7 +9,7 @@ aiohappyeyeballs==2.6.1
     #   -r functests.txt
     #   -r tests.txt
     #   aiohttp
-aiohttp==3.13.3
+aiohttp==3.14.1
     # via
     #   -r functests.txt
     #   -r tests.txt
@@ -534,6 +534,7 @@ typing-extensions==4.15.0
     # via
     #   -r functests.txt
     #   -r tests.txt
+    #   aiohttp
     #   aiosignal
     #   alembic
     #   pydantic
