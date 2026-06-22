@@ -266,6 +266,59 @@ class TestHAPI:
             for group in groups
         ]
 
+    def test_sync_checkpoints(self, h_api, _api_request):  # noqa: PT019
+        checkpoints = [
+            {
+                "group_authority_provided_id": "group1",
+                "document_uri": "https://example.com/doc",
+                "reveal_date": None,
+            }
+        ]
+
+        h_api.sync_checkpoints(authority="lms.hypothes.is", checkpoints=checkpoints)
+
+        _api_request.assert_called_once_with(
+            "POST",
+            path="bulk/checkpoint",
+            body=json.dumps(
+                {"authority": "lms.hypothes.is", "checkpoints": checkpoints}
+            ),
+            headers={"Content-Type": "application/json"},
+        )
+
+    def test_sync_checkpoints_with_instructor(self, h_api, _api_request):  # noqa: PT019
+        checkpoints = [
+            {
+                "group_authority_provided_id": "group1",
+                "document_uri": "https://example.com/doc",
+                "reveal_date": None,
+            }
+        ]
+
+        h_api.sync_checkpoints(
+            authority="lms.hypothes.is",
+            checkpoints=checkpoints,
+            instructor_username="teacher",
+        )
+
+        _api_request.assert_called_once_with(
+            "POST",
+            path="bulk/checkpoint",
+            body=json.dumps(
+                {
+                    "authority": "lms.hypothes.is",
+                    "checkpoints": checkpoints,
+                    "instructor_username": "teacher",
+                }
+            ),
+            headers={"Content-Type": "application/json"},
+        )
+
+    def test_sync_checkpoints_with_no_checkpoints(self, h_api, _api_request):  # noqa: PT019
+        h_api.sync_checkpoints(authority="lms.hypothes.is", checkpoints=[])
+
+        _api_request.assert_not_called()
+
     def test__api_request(self, h_api, http_service):
         h_api._api_request(sentinel.method, "dummy-path", body=sentinel.raw_body)  # noqa: SLF001
 
