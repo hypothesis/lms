@@ -249,7 +249,7 @@ class TestSync:
         lti_h_service,
     ):
         checkpoint = create_autospec(AssignmentCheckpoint, instance=True)
-        checkpoint.reveal_date = datetime(2026, 7, 1, 12, 0, 0)
+        checkpoint.reveal_date = datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
         assignment = assignment_service.get_assignment.return_value
         assignment.checkpoint = checkpoint
         assignment.document_url = "https://example.com/doc"

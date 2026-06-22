@@ -63,7 +63,7 @@ class AssignmentService:
         group_set_id,
         course: Course,
         auto_grading_config: dict | None = None,
-        checkpoint_enabled: bool = False,
+        checkpoint_enabled: bool = False,  # noqa: FBT001, FBT002
     ):
         """Update an existing assignment."""
         if self._misc_plugin.is_speed_grader_launch(request):
@@ -384,7 +384,9 @@ class AssignmentService:
         ).all()
 
     def _update_checkpoint(
-        self, assignment: Assignment, checkpoint_enabled: bool
+        self,
+        assignment: Assignment,
+        checkpoint_enabled: bool,  # noqa: FBT001
     ) -> None:
         """Create a checkpoint for an assignment if enabled and not already present.
 
