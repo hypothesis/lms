@@ -339,6 +339,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     [
       authToken,
       checkpointEnabled,
+      hideAndRevealEnabled,
       deepLinkingFields,
       deepLinkingAPI,
       groupConfig.groupSet,
