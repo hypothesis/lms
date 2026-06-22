@@ -193,6 +193,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       formFields,
       promptForTitle,
       promptForGradable,
+      hideAndRevealEnabled,
     },
   } = useConfig(['api', 'filePicker']);
 
@@ -241,7 +242,9 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     promptForTitle ||
     promptForGradable ||
     autoGradingEnabled ||
-    !isEditing; // Always show details for new assignments (checkpoint option)
+    // Show the details screen for new assignments so the Hide & Reveal option
+    // can be offered, but only where the feature is enabled.
+    (!isEditing && !!hideAndRevealEnabled);
 
   let currentStep: PickerStep;
   if (editingContent) {
@@ -305,7 +308,9 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         const data: DeepLinkingAPIData = {
           ...deepLinkingAPI.data,
           auto_grading_config: autoGradingConfigToSave,
-          checkpoint_enabled: checkpointEnabled,
+          ...(hideAndRevealEnabled
+            ? { checkpoint_enabled: checkpointEnabled }
+            : {}),
           content,
           group_set: groupConfig.useGroupSet ? groupConfig.groupSet : null,
           title,
@@ -555,7 +560,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                         />
                       </>
                     )}
-                    {!isEditing && (
+                    {!isEditing && hideAndRevealEnabled && (
                       <>
                         <div className="sm:col-span-2 border-b" />
                         <PanelLabel isCurrentStep verticalAlign="center">
@@ -637,7 +642,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                 formFields={formFields}
                 groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
                 autoGradingConfig={autoGradingConfigToSave}
-                checkpointEnabled={checkpointEnabled}
+                {...(hideAndRevealEnabled ? { checkpointEnabled } : {})}
               />
             )
           }

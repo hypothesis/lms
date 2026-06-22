@@ -87,6 +87,8 @@ export type FilePickerConfig = {
   promptForTitle: boolean;
   promptForGradable: boolean;
   autoGradingEnabled: boolean;
+  /** Whether the Hide & Reveal (checkpoint) option is available for new assignments. */
+  hideAndRevealEnabled?: boolean;
   deepLinkingAPI?: APICallInfo;
   ltiLaunchUrl: string;
   blackboard: {
