@@ -80,6 +80,7 @@ class TestBasicLaunchViews:
             group_set_id=sentinel.group_set,
             course=course_service.get_from_launch.return_value,
             auto_grading_config=sentinel.auto_grading_config,
+            checkpoint_enabled=False,
         )
         _show_document.assert_called_once_with(
             assignment_service.create_assignment.return_value,
@@ -283,7 +284,9 @@ class TestBasicLaunchViews:
         result = svc._show_document(assignment)  # noqa: SLF001
 
         lti_h_service.sync.assert_called_once_with(
-            [course_service.get_from_launch.return_value], pyramid_request.lti_params
+            [course_service.get_from_launch.return_value],
+            pyramid_request.lti_params,
+            checkpoint_data=None,
         )
 
         assignment_service.upsert_assignment_membership.assert_called_once_with(

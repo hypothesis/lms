@@ -1,7 +1,28 @@
 from h_api.bulk_api import CommandBuilder
 
-from lms.models import Grouping
+from lms.models import Assignment, Grouping
 from lms.services import HAPI
+
+
+def checkpoint_sync_data(assignment: Assignment | None, lti_user) -> dict | None:
+    """Build the checkpoint payload to sync to h for a Hide & Reveal assignment.
+
+    Returns None when the assignment is missing or isn't a Hide & Reveal
+    assignment (no checkpoint), so callers can pass the result straight through
+    to `LTIHService.sync(..., checkpoint_data=...)`.
+    """
+    if not (assignment and assignment.checkpoint):
+        return None
+
+    return {
+        "document_uri": assignment.document_url,
+        "reveal_date": assignment.checkpoint.reveal_date.isoformat()
+        if assignment.checkpoint.reveal_date
+        else None,
+        "instructor_username": lti_user.h_user.username
+        if lti_user.is_instructor
+        else None,
+    }
 
 
 class LTIHService:

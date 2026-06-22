@@ -3,6 +3,7 @@ from webargs import fields
 
 from lms.product.plugin.grouping import GroupError
 from lms.security import Permissions
+from lms.services.lti_h import checkpoint_sync_data
 from lms.validation._base import PyramidRequestSchema
 
 
@@ -67,29 +68,18 @@ def sync(request):
             grading_student_id=grading_student_id,
         )
 
-    # Store the relationship between the assignment and the groupings
+    # Look up the assignment so we can sync checkpoint data for the actual
+    # groupings (sections or canvas groups), not just the course group.
     assignment = assignment_service.get_assignment(
         course.application_instance.tool_consumer_instance_guid,
         request.parsed_params["resource_link_id"],
     )
 
-    # Look up the assignment to sync checkpoint data for the actual groupings
-    # (sections or canvas groups), not just the course group.
-    checkpoint_data = None
-    if assignment and assignment.checkpoint:
-        checkpoint_data = {
-            "document_uri": assignment.document_url,
-            "reveal_date": assignment.checkpoint.reveal_date.isoformat()
-            if assignment.checkpoint.reveal_date
-            else None,
-            "instructor_username": request.lti_user.h_user.username
-            if request.lti_user.is_instructor
-            else None,
-        }
-
     # Sync the groups over to H so they are ready to be annotated against
     request.find_service(name="lti_h").sync(
-        groupings, request.parsed_params["group_info"], checkpoint_data=checkpoint_data
+        groupings,
+        request.parsed_params["group_info"],
+        checkpoint_data=checkpoint_sync_data(assignment, request.lti_user),
     )
 
     # Store the relationship between the assignment and the groupings

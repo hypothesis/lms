@@ -22,6 +22,7 @@ from lms.product.plugin.misc import MiscPlugin  # noqa: TC001
 from lms.security import Permissions
 from lms.services import LTIGradingService, UserService, VitalSourceService
 from lms.services.assignment import AssignmentService  # noqa: TC001
+from lms.services.lti_h import checkpoint_sync_data
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 
 LOG = logging.getLogger(__name__)
@@ -177,22 +178,10 @@ class BasicLaunchViews:
 
         # Before any LTI assignments launch, create or update the Hypothesis
         # user and group corresponding to the LTI user and course.
-        checkpoint_data = None
-        if assignment.checkpoint:
-            checkpoint_data = {
-                "document_uri": assignment.document_url,
-                "reveal_date": assignment.checkpoint.reveal_date.isoformat()
-                if assignment.checkpoint.reveal_date
-                else None,
-                "instructor_username": self.request.lti_user.h_user.username
-                if self.request.lti_user.is_instructor
-                else None,
-            }
-
         self.request.find_service(name="lti_h").sync(
             [self.course],
             self.request.lti_params,
-            checkpoint_data=checkpoint_data,
+            checkpoint_data=checkpoint_sync_data(assignment, self.request.lti_user),
         )
 
         # Store the relationship between the assignment and the user
