@@ -67,16 +67,32 @@ def sync(request):
             grading_student_id=grading_student_id,
         )
 
-    # Sync the groups over to H so they are ready to be annotated against
-    request.find_service(name="lti_h").sync(
-        groupings, request.parsed_params["group_info"]
-    )
-
     # Store the relationship between the assignment and the groupings
     assignment = assignment_service.get_assignment(
         course.application_instance.tool_consumer_instance_guid,
         request.parsed_params["resource_link_id"],
     )
+
+    # Look up the assignment to sync checkpoint data for the actual groupings
+    # (sections or canvas groups), not just the course group.
+    checkpoint_data = None
+    if assignment and assignment.checkpoint:
+        checkpoint_data = {
+            "document_uri": assignment.document_url,
+            "reveal_date": assignment.checkpoint.reveal_date.isoformat()
+            if assignment.checkpoint.reveal_date
+            else None,
+            "instructor_username": request.lti_user.h_user.username
+            if request.lti_user.is_instructor
+            else None,
+        }
+
+    # Sync the groups over to H so they are ready to be annotated against
+    request.find_service(name="lti_h").sync(
+        groupings, request.parsed_params["group_info"], checkpoint_data=checkpoint_data
+    )
+
+    # Store the relationship between the assignment and the groupings
     assignment_service.upsert_assignment_groupings(assignment, groupings=groupings)
 
     authority = request.registry.settings["h_authority"]

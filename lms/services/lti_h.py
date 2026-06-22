@@ -25,7 +25,12 @@ class LTIHService:
         self._h_api: HAPI = request.find_service(HAPI)
         self._group_info_service = request.find_service(name="group_info")
 
-    def sync(self, groupings: list[Grouping], group_info_params: dict):
+    def sync(
+        self,
+        groupings: list[Grouping],
+        group_info_params: dict,
+        checkpoint_data: dict | None = None,
+    ):
         """
         Sync standard data to h for an LTI launch with the provided groups.
 
@@ -34,6 +39,8 @@ class LTIHService:
 
         :param groupings: groupings to sync to H
         :param group_info_params: params to add for each in `GroupInfo`
+        :param checkpoint_data: optional dict with document_uri and reveal_date
+            to sync a checkpoint for each grouping
 
         :raise HTTPInternalServerError: if we can't sync to h for any reason
         :raise ApplicationInstanceNotFound: if
@@ -46,6 +53,9 @@ class LTIHService:
             self._group_info_service.upsert_group_info(
                 grouping=grouping, params=group_info_params
             )
+
+        if checkpoint_data:
+            self._sync_checkpoints(groupings, checkpoint_data)
 
     def _yield_commands(self, groupings):
         # Note! - Syncing a user to `h` currently has an implication for
@@ -75,6 +85,22 @@ class LTIHService:
                 ],
             },
             ref,
+        )
+
+    def _sync_checkpoints(self, groupings: list[Grouping], checkpoint_data: dict):
+        checkpoints = [
+            {
+                "group_authority_provided_id": grouping.authority_provided_id,
+                "document_uri": checkpoint_data["document_uri"],
+                "reveal_date": checkpoint_data.get("reveal_date"),
+            }
+            for grouping in groupings
+        ]
+
+        self._h_api.sync_checkpoints(
+            authority=self._authority,
+            checkpoints=checkpoints,
+            instructor_username=checkpoint_data.get("instructor_username"),
         )
 
     def _group_upsert(self, grouping, ref):

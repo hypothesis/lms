@@ -217,6 +217,39 @@ class HAPI:
         )
         return response.json()
 
+    def sync_checkpoints(
+        self,
+        authority: str,
+        checkpoints: list[dict],
+        instructor_username: str | None = None,
+    ) -> None:
+        """Sync checkpoint data to h via the bulk checkpoint endpoint.
+
+        :param authority: The h authority
+        :param checkpoints: List of dicts with group_authority_provided_id,
+            document_uri, and optionally reveal_date
+        :param instructor_username: Optional username of an instructor to set
+            their lms_role in the group memberships
+        """
+        if not checkpoints:
+            return
+
+        payload = {
+            "authority": authority,
+            "checkpoints": checkpoints,
+        }
+        if instructor_username:
+            payload["instructor_username"] = instructor_username
+
+        self._api_request(
+            "POST",
+            path="bulk/checkpoint",
+            body=json.dumps(payload),
+            headers={
+                "Content-Type": "application/json",
+            },
+        )
+
     def _api_request(self, method, path, body=None, headers=None, stream=False):  # noqa: FBT002
         """
         Send any kind of HTTP request to the h API and return the response.

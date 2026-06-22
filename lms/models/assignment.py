@@ -146,6 +146,10 @@ class Assignment(CreatedUpdatedMixin, Base):
     )
     auto_grading_config = relationship("AutoGradingConfig")
 
+    checkpoint = relationship(
+        "AssignmentCheckpoint", uselist=False, back_populates="assignment"
+    )
+
     __table_args__ = (
         sa.UniqueConstraint("resource_link_id", "tool_consumer_instance_guid"),
         sa.Index(

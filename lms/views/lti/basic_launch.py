@@ -177,8 +177,22 @@ class BasicLaunchViews:
 
         # Before any LTI assignments launch, create or update the Hypothesis
         # user and group corresponding to the LTI user and course.
+        checkpoint_data = None
+        if assignment.checkpoint:
+            checkpoint_data = {
+                "document_uri": assignment.document_url,
+                "reveal_date": assignment.checkpoint.reveal_date.isoformat()
+                if assignment.checkpoint.reveal_date
+                else None,
+                "instructor_username": self.request.lti_user.h_user.username
+                if self.request.lti_user.is_instructor
+                else None,
+            }
+
         self.request.find_service(name="lti_h").sync(
-            [self.course], self.request.lti_params
+            [self.course],
+            self.request.lti_params,
+            checkpoint_data=checkpoint_data,
         )
 
         # Store the relationship between the assignment and the user
@@ -304,6 +318,9 @@ class BasicLaunchViews:
             group_set_id=self.request.parsed_params.get("group_set"),
             course=self.course,
             auto_grading_config=self.request.parsed_params.get("auto_grading_config"),
+            checkpoint_enabled=self.request.parsed_params.get(
+                "checkpoint_enabled", False
+            ),
         )
 
     def _configure_js_for_file_picker(
