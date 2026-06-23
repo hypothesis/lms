@@ -32,9 +32,14 @@ import { apiCall } from '../utils/api';
 import type { Content, URLContent } from '../utils/content-item';
 import { truncateURL } from '../utils/format';
 import { useUniqueId } from '../utils/hooks';
+import type { AssignmentType } from './AssignmentTypeSelector';
+import AssignmentTypeSelector from './AssignmentTypeSelector';
 import type { AutoGradingConfig } from './AutoGradingConfigurator';
 import AutoGradingConfigurator from './AutoGradingConfigurator';
+import type { CheckpointType } from './CheckpointSelector';
+import CheckpointSelector from './CheckpointSelector';
 import ContentSelector from './ContentSelector';
+import DueDateSelector from './DueDateSelector';
 import ErrorModal from './ErrorModal';
 import FilePickerFormFields from './FilePickerFormFields';
 import GroupConfigSelector from './GroupConfigSelector';
@@ -53,10 +58,26 @@ export type FilePickerAppProps = {
 
 /* A step or 'screen' of the assignment configuration */
 type PickerStep =
+  // First screen (only shown when more than one assignment type is available)
+  // where the instructor picks the type of assignment they are creating.
+  | 'assignment-type'
+  // "Hide & Reveal" screens, only shown when that assignment type is chosen.
+  | 'checkpoint'
+  | 'due-date'
   | 'content-selection'
   // Final screen where the settings for the assignment are shown, and also
   // additional settings which don't need a whole screen.
   | 'details';
+
+/**
+ * Sub-steps of the assignment-type workflow shown before the regular file
+ * picker flow. These are the `PickerStep`s that precede content selection, plus
+ * `done`, which means the workflow has been completed (or skipped) and the
+ * regular flow takes over. Derived from `PickerStep` so the two stay in sync.
+ */
+type WorkflowStep =
+  | Exclude<PickerStep, 'content-selection' | 'details'>
+  | 'done';
 
 /**
  * For URL content, show the most meaningful explanation of the content we can
@@ -188,6 +209,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     assignment,
     filePicker: {
       autoGradingEnabled,
+      assignmentTypes,
       deepLinkingAPI,
       formAction,
       formFields,
@@ -195,6 +217,19 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       promptForGradable,
     },
   } = useConfig(['api', 'filePicker']);
+
+  // Assignment types the instructor can choose from. `reading` is always
+  // available; other types (e.g. `hide_and_reveal`) are gated by the backend
+  // via a per-install feature flag. Until the backend sends `assignmentTypes`,
+  // we fall back to `reading` only, which keeps the type workflow dormant.
+  const availableAssignmentTypes = assignmentTypes ?? ['reading'];
+
+  // The multi-step type workflow (type selection + any type-specific sub-steps)
+  // is only worth showing when there is more than one type to pick from. With a
+  // single type there is nothing to choose, so we skip straight to the regular
+  // flow. This intentionally does *not* depend on any single type being enabled,
+  // so adding a new type keeps the workflow working without changes here.
+  const enableTypeWorkflow = availableAssignmentTypes.length > 1;
 
   // Currently selected content for assignment.
   const [content, setContent] = useState<Content | null>(
@@ -231,6 +266,53 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   // True if we are editing an existing assignment configuration.
   const isEditing = !!assignment;
 
+  // Type of assignment being created, chosen in the first ("assignment-type")
+  // step of the workflow. Defaults to the first available type so it is always
+  // one the backend actually offers. Only relevant when `enableTypeWorkflow`.
+  const [assignmentType, setAssignmentType] = useState<AssignmentType>(
+    availableAssignmentTypes[0] ?? 'reading',
+  );
+  // Checkpoint configuration for "Hide & Reveal" assignments.
+  const [checkpointType, setCheckpointType] =
+    useState<CheckpointType>('manual');
+  const [dueDate, setDueDate] = useState<string | null>(null);
+  // Current sub-step of the assignment-type workflow. When the workflow isn't
+  // enabled we start as `done` so it is skipped entirely.
+  const [workflowStep, setWorkflowStep] = useState<WorkflowStep>(
+    enableTypeWorkflow ? 'assignment-type' : 'done',
+  );
+
+  // Advance to the next sub-step of the workflow. Only "hide_and_reveal" has
+  // further steps (checkpoint, due-date); other types go straight to the
+  // regular flow.
+  const goToNextWorkflowStep = () => {
+    setWorkflowStep(step => {
+      switch (step) {
+        case 'assignment-type':
+          return assignmentType === 'hide_and_reveal' ? 'checkpoint' : 'done';
+        case 'checkpoint':
+          return 'due-date';
+        default:
+          return 'done';
+      }
+    });
+  };
+
+  // Go back to the previous sub-step of the workflow. Only ever invoked from
+  // the 'checkpoint' and 'due-date' steps (the "Back" button is
+  // hidden on the first step). Selections made in later steps are kept in state,
+  // so they survive going back and forth.
+  const goToPreviousWorkflowStep = () => {
+    setWorkflowStep(step =>
+      step === 'due-date' ? 'checkpoint' : 'assignment-type',
+    );
+  };
+
+  // Jump straight back to the assignment-mode selection from anywhere in the
+  // Guided ("Hide & Reveal") sub-steps, via the close button in the card header.
+  // Selections made so far are kept in state.
+  const returnToModeSelection = () => setWorkflowStep('assignment-type');
+
   // Whether there are additional configuration options to present after the
   // user has selected the content for the assignment.
   const showDetailsScreen =
@@ -240,7 +322,11 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     autoGradingEnabled;
 
   let currentStep: PickerStep;
-  if (editingContent) {
+  if (enableTypeWorkflow && workflowStep !== 'done' && !isEditing) {
+    // While the assignment-type workflow is in progress, its current sub-step
+    // (which is a subset of PickerStep) is the active step.
+    currentStep = workflowStep;
+  } else if (editingContent) {
     currentStep = 'content-selection';
   } else if (isEditing) {
     currentStep = 'details';
@@ -248,6 +334,28 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     currentStep =
       content && showDetailsScreen ? 'details' : 'content-selection';
   }
+
+  // Whether the current step belongs to the assignment-type workflow shown
+  // before the regular file picker flow.
+  const inTypeWorkflow =
+    currentStep === 'assignment-type' ||
+    currentStep === 'checkpoint' ||
+    currentStep === 'due-date';
+
+  // The first workflow step has nothing before it, so "Back" is only offered on
+  // later steps.
+  const canGoBackInWorkflow =
+    currentStep === 'checkpoint' || currentStep === 'due-date';
+
+  // Title shown in the card header, which changes depending on the current step.
+  const stepTitles: Record<PickerStep, string> = {
+    'assignment-type': 'Assignment mode',
+    checkpoint: 'Guided Social Annotation',
+    'due-date': 'Guided Social Annotation',
+    'content-selection': 'Assignment details',
+    details: 'Assignment details',
+  };
+  const cardTitle = stepTitles[currentStep];
 
   const [groupConfig, setGroupConfig] = useState<GroupConfig>({
     useGroupSet: !!assignment?.group_set_id,
@@ -421,158 +529,209 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         )}
         {/* Card constrains overflow-scroll children to height constraints */}
         <Card classes="flex flex-col min-h-0 overflow-hidden">
-          <CardHeader variant="secondary" title="Assignment details" />
+          <CardHeader
+            variant="secondary"
+            title={cardTitle}
+            // Offer a close ("x") button to return to mode selection from the
+            // Guided sub-steps (checkpoint / due-date), but not from the mode
+            // selection step itself or the regular flow.
+            onClose={canGoBackInWorkflow ? returnToModeSelection : undefined}
+          />
           <Scroll>
             <CardContent size="lg">
-              {/* 1-col grid for very narrow screens; 2-col for everyone else */}
-              <div className="grid grid-cols-1 sm:grid-cols-[10rem_1fr] gap-x-6 gap-y-3">
-                <PanelLabel
-                  description={<p>Select content for your assignment</p>}
-                  isCurrentStep={currentStep === 'content-selection'}
-                >
-                  Assignment content
-                </PanelLabel>
-
-                <div data-testid="content-selector-container">
-                  {content && currentStep !== 'content-selection' ? (
-                    <div className="flex gap-x-2 items-start">
-                      <span
-                        className="break-words italic"
-                        data-testid="content-summary"
-                      >
-                        {contentDescription(content)}
-                      </span>
-                      <LinkButton
-                        onClick={() => setEditingContent(true)}
-                        data-testid="edit-content"
-                        title="Change assignment content"
-                        underline="always"
-                      >
-                        Change
-                      </LinkButton>
-                    </div>
-                  ) : (
-                    <ContentSelector
-                      initialContent={content ?? undefined}
-                      onSelectContent={selectContent}
-                      onError={setErrorInfo}
+              {inTypeWorkflow ? (
+                <div className="space-y-4">
+                  {currentStep === 'assignment-type' && (
+                    <AssignmentTypeSelector
+                      types={availableAssignmentTypes}
+                      selected={assignmentType}
+                      onChange={setAssignmentType}
                     />
                   )}
+                  {currentStep === 'checkpoint' && (
+                    <CheckpointSelector
+                      selected={checkpointType}
+                      onChange={setCheckpointType}
+                    />
+                  )}
+                  {currentStep === 'due-date' && (
+                    <DueDateSelector dueDate={dueDate} onChange={setDueDate} />
+                  )}
                 </div>
-                {currentStep === 'details' && (
-                  <>
-                    {typeof title === 'string' && (
-                      <>
-                        <div className="sm:col-span-2 border-b" />
-                        <PanelLabel isCurrentStep verticalAlign="center">
-                          Title
-                        </PanelLabel>
-                        <Input
-                          data-testid="title-input"
-                          id={titleInputId}
-                          // Max length is based on what D2L supports, which is the first LMS that
-                          // supported setting a title in assignment configuration.
-                          maxLength={150}
-                          onInput={(e: Event) =>
-                            setTitle((e.target as HTMLInputElement).value)
-                          }
-                          required
-                          value={title}
-                        />
-                      </>
+              ) : (
+                /* 1-col grid for very narrow screens; 2-col for everyone else */
+                <div className="grid grid-cols-1 sm:grid-cols-[10rem_1fr] gap-x-6 gap-y-3">
+                  <PanelLabel
+                    description={<p>Select content for your assignment</p>}
+                    isCurrentStep={currentStep === 'content-selection'}
+                  >
+                    Assignment content
+                  </PanelLabel>
+
+                  <div data-testid="content-selector-container">
+                    {content && currentStep !== 'content-selection' ? (
+                      <div className="flex gap-x-2 items-start">
+                        <span
+                          className="break-words italic"
+                          data-testid="content-summary"
+                        >
+                          {contentDescription(content)}
+                        </span>
+                        <LinkButton
+                          onClick={() => setEditingContent(true)}
+                          data-testid="edit-content"
+                          title="Change assignment content"
+                          underline="always"
+                        >
+                          Change
+                        </LinkButton>
+                      </div>
+                    ) : (
+                      <ContentSelector
+                        initialContent={content ?? undefined}
+                        onSelectContent={selectContent}
+                        onError={setErrorInfo}
+                      />
                     )}
-                    {promptForGradable && (
-                      <>
-                        <div className="sm:col-span-2 border-b" />
-                        <PanelLabel isCurrentStep verticalAlign="center">
-                          <div className="flex items-center sm:justify-end">
-                            Max points
-                            <IconButton
-                              icon={InfoIcon}
-                              title="About max points"
-                              onClick={() =>
-                                setMaxPointsPopoverOpen(open => !open)
-                              }
-                              expanded={maxPointsPopoverOpen}
-                              elementRef={iconRef}
-                              // Align right side of the icon with the right
-                              // edge of the text labels above and below.
-                              // Do it by setting negative margin that
-                              // compensates for the button's padding.
-                              classes="text-[16px] -mr-2 touch:-mr-[12px]"
+                  </div>
+                  {currentStep === 'details' && (
+                    <>
+                      {typeof title === 'string' && (
+                        <>
+                          <div className="sm:col-span-2 border-b" />
+                          <PanelLabel isCurrentStep verticalAlign="center">
+                            Title
+                          </PanelLabel>
+                          <Input
+                            data-testid="title-input"
+                            id={titleInputId}
+                            // Max length is based on what D2L supports, which is the first LMS that
+                            // supported setting a title in assignment configuration.
+                            maxLength={150}
+                            onInput={(e: Event) =>
+                              setTitle((e.target as HTMLInputElement).value)
+                            }
+                            required
+                            value={title}
+                          />
+                        </>
+                      )}
+                      {promptForGradable && (
+                        <>
+                          <div className="sm:col-span-2 border-b" />
+                          <PanelLabel isCurrentStep verticalAlign="center">
+                            <div className="flex items-center sm:justify-end">
+                              Max points
+                              <IconButton
+                                icon={InfoIcon}
+                                title="About max points"
+                                onClick={() =>
+                                  setMaxPointsPopoverOpen(open => !open)
+                                }
+                                expanded={maxPointsPopoverOpen}
+                                elementRef={iconRef}
+                                // Align right side of the icon with the right
+                                // edge of the text labels above and below.
+                                // Do it by setting negative margin that
+                                // compensates for the button's padding.
+                                classes="text-[16px] -mr-2 touch:-mr-[12px]"
+                              />
+                            </div>
+                          </PanelLabel>
+                          <Input
+                            data-testid="gradable-max-input"
+                            id={gradableMaxInputId}
+                            type="number"
+                            placeholder={'ex: 100'}
+                            min={0}
+                            value={assignmentGradableMaxPoints}
+                            onChange={e =>
+                              setAssignmentGradableMaxPoints(
+                                (e.target as HTMLInputElement).value,
+                              )
+                            }
+                          />
+                          <Popover
+                            open={maxPointsPopoverOpen}
+                            anchorElementRef={iconRef}
+                            onClose={() => setMaxPointsPopoverOpen(false)}
+                            classes="p-2"
+                            placement="above"
+                            arrow
+                          >
+                            <div className="flex flex-col gap-y-2">
+                              Optionally add a max points value here instead of
+                              using your LMS grading settings.
+                              <Link
+                                href="https://web.hypothes.is/help/max-points-in-hypothesis-enabled-readings/"
+                                underline="always"
+                                target="_blank"
+                              >
+                                Learn more about our max points feature
+                              </Link>
+                            </div>
+                          </Popover>
+                        </>
+                      )}
+
+                      {autoGradingEnabled && (
+                        <>
+                          <div className="sm:col-span-2 border-b" />
+                          <PanelLabel isCurrentStep>Auto grading</PanelLabel>
+                          <AutoGradingConfigurator
+                            config={autoGradingConfig}
+                            onChange={setAutoGradingConfig}
+                          />
+                        </>
+                      )}
+                      {enableGroupConfig && (
+                        <>
+                          <div className="sm:col-span-2 border-b" />
+                          <PanelLabel isCurrentStep>
+                            Group assignment
+                          </PanelLabel>
+                          <div
+                            className={classnames(
+                              // Set a height on this container to give the group
+                              // <select> element room when it renders (avoid
+                              // changing the height of the Card later)
+                              'h-28',
+                            )}
+                          >
+                            <GroupConfigSelector
+                              groupConfig={groupConfig}
+                              onChangeGroupConfig={setGroupConfig}
                             />
                           </div>
-                        </PanelLabel>
-                        <Input
-                          data-testid="gradable-max-input"
-                          id={gradableMaxInputId}
-                          type="number"
-                          placeholder={'ex: 100'}
-                          min={0}
-                          value={assignmentGradableMaxPoints}
-                          onChange={e =>
-                            setAssignmentGradableMaxPoints(
-                              (e.target as HTMLInputElement).value,
-                            )
-                          }
-                        />
-                        <Popover
-                          open={maxPointsPopoverOpen}
-                          anchorElementRef={iconRef}
-                          onClose={() => setMaxPointsPopoverOpen(false)}
-                          classes="p-2"
-                          placement="above"
-                          arrow
-                        >
-                          <div className="flex flex-col gap-y-2">
-                            Optionally add a max points value here instead of
-                            using your LMS grading settings.
-                            <Link
-                              href="https://web.hypothes.is/help/max-points-in-hypothesis-enabled-readings/"
-                              underline="always"
-                              target="_blank"
-                            >
-                              Learn more about our max points feature
-                            </Link>
-                          </div>
-                        </Popover>
-                      </>
-                    )}
-
-                    {autoGradingEnabled && (
-                      <>
-                        <div className="sm:col-span-2 border-b" />
-                        <PanelLabel isCurrentStep>Auto grading</PanelLabel>
-                        <AutoGradingConfigurator
-                          config={autoGradingConfig}
-                          onChange={setAutoGradingConfig}
-                        />
-                      </>
-                    )}
-                    {enableGroupConfig && (
-                      <>
-                        <div className="sm:col-span-2 border-b" />
-                        <PanelLabel isCurrentStep>Group assignment</PanelLabel>
-                        <div
-                          className={classnames(
-                            // Set a height on this container to give the group
-                            // <select> element room when it renders (avoid
-                            // changing the height of the Card later)
-                            'h-28',
-                          )}
-                        >
-                          <GroupConfigSelector
-                            groupConfig={groupConfig}
-                            onChangeGroupConfig={setGroupConfig}
-                          />
-                        </div>
-                      </>
-                    )}
-                  </>
-                )}
-              </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Scroll>
+          {inTypeWorkflow && (
+            <CardContent size="lg">
+              <CardActions>
+                {canGoBackInWorkflow && (
+                  <Button
+                    data-testid="workflow-back-button"
+                    onClick={goToPreviousWorkflowStep}
+                  >
+                    Back
+                  </Button>
+                )}
+                <Button
+                  data-testid="workflow-next-button"
+                  variant="primary"
+                  onClick={goToNextWorkflowStep}
+                >
+                  Next
+                </Button>
+              </CardActions>
+            </CardContent>
+          )}
           {
             // See comments in `selectContent` about auto-submitting form.
             (editingContent || currentStep === 'details') && (

@@ -53,6 +53,7 @@ describe('FilePickerApp', () => {
         formFields: { hidden_field: 'hidden_value' },
         promptForTitle: false,
         promptForGradable: false,
+        assignmentTypes: ['reading'],
       },
     };
 
@@ -110,6 +111,169 @@ describe('FilePickerApp', () => {
   it('renders content selector when content has not yet been selected', () => {
     const wrapper = renderFilePicker();
     assert.isTrue(wrapper.exists('ContentSelector'));
+  });
+
+  describe('assignment-type workflow', () => {
+    function clickNext(wrapper) {
+      interact(wrapper, () => {
+        wrapper
+          .find('Button[data-testid="workflow-next-button"]')
+          .props()
+          .onClick();
+      });
+    }
+
+    function clickBack(wrapper) {
+      interact(wrapper, () => {
+        wrapper
+          .find('Button[data-testid="workflow-back-button"]')
+          .props()
+          .onClick();
+      });
+    }
+
+    function selectAssignmentType(wrapper, type) {
+      interact(wrapper, () => {
+        wrapper.find('AssignmentTypeSelector').props().onChange(type);
+      });
+    }
+
+    it('does not show the workflow when only one type is available', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading'];
+      const wrapper = renderFilePicker();
+
+      assert.isFalse(wrapper.exists('AssignmentTypeSelector'));
+      assert.isTrue(wrapper.exists('ContentSelector'));
+    });
+
+    it('shows the assignment-type step first when several types are available', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      assert.isTrue(wrapper.exists('AssignmentTypeSelector'));
+      // The content selector is not shown until the workflow is complete.
+      assert.isFalse(wrapper.exists('ContentSelector'));
+    });
+
+    it('skips to content selection for a "reading" assignment', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      // The default assignment type is "reading".
+      clickNext(wrapper);
+
+      assert.isFalse(wrapper.exists('AssignmentTypeSelector'));
+      assert.isFalse(wrapper.exists('CheckpointSelector'));
+      assert.isTrue(wrapper.exists('ContentSelector'));
+    });
+
+    it('walks through checkpoint and due-date steps for "Hide & Reveal"', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      selectAssignmentType(wrapper, 'hide_and_reveal');
+      clickNext(wrapper);
+
+      // Checkpoint step.
+      assert.isTrue(wrapper.exists('CheckpointSelector'));
+      assert.isFalse(wrapper.exists('ContentSelector'));
+      clickNext(wrapper);
+
+      // Due-date step.
+      assert.isTrue(wrapper.exists('DueDateSelector'));
+      assert.isFalse(wrapper.exists('ContentSelector'));
+      clickNext(wrapper);
+
+      // Regular flow takes over.
+      assert.isFalse(wrapper.exists('DueDateSelector'));
+      assert.isTrue(wrapper.exists('ContentSelector'));
+    });
+
+    it('does not offer a "Back" button on the first step', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      assert.isTrue(wrapper.exists('AssignmentTypeSelector'));
+      assert.isFalse(
+        wrapper.exists('Button[data-testid="workflow-back-button"]'),
+      );
+    });
+
+    it('goes back through the "Hide & Reveal" steps', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      selectAssignmentType(wrapper, 'hide_and_reveal');
+      clickNext(wrapper); // -> checkpoint
+      clickNext(wrapper); // -> due-date
+      assert.isTrue(wrapper.exists('DueDateSelector'));
+
+      clickBack(wrapper); // -> checkpoint
+      assert.isTrue(wrapper.exists('CheckpointSelector'));
+      assert.isFalse(wrapper.exists('DueDateSelector'));
+
+      clickBack(wrapper); // -> assignment-type
+      assert.isTrue(wrapper.exists('AssignmentTypeSelector'));
+      assert.isFalse(wrapper.exists('CheckpointSelector'));
+    });
+
+    it('shows a step-specific card title', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+      const cardTitle = () => wrapper.find('CardHeader').prop('title');
+
+      // Assignment-type step.
+      assert.equal(cardTitle(), 'Assignment mode');
+
+      selectAssignmentType(wrapper, 'hide_and_reveal');
+      clickNext(wrapper); // -> checkpoint
+      assert.equal(cardTitle(), 'Guided Social Annotation');
+
+      clickNext(wrapper); // -> due-date
+      assert.equal(cardTitle(), 'Guided Social Annotation');
+
+      clickNext(wrapper); // -> regular flow
+      assert.equal(cardTitle(), 'Assignment details');
+    });
+
+    it('returns to the assignment-type step via the header close button', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      // The mode-selection step itself offers no close button.
+      assert.isNotOk(wrapper.find('CardHeader').prop('onClose'));
+
+      selectAssignmentType(wrapper, 'hide_and_reveal');
+      clickNext(wrapper); // -> checkpoint
+      clickNext(wrapper); // -> due-date
+      assert.isTrue(wrapper.exists('DueDateSelector'));
+
+      // The header exposes a close handler during the Guided sub-steps.
+      const onClose = wrapper.find('CardHeader').prop('onClose');
+      assert.isFunction(onClose);
+      interact(wrapper, () => onClose());
+
+      assert.isTrue(wrapper.exists('AssignmentTypeSelector'));
+      assert.isFalse(wrapper.exists('DueDateSelector'));
+    });
+
+    it('recomputes the branch when the type is changed after going back', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      // Enter the Hide & Reveal branch...
+      selectAssignmentType(wrapper, 'hide_and_reveal');
+      clickNext(wrapper); // -> checkpoint
+      clickBack(wrapper); // -> assignment-type
+
+      // ...then switch to a regular reading assignment.
+      selectAssignmentType(wrapper, 'reading');
+      clickNext(wrapper); // -> done (skips checkpoint/due-date)
+
+      assert.isFalse(wrapper.exists('CheckpointSelector'));
+      assert.isFalse(wrapper.exists('DueDateSelector'));
+      assert.isTrue(wrapper.exists('ContentSelector'));
+    });
   });
 
   function selectContent(wrapper, content) {
