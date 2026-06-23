@@ -2,6 +2,7 @@ import { createContext } from 'preact';
 import { useContext } from 'preact/hooks';
 
 import type { AutoGradingConfig } from './api-types';
+import type { AssignmentType } from './components/AssignmentTypeSelector';
 import type { AppLaunchServerErrorCode, OAuthServerErrorCode } from './errors';
 
 /**
@@ -108,6 +109,15 @@ export type FilePickerConfig = {
   promptForTitle: boolean;
   promptForGradable: boolean;
   autoGradingEnabled: boolean;
+  /**
+   * The assignment types the instructor can choose from when configuring this
+   * assignment. The backend decides availability (e.g. via feature flags);
+   * `reading` is always present. When more than one type is offered, the file
+   * picker shows an initial "assignment type" selection step before the regular
+   * flow; with a single type that step is skipped. The backend that sets this
+   * is still pending, so it is optional for now.
+   */
+  assignmentTypes?: AssignmentType[];
   deepLinkingAPI?: APICallInfo;
   ltiLaunchUrl: string;
   blackboard: {
