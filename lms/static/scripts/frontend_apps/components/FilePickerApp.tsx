@@ -600,6 +600,15 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                       inputRef={dueDateInputRef}
                     />
                   )}
+                  {currentStep === 'checkpoint' && (
+                    <CheckpointSelector
+                      selected={checkpointType}
+                      onChange={setCheckpointType}
+                    />
+                  )}
+                  {currentStep === 'due-date' && (
+                    <DueDateSelector dueDate={dueDate} onChange={setDueDate} />
+                  )}
                 </div>
               ) : (
                 /* 1-col grid for very narrow screens; 2-col for everyone else */
