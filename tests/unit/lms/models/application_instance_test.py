@@ -194,6 +194,12 @@ class TestApplicationSettings:
                 "hypothesis.pdf_image_annotation",
                 SettingFormat.TRI_STATE,
             ),
+            (
+                "hypothesis",
+                "hide_and_reveal",
+                "hypothesis.hide_and_reveal",
+                SettingFormat.TRI_STATE,
+            ),
         ]
 
 

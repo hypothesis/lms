@@ -402,6 +402,9 @@ class JSConfig:
                     "formFields": form_fields,
                     "promptForTitle": prompt_for_title,
                     "promptForGradable": prompt_for_gradable,
+                    # Assignment types the instructor can choose from. Gated by
+                    # the per-install "hide_and_reveal" feature flag.
+                    "assignmentTypes": self._get_assignment_types(),
                     # Enable auto grading everywhere except in Sakai
                     "autoGradingEnabled": self._application_instance.tool_consumer_info_product_family_code
                     != "sakai",
@@ -429,6 +432,23 @@ class JSConfig:
             course, assignment
         )
         return self._config
+
+    def _get_assignment_types(self) -> list[str]:
+        """Return the assignment types the instructor can choose from.
+
+        `reading` is always available. The "Hide & Reveal" (Guided Social
+        annotation) type is gated by the per-install `hypothesis.hide_and_reveal`
+        feature flag.
+        """
+        settings = self._application_instance.settings
+        types = ["reading"]
+
+        if settings.get_setting(
+            settings.fields[settings.Settings.HYPOTHESIS_HIDE_AND_REVEAL]
+        ):
+            types.append("hide_and_reveal")
+
+        return types
 
     def add_deep_linking_api(self):
         """
