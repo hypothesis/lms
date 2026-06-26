@@ -67,6 +67,31 @@ class TestFilePickerMode:
         )
 
     @pytest.mark.parametrize(
+        "hide_and_reveal,expected_types",
+        [
+            # Flag explicitly on.
+            (True, ["reading", "hide_and_reveal"]),
+            # Flag explicitly off.
+            (False, ["reading"]),
+            # Flag unset: defaults to off.
+            (None, ["reading"]),
+        ],
+    )
+    def test_it_sets_assignment_types(
+        self, js_config, course, application_instance, hide_and_reveal, expected_types
+    ):
+        if hide_and_reveal is not None:
+            application_instance.settings.set(
+                "hypothesis", "hide_and_reveal", hide_and_reveal
+            )
+
+        js_config.enable_file_picker_mode(
+            sentinel.form_action, sentinel.form_fields, course
+        )
+
+        assert js_config.asdict()["filePicker"]["assignmentTypes"] == expected_types
+
+    @pytest.mark.parametrize(
         "config_function,key",
         (
             ("blackboard_config", "blackboard"),
