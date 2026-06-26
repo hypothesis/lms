@@ -74,7 +74,7 @@ class TestSync:
         checkpoint_data = {
             "document_uri": "https://example.com/doc",
             "reveal_date": "2026-07-01T12:00:00",
-            "instructor_username": "teacher",
+            "user": {"username": "teacher", "role": "instructor"},
         }
 
         lti_h_svc.sync(groupings, sentinel.params, checkpoint_data=checkpoint_data)
@@ -89,7 +89,7 @@ class TestSync:
                 }
                 for grouping in groupings
             ],
-            instructor_username="teacher",
+            user={"username": "teacher", "role": "instructor"},
         )
 
     @pytest.fixture

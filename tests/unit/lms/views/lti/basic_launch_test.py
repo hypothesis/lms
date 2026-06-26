@@ -399,6 +399,43 @@ class TestBasicLaunchViews:
 
         assert result == {}
 
+    def test__show_document_enables_checkpoint_toolbar_for_instructor(
+        self, svc, request, context, pyramid_request
+    ):
+        request.getfixturevalue("user_is_instructor")
+        assignment = factories.Assignment()
+        with mock.patch.object(
+            type(assignment), "checkpoint", new_callable=mock.PropertyMock
+        ) as checkpoint_prop:
+            checkpoint_prop.return_value = mock.MagicMock()
+            svc._show_document(assignment)  # noqa: SLF001
+
+        context.js_config.enable_toolbar_checkpoint.assert_called_once_with(assignment)
+        context.js_config.enable_student_checkpoint.assert_not_called()
+
+    def test__show_document_enables_student_checkpoint_for_student(
+        self, svc, context, pyramid_request
+    ):
+        assignment = factories.Assignment()
+        with mock.patch.object(
+            type(assignment), "checkpoint", new_callable=mock.PropertyMock
+        ) as checkpoint_prop:
+            checkpoint_prop.return_value = mock.MagicMock()
+            svc._show_document(assignment)  # noqa: SLF001
+
+        context.js_config.enable_student_checkpoint.assert_called_once_with(assignment)
+        context.js_config.enable_toolbar_checkpoint.assert_not_called()
+
+    def test__show_document_no_checkpoint_config_without_checkpoint(
+        self, svc, context, pyramid_request
+    ):
+        assignment = factories.Assignment()
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        context.js_config.enable_toolbar_checkpoint.assert_not_called()
+        context.js_config.enable_student_checkpoint.assert_not_called()
+
     @pytest.fixture
     def assignment(self):
         return factories.Assignment(is_gradable=False)

@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import StrEnum
 
 import sqlalchemy as sa
@@ -145,6 +146,9 @@ class Assignment(CreatedUpdatedMixin, Base):
         sa.ForeignKey("assignment_auto_grading_config.id", ondelete="cascade")
     )
     auto_grading_config = relationship("AutoGradingConfig")
+
+    due_date: Mapped[datetime | None] = mapped_column()
+    """The due date for this assignment; NULL if not set."""
 
     checkpoint = relationship(
         "AssignmentCheckpoint", uselist=False, back_populates="assignment"

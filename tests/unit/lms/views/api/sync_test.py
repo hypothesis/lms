@@ -210,7 +210,10 @@ class TestSync:
             checkpoint_data={
                 "document_uri": "https://example.com/doc",
                 "reveal_date": None,
-                "instructor_username": None,
+                "user": {
+                    "username": pyramid_request.lti_user.h_user.username,
+                    "role": "student",
+                },
             },
         )
 
@@ -236,7 +239,10 @@ class TestSync:
             checkpoint_data={
                 "document_uri": "https://example.com/doc",
                 "reveal_date": None,
-                "instructor_username": pyramid_request.lti_user.h_user.username,
+                "user": {
+                    "username": pyramid_request.lti_user.h_user.username,
+                    "role": "instructor",
+                },
             },
         )
 
@@ -262,7 +268,10 @@ class TestSync:
             checkpoint_data={
                 "document_uri": "https://example.com/doc",
                 "reveal_date": "2026-07-01T12:00:00",
-                "instructor_username": None,
+                "user": {
+                    "username": pyramid_request.lti_user.h_user.username,
+                    "role": "student",
+                },
             },
         )
 
@@ -289,7 +298,10 @@ class TestSync:
             checkpoint_data={
                 "document_uri": "https://example.com/doc",
                 "reveal_date": None,
-                "instructor_username": None,
+                "user": {
+                    "username": pyramid_request.lti_user.h_user.username,
+                    "role": "student",
+                },
             },
         )
 

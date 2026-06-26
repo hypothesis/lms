@@ -286,7 +286,7 @@ class TestHAPI:
             headers={"Content-Type": "application/json"},
         )
 
-    def test_sync_checkpoints_with_instructor(self, h_api, _api_request):  # noqa: PT019
+    def test_sync_checkpoints_with_user(self, h_api, _api_request):  # noqa: PT019
         checkpoints = [
             {
                 "group_authority_provided_id": "group1",
@@ -294,11 +294,12 @@ class TestHAPI:
                 "reveal_date": None,
             }
         ]
+        user = {"username": "teacher", "role": "instructor"}
 
         h_api.sync_checkpoints(
             authority="lms.hypothes.is",
             checkpoints=checkpoints,
-            instructor_username="teacher",
+            user=user,
         )
 
         _api_request.assert_called_once_with(
@@ -308,7 +309,7 @@ class TestHAPI:
                 {
                     "authority": "lms.hypothes.is",
                     "checkpoints": checkpoints,
-                    "instructor_username": "teacher",
+                    "user": user,
                 }
             ),
             headers={"Content-Type": "application/json"},
@@ -316,6 +317,30 @@ class TestHAPI:
 
     def test_sync_checkpoints_with_no_checkpoints(self, h_api, _api_request):  # noqa: PT019
         h_api.sync_checkpoints(authority="lms.hypothes.is", checkpoints=[])
+
+        _api_request.assert_not_called()
+
+    def test_reveal_checkpoints(self, h_api, _api_request):  # noqa: PT019
+        checkpoints = [
+            {
+                "group_authority_provided_id": "group1",
+                "document_uri": "https://example.com/doc",
+            }
+        ]
+
+        h_api.reveal_checkpoints(authority="lms.hypothes.is", checkpoints=checkpoints)
+
+        _api_request.assert_called_once_with(
+            "POST",
+            path="bulk/checkpoint/reveal",
+            body=json.dumps(
+                {"authority": "lms.hypothes.is", "checkpoints": checkpoints}
+            ),
+            headers={"Content-Type": "application/json"},
+        )
+
+    def test_reveal_checkpoints_with_no_checkpoints(self, h_api, _api_request):  # noqa: PT019
+        h_api.reveal_checkpoints(authority="lms.hypothes.is", checkpoints=[])
 
         _api_request.assert_not_called()
 

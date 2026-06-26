@@ -25,7 +25,7 @@ class Canvas(Product):
 
     settings_key = "canvas"
 
-    use_toolbar_grading = False
+    use_toolbar_grading = False 
     """We use SpeedGrader in canvas instead"""
     use_toolbar_editing = False
     """Canvas allows re-deeplinking assignments. We don't support editing in our side."""

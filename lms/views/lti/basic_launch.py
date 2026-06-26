@@ -202,6 +202,12 @@ class BasicLaunchViews:
         ):
             self.context.js_config.enable_toolbar_editing()
 
+        if assignment.checkpoint:
+            if self.request.lti_user.is_instructor:
+                self.context.js_config.enable_toolbar_checkpoint(assignment)
+            else:
+                self.context.js_config.enable_student_checkpoint(assignment)
+
         if self.request.product.use_toolbar_grading and assignment.is_gradable:
             if self.request.lti_user.is_instructor:
                 # Get the list of students to display in the drop down

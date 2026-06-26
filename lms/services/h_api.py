@@ -221,14 +221,14 @@ class HAPI:
         self,
         authority: str,
         checkpoints: list[dict],
-        instructor_username: str | None = None,
+        user: dict | None = None,
     ) -> None:
         """Sync checkpoint data to h via the bulk checkpoint endpoint.
 
         :param authority: The h authority
         :param checkpoints: List of dicts with group_authority_provided_id,
             document_uri, and optionally reveal_date
-        :param instructor_username: Optional username of an instructor to set
+        :param user: Optional dict with 'username' and 'role' to set
             their lms_role in the group memberships
         """
         if not checkpoints:
@@ -238,12 +238,40 @@ class HAPI:
             "authority": authority,
             "checkpoints": checkpoints,
         }
-        if instructor_username:
-            payload["instructor_username"] = instructor_username
+        if user:
+            payload["user"] = user
 
         self._api_request(
             "POST",
             path="bulk/checkpoint",
+            body=json.dumps(payload),
+            headers={
+                "Content-Type": "application/json",
+            },
+        )
+
+    def reveal_checkpoints(
+        self,
+        authority: str,
+        checkpoints: list[dict],
+    ) -> None:
+        """Reveal checkpoints in h, making annotations visible immediately.
+
+        :param authority: The h authority
+        :param checkpoints: List of dicts with group_authority_provided_id
+            and document_uri
+        """
+        if not checkpoints:
+            return
+
+        payload = {
+            "authority": authority,
+            "checkpoints": checkpoints,
+        }
+
+        self._api_request(
+            "POST",
+            path="bulk/checkpoint/reveal",
             body=json.dumps(payload),
             headers={
                 "Content-Type": "application/json",

@@ -14,14 +14,16 @@ def checkpoint_sync_data(assignment: Assignment | None, lti_user) -> dict | None
     if not (assignment and assignment.checkpoint):
         return None
 
+    role = "instructor" if lti_user.is_instructor else "student"
     return {
         "document_uri": assignment.document_url,
         "reveal_date": assignment.checkpoint.reveal_date.isoformat()
         if assignment.checkpoint.reveal_date
         else None,
-        "instructor_username": lti_user.h_user.username
-        if lti_user.is_instructor
-        else None,
+        "user": {
+            "username": lti_user.h_user.username,
+            "role": role,
+        },
     }
 
 
@@ -121,7 +123,7 @@ class LTIHService:
         self._h_api.sync_checkpoints(
             authority=self._authority,
             checkpoints=checkpoints,
-            instructor_username=checkpoint_data.get("instructor_username"),
+            user=checkpoint_data.get("user"),
         )
 
     def _group_upsert(self, grouping, ref):
