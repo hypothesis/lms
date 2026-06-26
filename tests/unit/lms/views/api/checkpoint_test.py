@@ -1,16 +1,15 @@
 from datetime import datetime
-from unittest.mock import MagicMock, create_autospec, sentinel
+from unittest.mock import MagicMock
 
 import pytest
 
-from lms.models.assignment import Assignment
-from lms.models.assignment_checkpoint import AssignmentCheckpoint
+from lms.services import HAPI
 from lms.views.api.checkpoint import reveal_checkpoint
 
 
-@pytest.mark.usefixtures("assignment_service", "h_api", "user_is_instructor")
+@pytest.mark.usefixtures("assignment_service", "h_api")
 class TestRevealCheckpoint:
-    def test_it_rejects_non_instructors(self, pyramid_request, user_is_learner):
+    def test_it_rejects_non_instructors(self, pyramid_request):
         pyramid_request.matchdict = {"assignment_id": "1"}
 
         result = reveal_checkpoint(pyramid_request)
@@ -18,6 +17,7 @@ class TestRevealCheckpoint:
         assert pyramid_request.response.status_code == 403
         assert "error" in result
 
+    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_reveals_an_unrevealed_checkpoint(
         self, pyramid_request, assignment_service, h_api
     ):
@@ -32,6 +32,7 @@ class TestRevealCheckpoint:
         assert "reveal_date" in result
         h_api.sync_checkpoints.assert_called_once()
 
+    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_returns_already_revealed(
         self, pyramid_request, assignment_service, h_api
     ):
@@ -47,6 +48,7 @@ class TestRevealCheckpoint:
         assert "reveal_date" in result
         h_api.sync_checkpoints.assert_not_called()
 
+    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_returns_404_when_assignment_not_found(
         self, pyramid_request, assignment_service
     ):
@@ -58,6 +60,7 @@ class TestRevealCheckpoint:
         assert pyramid_request.response.status_code == 404
         assert "error" in result
 
+    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_returns_404_when_no_checkpoint(
         self, pyramid_request, assignment_service
     ):
@@ -71,6 +74,7 @@ class TestRevealCheckpoint:
         assert pyramid_request.response.status_code == 404
         assert "error" in result
 
+    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_syncs_checkpoints_to_h(
         self, pyramid_request, assignment_service, h_api
     ):
@@ -89,8 +93,11 @@ class TestRevealCheckpoint:
         assert call_kwargs["authority"] == "lms.hypothes.is"
         assert len(call_kwargs["checkpoints"]) == 1
         assert call_kwargs["checkpoints"][0]["group_authority_provided_id"] == "group1"
-        assert call_kwargs["checkpoints"][0]["document_uri"] == "https://example.com/doc"
+        assert (
+            call_kwargs["checkpoints"][0]["document_uri"] == "https://example.com/doc"
+        )
 
+    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_does_not_sync_when_no_groupings(
         self, pyramid_request, assignment_service, h_api
     ):
@@ -116,8 +123,6 @@ class TestRevealCheckpoint:
 
     @pytest.fixture
     def h_api(self, mock_service):
-        from lms.services import HAPI
-
         return mock_service(HAPI)
 
     @pytest.fixture

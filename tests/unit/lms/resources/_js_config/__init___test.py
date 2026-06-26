@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock, create_autospec, patch, sentinel
 
 import pytest
@@ -619,8 +619,6 @@ class TestCheckpointToolbar:
         assert "revealUrl" in checkpoint
 
     def test_enable_toolbar_checkpoint_revealed(self, js_config):
-        from datetime import datetime
-
         assignment = MagicMock()
         assignment.checkpoint.reveal_date = datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
         assignment.id = 42
@@ -644,8 +642,6 @@ class TestCheckpointToolbar:
         assert config["studentCheckpoint"]["dueDate"] is None
 
     def test_enable_student_checkpoint_revealed(self, js_config):
-        from datetime import datetime
-
         assignment = MagicMock()
         assignment.checkpoint.reveal_date = datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
 

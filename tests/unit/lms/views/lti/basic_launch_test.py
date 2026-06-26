@@ -399,8 +399,9 @@ class TestBasicLaunchViews:
 
         assert result == {}
 
+    @pytest.mark.usefixtures("pyramid_request")
     def test__show_document_enables_checkpoint_toolbar_for_instructor(
-        self, svc, request, context, pyramid_request
+        self, svc, request, context
     ):
         request.getfixturevalue("user_is_instructor")
         assignment = factories.Assignment()
@@ -413,9 +414,8 @@ class TestBasicLaunchViews:
         context.js_config.enable_toolbar_checkpoint.assert_called_once_with(assignment)
         context.js_config.enable_student_checkpoint.assert_not_called()
 
-    def test__show_document_enables_student_checkpoint_for_student(
-        self, svc, context, pyramid_request
-    ):
+    @pytest.mark.usefixtures("pyramid_request")
+    def test__show_document_enables_student_checkpoint_for_student(self, svc, context):
         assignment = factories.Assignment()
         with mock.patch.object(
             type(assignment), "checkpoint", new_callable=mock.PropertyMock
@@ -426,9 +426,8 @@ class TestBasicLaunchViews:
         context.js_config.enable_student_checkpoint.assert_called_once_with(assignment)
         context.js_config.enable_toolbar_checkpoint.assert_not_called()
 
-    def test__show_document_no_checkpoint_config_without_checkpoint(
-        self, svc, context, pyramid_request
-    ):
+    @pytest.mark.usefixtures("pyramid_request")
+    def test__show_document_no_checkpoint_config_without_checkpoint(self, svc, context):
         assignment = factories.Assignment()
 
         svc._show_document(assignment)  # noqa: SLF001

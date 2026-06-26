@@ -26,7 +26,12 @@ def reveal_checkpoint(request):
         return {"error": "Assignment or checkpoint not found"}
 
     if assignment.checkpoint.reveal_date:
-        return {"revealed": True, "reveal_date": assignment.checkpoint.reveal_date.replace(tzinfo=UTC).isoformat()}
+        return {
+            "revealed": True,
+            "reveal_date": assignment.checkpoint.reveal_date.replace(
+                tzinfo=UTC
+            ).isoformat(),
+        }
 
     # Set the reveal date on the LMS side (source of truth)
     assignment.checkpoint.reveal_date = datetime.utcnow()  # noqa: DTZ003

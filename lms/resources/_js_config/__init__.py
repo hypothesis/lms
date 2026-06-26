@@ -480,10 +480,12 @@ class JSConfig:
             # reveal_date is stored as UTC without timezone info. Adding
             # UTC here so the ISO string includes +00:00 and the browser
             # can convert it to the user's local timezone.
-            "revealDate": assignment.checkpoint.reveal_date.replace(tzinfo=UTC).isoformat()
+            "revealDate": assignment.checkpoint.reveal_date.replace(
+                tzinfo=UTC
+            ).isoformat()
             if assignment.checkpoint.reveal_date
             else None,
-            # TODO: use actual due date once available; for now reuse reveal_date.
+            # Use actual due date once available; for now reuse reveal_date.
             "dueDate": assignment.checkpoint.reveal_date.replace(tzinfo=UTC).isoformat()
             if assignment.checkpoint.reveal_date
             else None,
@@ -497,7 +499,7 @@ class JSConfig:
         revealed = assignment.checkpoint.reveal_date is not None
         self._config["studentCheckpoint"] = {
             "hidden": not revealed,
-            # TODO: use actual due date once available; for now reuse reveal_date.
+            # Use actual due date once available; for now reuse reveal_date.
             # reveal_date is stored as UTC without timezone info. Adding
             # UTC here so the ISO string includes +00:00 and the browser
             # can convert it to the user's local timezone.

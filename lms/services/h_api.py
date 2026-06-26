@@ -234,7 +234,7 @@ class HAPI:
         if not checkpoints:
             return
 
-        payload = {
+        payload: dict = {
             "authority": authority,
             "checkpoints": checkpoints,
         }
