@@ -1,5 +1,5 @@
-from datetime import timedelta
-from unittest.mock import create_autospec, patch, sentinel
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock, create_autospec, patch, sentinel
 
 import pytest
 from h_matchers import Any
@@ -600,6 +600,56 @@ class TestInstructorToolbar:
             expected["scoreMaximum"] = sentinel.score_maximum
 
         assert js_config.asdict()["instructorToolbar"] == expected
+
+
+class TestCheckpointToolbar:
+    def test_enable_toolbar_checkpoint_unrevealed(self, js_config):
+        assignment = MagicMock()
+        assignment.checkpoint.reveal_date = None
+        assignment.id = 42
+
+        js_config.enable_toolbar_checkpoint(assignment)
+
+        config = js_config.asdict()
+        checkpoint = config["instructorToolbar"]["checkpoint"]
+        assert checkpoint["enabled"] is True
+        assert checkpoint["revealed"] is False
+        assert checkpoint["revealDate"] is None
+        assert checkpoint["dueDate"] is None
+        assert "revealUrl" in checkpoint
+
+    def test_enable_toolbar_checkpoint_revealed(self, js_config):
+        assignment = MagicMock()
+        assignment.checkpoint.reveal_date = datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
+        assignment.id = 42
+
+        js_config.enable_toolbar_checkpoint(assignment)
+
+        config = js_config.asdict()
+        checkpoint = config["instructorToolbar"]["checkpoint"]
+        assert checkpoint["enabled"] is True
+        assert checkpoint["revealed"] is True
+        assert checkpoint["revealDate"] == "2026-07-01T12:00:00+00:00"
+
+    def test_enable_student_checkpoint_hidden(self, js_config):
+        assignment = MagicMock()
+        assignment.checkpoint.reveal_date = None
+
+        js_config.enable_student_checkpoint(assignment)
+
+        config = js_config.asdict()
+        assert config["studentCheckpoint"]["hidden"] is True
+        assert config["studentCheckpoint"]["dueDate"] is None
+
+    def test_enable_student_checkpoint_revealed(self, js_config):
+        assignment = MagicMock()
+        assignment.checkpoint.reveal_date = datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
+
+        js_config.enable_student_checkpoint(assignment)
+
+        config = js_config.asdict()
+        assert config["studentCheckpoint"]["hidden"] is False
+        assert config["studentCheckpoint"]["dueDate"] == "2026-07-01T12:00:00+00:00"
 
 
 class TestSetFocusedUser:

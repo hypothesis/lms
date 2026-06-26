@@ -69,6 +69,29 @@ class TestSync:
             grouping=grouping, params=sentinel.params
         )
 
+    def test_sync_syncs_checkpoints(self, h_api, lti_h_svc):
+        groupings = factories.Course.create_batch(2)
+        checkpoint_data = {
+            "document_uri": "https://example.com/doc",
+            "reveal_date": "2026-07-01T12:00:00",
+            "user": {"username": "teacher", "role": "instructor"},
+        }
+
+        lti_h_svc.sync(groupings, sentinel.params, checkpoint_data=checkpoint_data)
+
+        h_api.sync_checkpoints.assert_called_once_with(
+            authority=lti_h_svc._authority,  # noqa: SLF001
+            checkpoints=[
+                {
+                    "group_authority_provided_id": grouping.authority_provided_id,
+                    "document_uri": "https://example.com/doc",
+                    "reveal_date": "2026-07-01T12:00:00",
+                }
+                for grouping in groupings
+            ],
+            user={"username": "teacher", "role": "instructor"},
+        )
+
     @pytest.fixture
     def lti_h_svc(self, pyramid_request):
         return LTIHService(None, pyramid_request)

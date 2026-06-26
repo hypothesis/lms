@@ -217,6 +217,67 @@ class HAPI:
         )
         return response.json()
 
+    def sync_checkpoints(
+        self,
+        authority: str,
+        checkpoints: list[dict],
+        user: dict | None = None,
+    ) -> None:
+        """Sync checkpoint data to h via the bulk checkpoint endpoint.
+
+        :param authority: The h authority
+        :param checkpoints: List of dicts with group_authority_provided_id,
+            document_uri, and optionally reveal_date
+        :param user: Optional dict with 'username' and 'role' to set
+            their lms_role in the group memberships
+        """
+        if not checkpoints:
+            return
+
+        payload: dict = {
+            "authority": authority,
+            "checkpoints": checkpoints,
+        }
+        if user:
+            payload["user"] = user
+
+        self._api_request(
+            "POST",
+            path="bulk/checkpoint",
+            body=json.dumps(payload),
+            headers={
+                "Content-Type": "application/json",
+            },
+        )
+
+    def reveal_checkpoints(
+        self,
+        authority: str,
+        checkpoints: list[dict],
+    ) -> None:
+        """Reveal checkpoints in h, making annotations visible immediately.
+
+        :param authority: The h authority
+        :param checkpoints: List of dicts with group_authority_provided_id
+            and document_uri
+        """
+        if not checkpoints:
+            return
+
+        payload = {
+            "authority": authority,
+            "checkpoints": checkpoints,
+        }
+
+        self._api_request(
+            "POST",
+            path="bulk/checkpoint/reveal",
+            body=json.dumps(payload),
+            headers={
+                "Content-Type": "application/json",
+            },
+        )
+
     def _api_request(self, method, path, body=None, headers=None, stream=False):  # noqa: FBT002
         """
         Send any kind of HTTP request to the h API and return the response.

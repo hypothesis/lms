@@ -294,6 +294,7 @@ class TestDeepLinkingFieldsView:
                 {"auto_grading_config": {"key": "value"}},
                 {"auto_grading_config": '{"key": "value"}'},
             ),
+            ({"checkpoint_enabled": True}, {"checkpoint_enabled": "true"}),
         ],
     )
     def test__get_assignment_configuration(

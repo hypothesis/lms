@@ -1,7 +1,9 @@
-from unittest.mock import sentinel
+from datetime import datetime
+from unittest.mock import create_autospec, sentinel
 
 import pytest
 
+from lms.models.assignment_checkpoint import AssignmentCheckpoint
 from lms.product.plugin.grouping import GroupError
 from lms.views.api.sync import sync
 from tests import factories
@@ -31,7 +33,9 @@ class TestSync:
             grading_student_id=sentinel.grading_student_id,
         )
         lti_h_service.sync.assert_called_once_with(
-            grouping_service.get_sections.return_value, sentinel.group_info
+            grouping_service.get_sections.return_value,
+            sentinel.group_info,
+            checkpoint_data=None,
         )
         assignment_service.get_assignment.assert_called_once_with(
             course.application_instance.tool_consumer_instance_guid,
@@ -73,7 +77,9 @@ class TestSync:
             group_set_id=course.get_mapped_group_set_id.return_value,
         )
         lti_h_service.sync.assert_called_once_with(
-            grouping_service.get_groups.return_value, sentinel.group_info
+            grouping_service.get_groups.return_value,
+            sentinel.group_info,
+            checkpoint_data=None,
         )
         assignment_service.get_assignment.assert_called_once_with(
             course.application_instance.tool_consumer_instance_guid,
@@ -137,7 +143,9 @@ class TestSync:
         )
 
         lti_h_service.sync.assert_called_once_with(
-            grouping_service.get_groups.return_value, sentinel.group_info
+            grouping_service.get_groups.return_value,
+            sentinel.group_info,
+            checkpoint_data=None,
         )
         assignment_service.get_assignment.assert_called_once_with(
             course.application_instance.tool_consumer_instance_guid,
@@ -179,6 +187,128 @@ class TestSync:
             grading_student_id=sentinel.grading_student_id,
             group_set_id=course.get_mapped_group_set_id.return_value,
         )
+
+    @pytest.mark.usefixtures("course_service")
+    def test_it_syncs_checkpoint_data_with_sections(
+        self,
+        pyramid_request,
+        grouping_service,
+        assignment_service,
+        lti_h_service,
+    ):
+        checkpoint = create_autospec(AssignmentCheckpoint, instance=True)
+        checkpoint.reveal_date = None
+        assignment = assignment_service.get_assignment.return_value
+        assignment.checkpoint = checkpoint
+        assignment.document_url = "https://example.com/doc"
+
+        sync(pyramid_request)
+
+        lti_h_service.sync.assert_called_once_with(
+            grouping_service.get_sections.return_value,
+            sentinel.group_info,
+            checkpoint_data={
+                "document_uri": "https://example.com/doc",
+                "reveal_date": None,
+                "user": {
+                    "username": pyramid_request.lti_user.h_user.username,
+                    "role": "student",
+                },
+            },
+        )
+
+    @pytest.mark.usefixtures("course_service", "user_is_instructor")
+    def test_it_syncs_checkpoint_data_with_instructor(
+        self,
+        pyramid_request,
+        grouping_service,
+        assignment_service,
+        lti_h_service,
+    ):
+        checkpoint = create_autospec(AssignmentCheckpoint, instance=True)
+        checkpoint.reveal_date = None
+        assignment = assignment_service.get_assignment.return_value
+        assignment.checkpoint = checkpoint
+        assignment.document_url = "https://example.com/doc"
+
+        sync(pyramid_request)
+
+        lti_h_service.sync.assert_called_once_with(
+            grouping_service.get_sections.return_value,
+            sentinel.group_info,
+            checkpoint_data={
+                "document_uri": "https://example.com/doc",
+                "reveal_date": None,
+                "user": {
+                    "username": pyramid_request.lti_user.h_user.username,
+                    "role": "instructor",
+                },
+            },
+        )
+
+    @pytest.mark.usefixtures("course_service")
+    def test_it_syncs_checkpoint_data_with_reveal_date(
+        self,
+        pyramid_request,
+        grouping_service,
+        assignment_service,
+        lti_h_service,
+    ):
+        checkpoint = create_autospec(AssignmentCheckpoint, instance=True)
+        checkpoint.reveal_date = datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
+        assignment = assignment_service.get_assignment.return_value
+        assignment.checkpoint = checkpoint
+        assignment.document_url = "https://example.com/doc"
+
+        sync(pyramid_request)
+
+        lti_h_service.sync.assert_called_once_with(
+            grouping_service.get_sections.return_value,
+            sentinel.group_info,
+            checkpoint_data={
+                "document_uri": "https://example.com/doc",
+                "reveal_date": "2026-07-01T12:00:00",
+                "user": {
+                    "username": pyramid_request.lti_user.h_user.username,
+                    "role": "student",
+                },
+            },
+        )
+
+    @pytest.mark.usefixtures("course_copy_plugin", "course_service")
+    def test_it_syncs_checkpoint_data_with_groups(
+        self,
+        pyramid_request,
+        grouping_service,
+        assignment_service,
+        lti_h_service,
+    ):
+        pyramid_request.parsed_params["group_set_id"] = sentinel.group_set_id
+        checkpoint = create_autospec(AssignmentCheckpoint, instance=True)
+        checkpoint.reveal_date = None
+        assignment = assignment_service.get_assignment.return_value
+        assignment.checkpoint = checkpoint
+        assignment.document_url = "https://example.com/doc"
+
+        sync(pyramid_request)
+
+        lti_h_service.sync.assert_called_once_with(
+            grouping_service.get_groups.return_value,
+            sentinel.group_info,
+            checkpoint_data={
+                "document_uri": "https://example.com/doc",
+                "reveal_date": None,
+                "user": {
+                    "username": pyramid_request.lti_user.h_user.username,
+                    "role": "student",
+                },
+            },
+        )
+
+    @pytest.fixture
+    def assignment_service(self, assignment_service):
+        assignment_service.get_assignment.return_value.checkpoint = None
+        return assignment_service
 
     @pytest.fixture
     def grouping_service(self, grouping_service):

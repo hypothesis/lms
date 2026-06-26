@@ -15,6 +15,7 @@ import { apiCall } from '../utils/api';
 import ContentFrame from './ContentFrame';
 import InstructorToolbar from './InstructorToolbar';
 import LaunchErrorDialog from './LaunchErrorDialog';
+import StudentCheckpointBar from './StudentCheckpointBar';
 
 /**
  * Error states managed by this component that can arise during assignment
@@ -346,6 +347,7 @@ export default function BasicLTILaunchApp() {
         data-testid="content-wrapper"
       >
         <InstructorToolbar />
+        <StudentCheckpointBar />
         <ContentFrame url={contentURL ?? ''} />
       </div>
       {errorState && (

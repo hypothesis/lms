@@ -29,7 +29,7 @@ class AssignmentCheckpoint(CreatedUpdatedMixin, Base):
     assignment_id: Mapped[int] = mapped_column(
         sa.ForeignKey("assignment.id", ondelete="cascade"), index=True
     )
-    assignment = relationship("Assignment")
+    assignment = relationship("Assignment", back_populates="checkpoint")
 
     reveal_date: Mapped[datetime | None] = mapped_column()
     """When the instructor revealed the assignment; NULL until revealed."""

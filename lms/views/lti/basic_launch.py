@@ -22,6 +22,7 @@ from lms.product.plugin.misc import MiscPlugin  # noqa: TC001
 from lms.security import Permissions
 from lms.services import LTIGradingService, UserService, VitalSourceService
 from lms.services.assignment import AssignmentService  # noqa: TC001
+from lms.services.lti_h import checkpoint_sync_data
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 
 LOG = logging.getLogger(__name__)
@@ -178,7 +179,9 @@ class BasicLaunchViews:
         # Before any LTI assignments launch, create or update the Hypothesis
         # user and group corresponding to the LTI user and course.
         self.request.find_service(name="lti_h").sync(
-            [self.course], self.request.lti_params
+            [self.course],
+            self.request.lti_params,
+            checkpoint_data=checkpoint_sync_data(assignment, self.request.lti_user),
         )
 
         # Store the relationship between the assignment and the user
@@ -198,6 +201,12 @@ class BasicLaunchViews:
             and self.request.lti_user.is_instructor
         ):
             self.context.js_config.enable_toolbar_editing()
+
+        if assignment.checkpoint:
+            if self.request.lti_user.is_instructor:
+                self.context.js_config.enable_toolbar_checkpoint(assignment)
+            else:
+                self.context.js_config.enable_student_checkpoint(assignment)
 
         if self.request.product.use_toolbar_grading and assignment.is_gradable:
             if self.request.lti_user.is_instructor:
@@ -304,6 +313,9 @@ class BasicLaunchViews:
             group_set_id=self.request.parsed_params.get("group_set"),
             course=self.course,
             auto_grading_config=self.request.parsed_params.get("auto_grading_config"),
+            checkpoint_enabled=self.request.parsed_params.get(
+                "checkpoint_enabled", False
+            ),
         )
 
     def _configure_js_for_file_picker(

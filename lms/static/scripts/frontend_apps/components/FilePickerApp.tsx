@@ -226,6 +226,9 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     return autoGradingEnabled && enabled ? rest : null;
   }, [autoGradingConfig, autoGradingEnabled]);
 
+  // Whether this assignment should have a checkpoint.
+  const [checkpointEnabled, setCheckpointEnabled] = useState(false);
+
   // Flag indicating if we are editing content that was previously selected.
   const [editingContent, setEditingContent] = useState(false);
   // True if we are editing an existing assignment configuration.
@@ -237,7 +240,8 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     enableGroupConfig ||
     promptForTitle ||
     promptForGradable ||
-    autoGradingEnabled;
+    autoGradingEnabled ||
+    !isEditing; // Always show details for new assignments (checkpoint option)
 
   let currentStep: PickerStep;
   if (editingContent) {
@@ -301,6 +305,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         const data: DeepLinkingAPIData = {
           ...deepLinkingAPI.data,
           auto_grading_config: autoGradingConfigToSave,
+          checkpoint_enabled: checkpointEnabled,
           content,
           group_set: groupConfig.useGroupSet ? groupConfig.groupSet : null,
           title,
@@ -328,6 +333,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     },
     [
       authToken,
+      checkpointEnabled,
       deepLinkingFields,
       deepLinkingAPI,
       groupConfig.groupSet,
@@ -549,6 +555,27 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                         />
                       </>
                     )}
+                    {!isEditing && (
+                      <>
+                        <div className="sm:col-span-2 border-b" />
+                        <PanelLabel isCurrentStep verticalAlign="center">
+                          Hide &amp; Reveal
+                        </PanelLabel>
+                        <label className="flex items-center gap-x-2">
+                          <input
+                            type="checkbox"
+                            data-testid="checkpoint-enabled"
+                            checked={checkpointEnabled}
+                            onChange={event =>
+                              setCheckpointEnabled(
+                                (event.target as HTMLInputElement).checked,
+                              )
+                            }
+                          />
+                          Enable checkpoint
+                        </label>
+                      </>
+                    )}
                     {enableGroupConfig && (
                       <>
                         <div className="sm:col-span-2 border-b" />
@@ -610,6 +637,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                 formFields={formFields}
                 groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
                 autoGradingConfig={autoGradingConfigToSave}
+                checkpointEnabled={checkpointEnabled}
               />
             )
           }

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from lms.models import (
     Assignment,
+    AssignmentCheckpoint,
     AssignmentGrouping,
     AssignmentMembership,
     AutoGradingConfig,
@@ -62,6 +63,7 @@ class AssignmentService:
         group_set_id,
         course: Course,
         auto_grading_config: dict | None = None,
+        checkpoint_enabled: bool = False,  # noqa: FBT001, FBT002
     ):
         """Update an existing assignment."""
         if self._misc_plugin.is_speed_grader_launch(request):
@@ -96,6 +98,7 @@ class AssignmentService:
 
         assignment.course_id = course.id
         self._update_auto_grading_config(assignment, auto_grading_config)
+        self._update_checkpoint(assignment, checkpoint_enabled)
 
         return assignment
 
@@ -151,6 +154,7 @@ class AssignmentService:
         document_url = assignment_config.get("document_url")
         group_set_id = assignment_config.get("group_set_id")
         auto_grading_config = assignment_config.get("auto_grading_config")
+        checkpoint_enabled = assignment_config.get("checkpoint_enabled", False)
 
         if not document_url:
             # We can't find a document_url, we shouldn't try to create an
@@ -181,7 +185,13 @@ class AssignmentService:
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
         return self.update_assignment(
-            request, assignment, document_url, group_set_id, course, auto_grading_config
+            request,
+            assignment,
+            document_url,
+            group_set_id,
+            course,
+            auto_grading_config,
+            checkpoint_enabled=checkpoint_enabled,
         )
 
     def upsert_assignment_membership(
@@ -372,6 +382,23 @@ class AssignmentService:
             )
             .order_by(Grouping.lms_name.asc())
         ).all()
+
+    def _update_checkpoint(
+        self,
+        assignment: Assignment,
+        checkpoint_enabled: bool,  # noqa: FBT001
+    ) -> None:
+        """Create a checkpoint for an assignment if enabled and not already present.
+
+        Checkpoints can only be set at creation time -- once created they
+        are never removed by an edit, and calling this with
+        checkpoint_enabled=False on an assignment that already has a
+        checkpoint is a no-op.
+        """
+        if checkpoint_enabled and not assignment.checkpoint:
+            checkpoint = AssignmentCheckpoint(assignment=assignment)
+            self._db.add(checkpoint)
+            assignment.checkpoint = checkpoint
 
     def _update_auto_grading_config(
         self, assignment: Assignment, auto_grading_config: dict | None

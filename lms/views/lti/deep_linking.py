@@ -103,6 +103,7 @@ class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
     auto_grading_config = fields.Nested(
         AutoGradingConfigSchema, required=False, allow_none=True
     )
+    checkpoint_enabled = fields.Bool(required=False, load_default=False)
 
 
 class LTI11DeepLinkingFieldsRequestSchema(DeepLinkingFieldsRequestSchema):
@@ -279,6 +280,9 @@ class DeepLinkingFieldsViews:
         if auto_grading_config := request.parsed_params.get("auto_grading_config"):
             # Custom params must be str, encode these settings as JSON
             params["auto_grading_config"] = json.dumps(auto_grading_config)
+
+        if request.parsed_params.get("checkpoint_enabled"):
+            params["checkpoint_enabled"] = "true"
 
         if content["type"] == "url":
             params["url"] = content["url"]
