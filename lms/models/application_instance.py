@@ -70,6 +70,7 @@ class ApplicationSettings(JSONSettings):
         HYPOTHESIS_MENTIONS = "hypothesis.mentions"
         HYPOTHESIS_PDF_IMAGE_ANNOTATION = "hypothesis.pdf_image_annotation"
         HYPOTHESIS_PROMPT_FOR_GRADABLE = "hypothesis.prompt_for_gradable"
+        HYPOTHESIS_HIDE_AND_REVEAL = "hypothesis.hide_and_reveal"
 
     fields: Mapping[Settings, JSONSetting] = {
         Settings.BLACKBOARD_FILES_ENABLED: JSONSetting(
@@ -181,6 +182,11 @@ class ApplicationSettings(JSONSettings):
             Settings.HYPOTHESIS_PDF_IMAGE_ANNOTATION,
             SettingFormat.TRI_STATE,
             default=True,
+        ),
+        Settings.HYPOTHESIS_HIDE_AND_REVEAL: JSONSetting(
+            Settings.HYPOTHESIS_HIDE_AND_REVEAL,
+            SettingFormat.TRI_STATE,
+            default=False,
         ),
     }
 
