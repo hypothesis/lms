@@ -185,13 +185,9 @@ class TestAssignmentService:
     @pytest.mark.parametrize(
         "due_date,expected",
         [
-            # No due date.
             (None, None),
-            # A naive ISO string is parsed as-is.
             ("2026-07-01T12:00:00", datetime(2026, 7, 1, 12, 0, 0)),  # noqa: DTZ001
-            # A timezone-aware ISO string is converted to naive UTC.
             ("2026-07-01T12:00:00+02:00", datetime(2026, 7, 1, 10, 0, 0)),  # noqa: DTZ001
-            # A datetime (round-tripped from the DB) passes through unchanged.
             (
                 datetime(2026, 7, 1, 12, 0, 0),  # noqa: DTZ001
                 datetime(2026, 7, 1, 12, 0, 0),  # noqa: DTZ001

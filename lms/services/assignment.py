@@ -106,12 +106,9 @@ class AssignmentService:
 
     @staticmethod
     def _normalize_due_date(due_date: str | datetime | None) -> datetime | None:
-        """Parse and normalise an assignment due date to naive UTC.
+        """Parse a due date (ISO string or datetime) to naive UTC.
 
-        Accepts an ISO 8601 string (from a launch/custom param) or a datetime
-        (already parsed). Timezone-aware values are converted to UTC and made
-        naive to match the naive `due_date` column and lms's `utcnow()`-based
-        comparisons.
+        Matches the naive `due_date` column and lms's `utcnow()` comparisons.
         """
         if due_date is None:
             return None
