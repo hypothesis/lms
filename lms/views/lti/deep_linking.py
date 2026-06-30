@@ -104,8 +104,7 @@ class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
         AutoGradingConfigSchema, required=False, allow_none=True
     )
     checkpoint_enabled = fields.Bool(required=False, load_default=False)
-    # ISO 8601 datetime string. Stored naive-UTC server-side (see
-    # AssignmentService._normalize_due_date), so we pass it through as a string.
+    # ISO 8601 string, normalised to naive UTC on persist.
     due_date = fields.Str(required=False, allow_none=True)
 
 

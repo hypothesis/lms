@@ -17,7 +17,7 @@ class AssignmentConfig(TypedDict):
     group_set_id: str | None
     auto_grading_config: NotRequired[AutoGradingConfig | None]
     checkpoint_enabled: NotRequired[bool]
-    # A datetime when read back from the DB; an ISO string from deep-linked params.
+    # datetime from the DB; ISO string from deep-linked params.
     due_date: NotRequired[datetime | str]
 
 

@@ -92,7 +92,6 @@ class TestBasicLTILaunch:
             dict(
                 lti_params,
                 url="https://due-date.com/document.pdf",
-                # Timezone-aware ISO string; stored as naive UTC.
                 due_date="2026-07-01T12:00:00+00:00",
                 tool_consumer_info_product_family_code="canvas",
             )
