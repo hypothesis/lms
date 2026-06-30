@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from typing import TYPE_CHECKING, NotRequired, TypedDict
 
 from pyramid.request import Request
@@ -16,6 +17,8 @@ class AssignmentConfig(TypedDict):
     group_set_id: str | None
     auto_grading_config: NotRequired[AutoGradingConfig | None]
     checkpoint_enabled: NotRequired[bool]
+    # A datetime when read back from the DB; an ISO string from deep-linked params.
+    due_date: NotRequired[datetime | str]
 
 
 class DeepLinkingPromptForGradableMixin:
@@ -127,6 +130,7 @@ class MiscPlugin:
             "deep_linking_uuid",
             "auto_grading_config",
             "checkpoint_enabled",
+            "due_date",
         ]
 
         for param in possible_parameters:
@@ -153,6 +157,9 @@ class MiscPlugin:
         if assignment.checkpoint_enabled:
             config["checkpoint_enabled"] = True
 
+        if assignment.due_date:
+            config["due_date"] = assignment.due_date
+
         return config
 
     @staticmethod
@@ -170,5 +177,8 @@ class MiscPlugin:
 
         if deep_linked_config.get("checkpoint_enabled") in ("true", True):
             config["checkpoint_enabled"] = True
+
+        if due_date := deep_linked_config.get("due_date"):
+            config["due_date"] = due_date
 
         return config

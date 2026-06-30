@@ -352,6 +352,7 @@ class BasicLaunchViews:
             checkpoint_enabled=self.request.parsed_params.get(
                 "checkpoint_enabled", False
             ),
+            due_date=self.request.parsed_params.get("due_date"),
         )
 
     def _configure_js_for_file_picker(
