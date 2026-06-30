@@ -158,7 +158,7 @@ jinja2==3.1.6
     #   -r prod.txt
     #   data-tasks
     #   pyramid-jinja2
-joserfc==1.6.3
+joserfc==1.6.7
     # via
     #   -r prod.txt
     #   h-vialib
