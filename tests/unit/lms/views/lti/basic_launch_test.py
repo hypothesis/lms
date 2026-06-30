@@ -81,6 +81,7 @@ class TestBasicLaunchViews:
             course=course_service.get_from_launch.return_value,
             auto_grading_config=sentinel.auto_grading_config,
             checkpoint_enabled=False,
+            due_date=None,
         )
         _show_document.assert_called_once_with(
             assignment_service.create_assignment.return_value,
