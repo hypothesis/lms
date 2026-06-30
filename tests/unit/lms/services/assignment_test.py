@@ -183,6 +183,36 @@ class TestAssignmentService:
         assert assignment.checkpoint_enabled is True
 
     @pytest.mark.parametrize(
+        "due_date,expected",
+        [
+            # No due date.
+            (None, None),
+            # A naive ISO string is parsed as-is.
+            ("2026-07-01T12:00:00", datetime(2026, 7, 1, 12, 0, 0)),  # noqa: DTZ001
+            # A timezone-aware ISO string is converted to naive UTC.
+            ("2026-07-01T12:00:00+02:00", datetime(2026, 7, 1, 10, 0, 0)),  # noqa: DTZ001
+            # A datetime (round-tripped from the DB) passes through unchanged.
+            (
+                datetime(2026, 7, 1, 12, 0, 0),  # noqa: DTZ001
+                datetime(2026, 7, 1, 12, 0, 0),  # noqa: DTZ001
+            ),
+        ],
+    )
+    def test_update_assignment_with_due_date(
+        self, svc, pyramid_request, course, due_date, expected
+    ):
+        assignment = svc.update_assignment(
+            pyramid_request,
+            factories.Assignment(),
+            sentinel.document_url,
+            sentinel.group_set_id,
+            course,
+            due_date=due_date,
+        )
+
+        assert assignment.due_date == expected
+
+    @pytest.mark.parametrize(
         "param",
         (
             "resource_link_id_history",
@@ -250,6 +280,26 @@ class TestAssignmentService:
         )
         assert assignment.is_gradable == misc_plugin.is_assignment_gradable.return_value
         assert assignment.course_id == course.id
+
+    def test_get_assignment_for_launch_sets_due_date(
+        self,
+        pyramid_request,
+        svc,
+        misc_plugin,
+        get_assignment,
+        _get_copied_from_assignment,  # noqa: PT019
+        course,
+    ):
+        misc_plugin.get_assignment_configuration.return_value = {
+            "document_url": sentinel.document_url,
+            "group_set_id": sentinel.group_set_id,
+            "due_date": "2026-07-01T12:00:00+00:00",
+        }
+        get_assignment.return_value = factories.Assignment()
+
+        assignment = svc.get_assignment_for_launch(pyramid_request, course)
+
+        assert assignment.due_date == datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
 
     def test_get_assignment_returns_None_with_when_no_document(
         self, pyramid_request, svc, misc_plugin, course
