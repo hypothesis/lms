@@ -73,6 +73,15 @@ class TestCanvasMiscPlugin:
 
         assert config["checkpoint_enabled"] is True
 
+    def test_get_assignment_configuration_with_due_date(self, plugin, pyramid_request):
+        pyramid_request.params["due_date"] = "2026-07-01T12:00:00+00:00"
+
+        config = plugin.get_assignment_configuration(
+            pyramid_request, sentinel.assignment, sentinel.historical_assignment
+        )
+
+        assert config["due_date"] == "2026-07-01T12:00:00+00:00"
+
     def test_get_assignment_configuration(self, plugin, pyramid_request):
         config = plugin.get_assignment_configuration(
             pyramid_request, sentinel.assignment, sentinel.historical_assignment
@@ -189,7 +198,9 @@ class TestCanvasMiscPlugin:
             == "http://example.com/lti_launches?param=value"
         )
 
-    @pytest.mark.parametrize("parameter", ["group_set", "auto_grading_config", "url"])
+    @pytest.mark.parametrize(
+        "parameter", ["group_set", "auto_grading_config", "url", "due_date"]
+    )
     @pytest.mark.parametrize("request_param", (None, sentinel.from_url))
     @pytest.mark.parametrize("custom_param", (None, sentinel.from_custom))
     def test_get_deep_linked_assignment_configuration(
