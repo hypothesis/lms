@@ -191,7 +191,6 @@ class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
         truthy={"true", "1"},
         falsy={"false", "0", ""},
     )
-    # ISO 8601 datetime string; parsed and normalised to naive UTC when persisted.
     due_date = fields.Str(required=False, load_default=None, allow_none=True)
 
     @pre_load
