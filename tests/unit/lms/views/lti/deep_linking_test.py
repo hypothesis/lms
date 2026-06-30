@@ -295,6 +295,10 @@ class TestDeepLinkingFieldsView:
                 {"auto_grading_config": '{"key": "value"}'},
             ),
             ({"checkpoint_enabled": True}, {"checkpoint_enabled": "true"}),
+            (
+                {"due_date": "2026-07-01T12:00:00+00:00"},
+                {"due_date": "2026-07-01T12:00:00+00:00"},
+            ),
         ],
     )
     def test__get_assignment_configuration(

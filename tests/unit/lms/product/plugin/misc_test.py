@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from unittest.mock import patch, sentinel
 
 import pytest
@@ -101,6 +102,33 @@ class TestMiscPlugin:
             is True
         )
 
+    def test_get_assignment_configuration_with_due_date_in_existing_db_assignment(
+        self, plugin, pyramid_request
+    ):
+        assignment = factories.Assignment(
+            document_url=sentinel.document_url,
+            due_date=datetime(2026, 7, 1, 12, 0, 0),  # noqa: DTZ001
+        )
+        pyramid_request.lti_params["resource_link_id"] = sentinel.link_id
+
+        result = plugin.get_assignment_configuration(pyramid_request, assignment, None)
+
+        assert result["due_date"] == datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
+
+    def test_get_assignment_configuration_with_due_date_in_deep_linked_configuration(
+        self, plugin, get_deep_linked_assignment_configuration
+    ):
+        get_deep_linked_assignment_configuration.return_value = {
+            "due_date": "2026-07-01T12:00:00+00:00"
+        }
+
+        assert (
+            plugin.get_assignment_configuration(sentinel.request, None, None)[
+                "due_date"
+            ]
+            == "2026-07-01T12:00:00+00:00"
+        )
+
     def test_get_assignment_configuration_with_assignment_in_db_copied_assignment(
         self, plugin, pyramid_request
     ):
@@ -150,6 +178,7 @@ class TestMiscPlugin:
                 {"auto_grading_config": sentinel.auto_grading_config},
             ),
             ({"group_set": sentinel.group_set}, {"group_set": sentinel.group_set}),
+            ({"due_date": sentinel.due_date}, {"due_date": sentinel.due_date}),
             ({"other_param": sentinel.other_param}, {}),
         ],
     )
