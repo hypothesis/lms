@@ -5,6 +5,7 @@ from factory.alchemy import SQLAlchemyModelFactory
 from tests.factories import requests_ as requests
 from tests.factories.application_instance import ApplicationInstance
 from tests.factories.assignment import Assignment, AutoGradingConfig
+from tests.factories.assignment_checkpoint import AssignmentCheckpoint
 from tests.factories.assignment_grouping import AssignmentGrouping
 from tests.factories.assignment_membership import (
     AssignmentMembership,

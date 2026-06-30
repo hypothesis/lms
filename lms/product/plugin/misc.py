@@ -15,6 +15,7 @@ class AssignmentConfig(TypedDict):
     document_url: str | None
     group_set_id: str | None
     auto_grading_config: NotRequired[AutoGradingConfig | None]
+    checkpoint_enabled: NotRequired[bool]
 
 
 class DeepLinkingPromptForGradableMixin:
@@ -125,6 +126,7 @@ class MiscPlugin:
             "group_set",
             "deep_linking_uuid",
             "auto_grading_config",
+            "checkpoint_enabled",
         ]
 
         for param in possible_parameters:
@@ -148,6 +150,9 @@ class MiscPlugin:
         if auto_grading_config := assignment.auto_grading_config:
             config["auto_grading_config"] = auto_grading_config.asdict()
 
+        if assignment.checkpoint:
+            config["checkpoint_enabled"] = True
+
         return config
 
     @staticmethod
@@ -162,5 +167,8 @@ class MiscPlugin:
 
         if auto_grading_config := deep_linked_config.get("auto_grading_config"):
             config["auto_grading_config"] = json.loads(auto_grading_config)
+
+        if deep_linked_config.get("checkpoint_enabled") in ("true", True):
+            config["checkpoint_enabled"] = True
 
         return config

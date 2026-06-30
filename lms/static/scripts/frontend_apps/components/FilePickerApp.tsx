@@ -118,8 +118,8 @@ function contentDescription(content: Content) {
   switch (content.type) {
     case 'url':
       return formatContentURL(content);
+    /* istanbul ignore next: defensive — content type is always 'url' here */
     default:
-      /* istanbul ignore next */
       throw new Error('Unknown content type');
   }
 }
@@ -276,6 +276,26 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   const [checkpointType, setCheckpointType] =
     useState<CheckpointType>('manual');
   const [dueDate, setDueDate] = useState<string | null>(null);
+  // The due date is optional, but when set it must be in the future. We enforce
+  // this with the input's native `min` (the current local date-time) plus a
+  // `reportValidity()` check before leaving the due-date step. The value is a
+  // local `datetime-local` string (`YYYY-MM-DDTHH:MM`); it's converted to UTC
+  // on submit.
+  const dueDateInputRef = useRef<HTMLInputElement | null>(null);
+  const minDueDate = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }, []);
+
+  // A checkpoint ("Hide & Reveal") assignment is being created when the
+  // instructor picked that type in the workflow. This drives the
+  // `checkpoint_enabled` field the backend persists.
+  const checkpointEnabled = assignmentType === 'hide_and_reveal';
   // Current sub-step of the assignment-type workflow. When the workflow isn't
   // enabled we start as `done` so it is skipped entirely.
   const [workflowStep, setWorkflowStep] = useState<WorkflowStep>(
@@ -286,16 +306,28 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   // further steps (checkpoint, due-date); other types go straight to the
   // regular flow.
   const goToNextWorkflowStep = () => {
-    setWorkflowStep(step => {
-      switch (step) {
-        case 'assignment-type':
-          return assignmentType === 'hide_and_reveal' ? 'checkpoint' : 'done';
-        case 'checkpoint':
-          return 'due-date';
-        default:
-          return 'done';
-      }
-    });
+    // Block leaving the due-date step while a date has been entered but isn't in
+    // the future. An empty value is allowed since the due date is optional.
+    // `datetime-local` strings (`YYYY-MM-DDTHH:MM`) compare lexicographically,
+    // so a plain string comparison against the minimum (now) is correct.
+    if (workflowStep === 'due-date' && dueDate && dueDate < minDueDate) {
+      // Surface the input's native validation message (driven by its `min`).
+      dueDateInputRef.current?.reportValidity();
+      return;
+    }
+    // From 'checkpoint' the next step is 'due-date'; from 'due-date' (the last
+    // step) the workflow is done. The 'assignment-type' step has no "Next" — it
+    // advances directly on selection (see `selectAssignmentType`).
+    setWorkflowStep(step => (step === 'checkpoint' ? 'due-date' : 'done'));
+  };
+
+  // Pick an assignment type in the first workflow step. Unlike the later steps,
+  // this advances immediately (the step has no "Next" button, mirroring the
+  // content-selection buttons): "hide_and_reveal" continues to the checkpoint
+  // sub-steps; other types go straight to the regular flow.
+  const selectAssignmentType = (type: AssignmentType) => {
+    setAssignmentType(type);
+    setWorkflowStep(type === 'hide_and_reveal' ? 'checkpoint' : 'done');
   };
 
   // Go back to the previous sub-step of the workflow. Only ever invoked from
@@ -409,6 +441,11 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         const data: DeepLinkingAPIData = {
           ...deepLinkingAPI.data,
           auto_grading_config: autoGradingConfigToSave,
+          checkpoint_enabled: checkpointEnabled,
+          // Optional due date for "Hide & Reveal" assignments. The picker holds
+          // a local `datetime-local` value; convert it to a UTC ISO string for
+          // the backend. `null` when left blank or not a checkpoint assignment.
+          due_date: dueDate ? new Date(dueDate).toISOString() : null,
           content,
           group_set: groupConfig.useGroupSet ? groupConfig.groupSet : null,
           title,
@@ -436,6 +473,8 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     },
     [
       authToken,
+      checkpointEnabled,
+      dueDate,
       deepLinkingFields,
       deepLinkingAPI,
       groupConfig.groupSet,
@@ -544,8 +583,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                   {currentStep === 'assignment-type' && (
                     <AssignmentTypeSelector
                       types={availableAssignmentTypes}
-                      selected={assignmentType}
-                      onChange={setAssignmentType}
+                      onSelect={selectAssignmentType}
                     />
                   )}
                   {currentStep === 'checkpoint' && (
@@ -555,7 +593,12 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                     />
                   )}
                   {currentStep === 'due-date' && (
-                    <DueDateSelector dueDate={dueDate} onChange={setDueDate} />
+                    <DueDateSelector
+                      dueDate={dueDate}
+                      onChange={setDueDate}
+                      min={minDueDate}
+                      inputRef={dueDateInputRef}
+                    />
                   )}
                 </div>
               ) : (
@@ -711,17 +754,17 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
               )}
             </CardContent>
           </Scroll>
-          {inTypeWorkflow && (
+          {/* The assignment-type step advances on selection, so navigation
+              buttons only appear on the later workflow steps. */}
+          {canGoBackInWorkflow && (
             <CardContent size="lg">
               <CardActions>
-                {canGoBackInWorkflow && (
-                  <Button
-                    data-testid="workflow-back-button"
-                    onClick={goToPreviousWorkflowStep}
-                  >
-                    Back
-                  </Button>
-                )}
+                <Button
+                  data-testid="workflow-back-button"
+                  onClick={goToPreviousWorkflowStep}
+                >
+                  Back
+                </Button>
                 <Button
                   data-testid="workflow-next-button"
                   variant="primary"
@@ -769,6 +812,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                 formFields={formFields}
                 groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
                 autoGradingConfig={autoGradingConfigToSave}
+                checkpointEnabled={checkpointEnabled}
               />
             )
           }

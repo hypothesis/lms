@@ -77,6 +77,30 @@ class TestMiscPlugin:
             == auto_grading_config.asdict()
         )
 
+    def test_get_assignment_configuration_with_checkpoint_in_existing_db_assignment(
+        self, plugin, pyramid_request
+    ):
+        assignment = factories.AssignmentCheckpoint().assignment
+        pyramid_request.lti_params["resource_link_id"] = sentinel.link_id
+
+        result = plugin.get_assignment_configuration(pyramid_request, assignment, None)
+
+        assert result["checkpoint_enabled"] is True
+
+    def test_get_assignment_configuration_with_checkpoint_in_deep_linked_configuration(
+        self, plugin, get_deep_linked_assignment_configuration
+    ):
+        get_deep_linked_assignment_configuration.return_value = {
+            "checkpoint_enabled": "true"
+        }
+
+        assert (
+            plugin.get_assignment_configuration(sentinel.request, None, None)[
+                "checkpoint_enabled"
+            ]
+            is True
+        )
+
     def test_get_assignment_configuration_with_assignment_in_db_copied_assignment(
         self, plugin, pyramid_request
     ):
