@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Sequence
+from datetime import UTC, datetime
 
 from sqlalchemy import Select, func, select, text
 from sqlalchemy.orm import Session
@@ -63,6 +64,7 @@ class AssignmentService:
         course: Course,
         auto_grading_config: dict | None = None,
         checkpoint_enabled: bool = False,  # noqa: FBT001, FBT002
+        due_date: str | datetime | None = None,
     ):
         """Update an existing assignment."""
         if self._misc_plugin.is_speed_grader_launch(request):
@@ -96,10 +98,28 @@ class AssignmentService:
         )
 
         assignment.course_id = course.id
+        assignment.due_date = self._normalize_due_date(due_date)
         self._update_auto_grading_config(assignment, auto_grading_config)
         self._update_checkpoint(assignment, checkpoint_enabled)
 
         return assignment
+
+    @staticmethod
+    def _normalize_due_date(due_date: str | datetime | None) -> datetime | None:
+        """Parse and normalise an assignment due date to naive UTC.
+
+        Accepts an ISO 8601 string (from a launch/custom param) or a datetime
+        (already parsed). Timezone-aware values are converted to UTC and made
+        naive to match the naive `due_date` column and lms's `utcnow()`-based
+        comparisons.
+        """
+        if due_date is None:
+            return None
+        if isinstance(due_date, str):
+            due_date = datetime.fromisoformat(due_date)
+        if due_date.tzinfo is not None:
+            due_date = due_date.astimezone(UTC).replace(tzinfo=None)
+        return due_date
 
     def _get_copied_from_assignment(self, lti_params) -> Assignment | None:
         """Return the assignment that the current assignment was copied from."""
@@ -154,6 +174,7 @@ class AssignmentService:
         group_set_id = assignment_config.get("group_set_id")
         auto_grading_config = assignment_config.get("auto_grading_config")
         checkpoint_enabled = assignment_config.get("checkpoint_enabled", False)
+        due_date = assignment_config.get("due_date")
 
         if not document_url:
             # We can't find a document_url, we shouldn't try to create an
@@ -191,6 +212,7 @@ class AssignmentService:
             course,
             auto_grading_config,
             checkpoint_enabled=checkpoint_enabled,
+            due_date=due_date,
         )
 
     def upsert_assignment_membership(
