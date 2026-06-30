@@ -150,7 +150,7 @@ class MiscPlugin:
         if auto_grading_config := assignment.auto_grading_config:
             config["auto_grading_config"] = auto_grading_config.asdict()
 
-        if assignment.checkpoint:
+        if assignment.checkpoint_enabled:
             config["checkpoint_enabled"] = True
 
         return config

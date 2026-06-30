@@ -471,41 +471,38 @@ class JSConfig:
         }
         self._config["hypothesisClient"] = self._hypothesis_client
 
-    def enable_toolbar_checkpoint(self, assignment):
+    def enable_toolbar_checkpoint(
+        self, assignment, *, h_revealed=False, h_reveal_date=None
+    ):
         toolbar_config = self._config.get("instructorToolbar", {})
+
+        due_date_iso = (
+            assignment.due_date.replace(tzinfo=UTC).isoformat()
+            if assignment.due_date
+            else None
+        )
 
         toolbar_config["checkpoint"] = {
             "enabled": True,
-            "revealed": assignment.checkpoint.reveal_date is not None,
-            # reveal_date is stored as UTC without timezone info. Adding
-            # UTC here so the ISO string includes +00:00 and the browser
-            # can convert it to the user's local timezone.
-            "revealDate": assignment.checkpoint.reveal_date.replace(
-                tzinfo=UTC
-            ).isoformat()
-            if assignment.checkpoint.reveal_date
-            else None,
-            # Use actual due date once available; for now reuse reveal_date.
-            "dueDate": assignment.checkpoint.reveal_date.replace(tzinfo=UTC).isoformat()
-            if assignment.checkpoint.reveal_date
-            else None,
+            "revealed": h_revealed,
+            "revealDate": h_reveal_date,
+            "dueDate": due_date_iso,
             "revealUrl": self._request.route_url(
                 "api.checkpoint.reveal", assignment_id=assignment.id
             ),
         }
         self._config["instructorToolbar"] = toolbar_config
 
-    def enable_student_checkpoint(self, assignment):
-        revealed = assignment.checkpoint.reveal_date is not None
+    def enable_student_checkpoint(self, assignment, *, h_revealed=False):
+        due_date_iso = (
+            assignment.due_date.replace(tzinfo=UTC).isoformat()
+            if assignment.due_date
+            else None
+        )
+
         self._config["studentCheckpoint"] = {
-            "hidden": not revealed,
-            # Use actual due date once available; for now reuse reveal_date.
-            # reveal_date is stored as UTC without timezone info. Adding
-            # UTC here so the ISO string includes +00:00 and the browser
-            # can convert it to the user's local timezone.
-            "dueDate": assignment.checkpoint.reveal_date.replace(tzinfo=UTC).isoformat()
-            if assignment.checkpoint.reveal_date
-            else None,
+            "hidden": not h_revealed,
+            "dueDate": due_date_iso,
         }
 
     def enable_toolbar_editing(self):

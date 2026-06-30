@@ -17,7 +17,7 @@ import logging
 from pyramid.view import view_config, view_defaults
 
 from lms.events import LTIEvent
-from lms.models import Assignment
+from lms.models import Assignment, Grouping
 from lms.product.plugin.misc import MiscPlugin  # noqa: TC001
 from lms.security import Permissions
 from lms.services import LTIGradingService, UserService, VitalSourceService
@@ -176,12 +176,30 @@ class BasicLaunchViews:
     def _show_document(self, assignment):
         """Display a document to the user for annotation or grading."""
 
+        # Determine the grouping type to decide whether to sync checkpoint
+        # data for the course group. When the assignment uses sections/groups,
+        # the checkpoint sync happens in the client-side sync (POST /api/sync)
+        # which resolves the actual groupings — we must NOT create a course
+        # checkpoint in that case, to avoid contaminating the course group's
+        # checkpoint state.
+        grouping_type = self.request.find_service(
+            name="grouping"
+        ).get_launch_grouping_type(self.request, self.course, assignment)
+        uses_course_grouping = grouping_type == Grouping.Type.COURSE
+
+        checkpoint_data = (
+            checkpoint_sync_data(assignment, self.request.lti_user)
+            if uses_course_grouping
+            else None
+        )
+
         # Before any LTI assignments launch, create or update the Hypothesis
         # user and group corresponding to the LTI user and course.
-        self.request.find_service(name="lti_h").sync(
+        # For course-grouping assignments, also sync checkpoint data to h.
+        h_checkpoint_results = self.request.find_service(name="lti_h").sync(
             [self.course],
             self.request.lti_params,
-            checkpoint_data=checkpoint_sync_data(assignment, self.request.lti_user),
+            checkpoint_data=checkpoint_data,
         )
 
         # Store the relationship between the assignment and the user
@@ -202,11 +220,29 @@ class BasicLaunchViews:
         ):
             self.context.js_config.enable_toolbar_editing()
 
-        if assignment.checkpoint:
+        if assignment.checkpoint_enabled:
+            # Use the checkpoint state from h (source of truth).
+            #
+            # h_checkpoint_results is only available for course-grouping
+            # assignments. For section/group assignments, the frontend will
+            # update the checkpoint state after the client-side sync.
+            h_revealed = False
+            h_reveal_date = None
+            if uses_course_grouping and h_checkpoint_results:
+                for result in h_checkpoint_results:
+                    if result.get("revealed"):
+                        h_revealed = True
+                        h_reveal_date = result.get("reveal_date")
+                        break
+
             if self.request.lti_user.is_instructor:
-                self.context.js_config.enable_toolbar_checkpoint(assignment)
+                self.context.js_config.enable_toolbar_checkpoint(
+                    assignment, h_revealed=h_revealed, h_reveal_date=h_reveal_date
+                )
             else:
-                self.context.js_config.enable_student_checkpoint(assignment)
+                self.context.js_config.enable_student_checkpoint(
+                    assignment, h_revealed=h_revealed
+                )
 
         if self.request.product.use_toolbar_grading and assignment.is_gradable:
             if self.request.lti_user.is_instructor:

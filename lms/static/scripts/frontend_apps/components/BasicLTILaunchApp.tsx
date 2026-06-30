@@ -17,6 +17,14 @@ import InstructorToolbar from './InstructorToolbar';
 import LaunchErrorDialog from './LaunchErrorDialog';
 import StudentCheckpointBar from './StudentCheckpointBar';
 
+type SyncResponse = {
+  groups: string[];
+  checkpoint?: {
+    revealed: boolean;
+    revealDate: string | null;
+  };
+};
+
 /**
  * Error states managed by this component that can arise during assignment
  * launch. These affect the message that is shown to users and the actions
@@ -102,6 +110,13 @@ export default function BasicLTILaunchApp() {
   // the app's access to the user's files in the LMS.
   const authWindow = useRef<AuthWindow | null>(null);
 
+  // Checkpoint state from h, updated after the sync API resolves the
+  // actual groupings (sections/canvas groups). This overrides the initial
+  // checkpoint config from the server which is based on the course group.
+  const [syncCheckpoint, setSyncCheckpoint] = useState<
+    SyncResponse['checkpoint'] | null
+  >(null);
+
   const contentReady = !!contentURL;
 
   const incFetchCount = () => {
@@ -160,12 +175,15 @@ export default function BasicLTILaunchApp() {
       }
 
       try {
-        const groups = await apiCall<string[]>({
+        const { groups, checkpoint } = await apiCall<SyncResponse>({
           authToken,
           path: syncAPICallInfo.path,
           data: syncAPICallInfo.data,
         });
         clientRPC.setGroups(groups);
+        if (checkpoint) {
+          setSyncCheckpoint(checkpoint);
+        }
         success = true;
       } catch (e) {
         handleError(
@@ -346,8 +364,8 @@ export default function BasicLTILaunchApp() {
         })}
         data-testid="content-wrapper"
       >
-        <InstructorToolbar />
-        <StudentCheckpointBar />
+        <InstructorToolbar syncCheckpoint={syncCheckpoint} />
+        <StudentCheckpointBar syncCheckpoint={syncCheckpoint} />
         <ContentFrame url={contentURL ?? ''} />
       </div>
       {errorState && (
