@@ -87,5 +87,8 @@
     ]
   },
   "browserslist": "chrome 110, firefox 115, safari 16.4",
-  "packageManager": "yarn@3.6.1"
+  "packageManager": "yarn@3.6.1",
+  "resolutions": {
+    "vite": "8.0.14"
+  }
 }
