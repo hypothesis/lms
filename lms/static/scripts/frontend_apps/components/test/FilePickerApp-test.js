@@ -75,6 +75,7 @@ describe('FilePickerApp', () => {
       formFields = {},
       title = null,
       autoGradingConfig = null,
+      checkpointEnabled = false,
     },
   ) {
     const fieldsComponent = wrapper.find('FilePickerFormFields');
@@ -85,6 +86,7 @@ describe('FilePickerApp', () => {
       groupSet,
       title,
       autoGradingConfig,
+      checkpointEnabled,
     });
   }
 
@@ -132,14 +134,53 @@ describe('FilePickerApp', () => {
       });
     }
 
+    // Selecting a type advances the workflow immediately (no "Next" on the
+    // first step).
     function selectAssignmentType(wrapper, type) {
       interact(wrapper, () => {
-        wrapper.find('AssignmentTypeSelector').props().onChange(type);
+        wrapper.find('AssignmentTypeSelector').props().onSelect(type);
       });
+    }
+
+    function setDueDate(wrapper, date) {
+      interact(wrapper, () => {
+        wrapper.find('DueDateSelector').props().onChange(date);
+      });
+    }
+
+    /**
+     * Local `datetime-local` string (`YYYY-MM-DDTHH:MM`) `days` from now
+     * (negative for the past).
+     */
+    function dueDateFromNow(days) {
+      const date = new Date();
+      date.setDate(date.getDate() + days);
+      const pad = n => String(n).padStart(2, '0');
+      return (
+        `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+        `T${pad(date.getHours())}:${pad(date.getMinutes())}`
+      );
     }
 
     it('does not show the workflow when only one type is available', () => {
       fakeConfig.filePicker.assignmentTypes = ['reading'];
+      const wrapper = renderFilePicker();
+
+      assert.isFalse(wrapper.exists('AssignmentTypeSelector'));
+      assert.isTrue(wrapper.exists('ContentSelector'));
+    });
+
+    it('falls back to "reading" when no assignment types are provided', () => {
+      fakeConfig.filePicker.assignmentTypes = undefined;
+      const wrapper = renderFilePicker();
+
+      // A single implicit "reading" type keeps the workflow dormant.
+      assert.isFalse(wrapper.exists('AssignmentTypeSelector'));
+      assert.isTrue(wrapper.exists('ContentSelector'));
+    });
+
+    it('falls back to "reading" when the assignment types list is empty', () => {
+      fakeConfig.filePicker.assignmentTypes = [];
       const wrapper = renderFilePicker();
 
       assert.isFalse(wrapper.exists('AssignmentTypeSelector'));
@@ -159,8 +200,7 @@ describe('FilePickerApp', () => {
       fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
       const wrapper = renderFilePicker();
 
-      // The default assignment type is "reading".
-      clickNext(wrapper);
+      selectAssignmentType(wrapper, 'reading');
 
       assert.isFalse(wrapper.exists('AssignmentTypeSelector'));
       assert.isFalse(wrapper.exists('CheckpointSelector'));
@@ -171,8 +211,8 @@ describe('FilePickerApp', () => {
       fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
       const wrapper = renderFilePicker();
 
+      // Selecting "hide_and_reveal" advances straight to the checkpoint step.
       selectAssignmentType(wrapper, 'hide_and_reveal');
-      clickNext(wrapper);
 
       // Checkpoint step.
       assert.isTrue(wrapper.exists('CheckpointSelector'));
@@ -185,6 +225,35 @@ describe('FilePickerApp', () => {
       clickNext(wrapper);
 
       // Regular flow takes over.
+      assert.isFalse(wrapper.exists('DueDateSelector'));
+      assert.isTrue(wrapper.exists('ContentSelector'));
+    });
+
+    it('blocks the due-date step when the date is not in the future', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
+      clickNext(wrapper); // -> due-date
+      assert.isTrue(wrapper.exists('DueDateSelector'));
+
+      // A past date is rejected: navigation is blocked.
+      setDueDate(wrapper, dueDateFromNow(-1));
+      clickNext(wrapper);
+      assert.isTrue(wrapper.exists('DueDateSelector'));
+      assert.isFalse(wrapper.exists('ContentSelector'));
+    });
+
+    it('leaves the due-date step when the date is in the future', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
+      clickNext(wrapper); // -> due-date
+
+      // A future date is accepted: the regular flow takes over.
+      setDueDate(wrapper, dueDateFromNow(7));
+      clickNext(wrapper);
       assert.isFalse(wrapper.exists('DueDateSelector'));
       assert.isTrue(wrapper.exists('ContentSelector'));
     });
@@ -203,8 +272,7 @@ describe('FilePickerApp', () => {
       fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
       const wrapper = renderFilePicker();
 
-      selectAssignmentType(wrapper, 'hide_and_reveal');
-      clickNext(wrapper); // -> checkpoint
+      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
       clickNext(wrapper); // -> due-date
       assert.isTrue(wrapper.exists('DueDateSelector'));
 
@@ -225,8 +293,7 @@ describe('FilePickerApp', () => {
       // Assignment-type step.
       assert.equal(cardTitle(), 'Assignment mode');
 
-      selectAssignmentType(wrapper, 'hide_and_reveal');
-      clickNext(wrapper); // -> checkpoint
+      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
       assert.equal(cardTitle(), 'Guided Social Annotation');
 
       clickNext(wrapper); // -> due-date
@@ -243,8 +310,7 @@ describe('FilePickerApp', () => {
       // The mode-selection step itself offers no close button.
       assert.isNotOk(wrapper.find('CardHeader').prop('onClose'));
 
-      selectAssignmentType(wrapper, 'hide_and_reveal');
-      clickNext(wrapper); // -> checkpoint
+      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
       clickNext(wrapper); // -> due-date
       assert.isTrue(wrapper.exists('DueDateSelector'));
 
@@ -262,13 +328,11 @@ describe('FilePickerApp', () => {
       const wrapper = renderFilePicker();
 
       // Enter the Hide & Reveal branch...
-      selectAssignmentType(wrapper, 'hide_and_reveal');
-      clickNext(wrapper); // -> checkpoint
+      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
       clickBack(wrapper); // -> assignment-type
 
       // ...then switch to a regular reading assignment.
-      selectAssignmentType(wrapper, 'reading');
-      clickNext(wrapper); // -> done (skips checkpoint/due-date)
+      selectAssignmentType(wrapper, 'reading'); // -> done (skips checkpoint/due-date)
 
       assert.isFalse(wrapper.exists('CheckpointSelector'));
       assert.isFalse(wrapper.exists('DueDateSelector'));
@@ -370,6 +434,8 @@ describe('FilePickerApp', () => {
           group_set: null,
           auto_grading_config: null,
           assignment_gradable_max_points: null,
+          checkpoint_enabled: false,
+          due_date: null,
         },
       });
 
@@ -378,6 +444,80 @@ describe('FilePickerApp', () => {
       wrapper.update();
       checkHiddenFormFields(wrapper, {
         fields: fakeFormFields,
+      });
+    });
+
+    it('includes the selected group set in the deep linking API data', async () => {
+      fakeConfig.product.settings.groupsEnabled = true;
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      selectContent(wrapper, 'https://example.com');
+      selectGroupConfig(wrapper, { useGroupSet: true, groupSet: 'groupSet1' });
+      clickContinueButton(wrapper);
+
+      await waitFor(() => fakeAPICall.called);
+      assert.calledWith(fakeAPICall, {
+        authToken: 'DUMMY_AUTH_TOKEN',
+        path: deepLinkingAPIPath,
+        data: {
+          ...deepLinkingAPIData,
+          content: { type: 'url', url: 'https://example.com' },
+          title: null,
+          group_set: 'groupSet1',
+          auto_grading_config: null,
+          assignment_gradable_max_points: null,
+          checkpoint_enabled: false,
+          due_date: null,
+        },
+      });
+    });
+
+    it('sends the due date as a UTC datetime for "Hide & Reveal"', async () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      const clickNext = () =>
+        interact(wrapper, () => {
+          wrapper
+            .find('Button[data-testid="workflow-next-button"]')
+            .props()
+            .onClick();
+        });
+
+      // Walk the Hide & Reveal workflow, picking a future due date. The picker
+      // value is local wall-clock time; the backend receives it as UTC.
+      interact(wrapper, () => {
+        // Selecting the type advances straight to the checkpoint step.
+        wrapper
+          .find('AssignmentTypeSelector')
+          .props()
+          .onSelect('hide_and_reveal');
+      });
+      clickNext(); // -> due-date
+      const localDueDate = '2035-01-15T10:30';
+      interact(wrapper, () => {
+        wrapper.find('DueDateSelector').props().onChange(localDueDate);
+      });
+      clickNext(); // -> content selection
+
+      selectContent(wrapper, 'https://example.com');
+
+      await waitFor(() => fakeAPICall.called);
+      assert.calledWith(fakeAPICall, {
+        authToken: 'DUMMY_AUTH_TOKEN',
+        path: deepLinkingAPIPath,
+        data: {
+          ...deepLinkingAPIData,
+          content: { type: 'url', url: 'https://example.com' },
+          title: null,
+          group_set: null,
+          auto_grading_config: null,
+          assignment_gradable_max_points: null,
+          checkpoint_enabled: true,
+          due_date: new Date(localDueDate).toISOString(),
+        },
       });
     });
 
@@ -396,6 +536,23 @@ describe('FilePickerApp', () => {
 
       await waitFor(() => fakeAPICall.called);
       await waitFor(() => onSubmit.called);
+    });
+
+    it('ignores implicit form submission when the form cannot be submitted', () => {
+      // A group set is required but none is selected, so `canSubmit` is false.
+      fakeConfig.product.settings.groupsEnabled = true;
+
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      selectContent(wrapper, 'https://example.com');
+      selectGroupConfig(wrapper, { useGroupSet: true, groupSet: null });
+
+      // Simulate implicit form submission, as if pressing Enter.
+      wrapper.find('form').getDOMNode().requestSubmit();
+
+      // Nothing is submitted while the form is incomplete.
+      assert.notCalled(fakeAPICall);
     });
 
     it('shows an error if the deepLinkingAPI call fails', async () => {
@@ -735,6 +892,8 @@ describe('FilePickerApp', () => {
           group_set: null,
           auto_grading_config: null,
           assignment_gradable_max_points: 10,
+          checkpoint_enabled: false,
+          due_date: null,
         },
       });
 
@@ -765,6 +924,8 @@ describe('FilePickerApp', () => {
           group_set: null,
           auto_grading_config: null,
           assignment_gradable_max_points: null,
+          checkpoint_enabled: false,
+          due_date: null,
         },
       });
     });
@@ -812,6 +973,19 @@ describe('FilePickerApp', () => {
       const wrapper = renderFilePicker();
       const saveButton = wrapper.find('button[data-testid="save-button"]');
       assert.equal(saveButton.text(), 'Save');
+    });
+
+    it('skips the assignment-type workflow when editing', () => {
+      // The assignment mode (reading vs. "Hide & Reveal") is chosen only at
+      // creation, so editing goes straight to the assignment content/details
+      // even when several types are available.
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      assert.isFalse(wrapper.exists('AssignmentTypeSelector'));
+      assert.isFalse(wrapper.exists('CheckpointSelector'));
+      assert.isFalse(wrapper.exists('DueDateSelector'));
+      assert.isTrue(wrapper.exists('[data-testid="content-summary"]'));
     });
 
     [true, false].forEach(groupsEnabled => {

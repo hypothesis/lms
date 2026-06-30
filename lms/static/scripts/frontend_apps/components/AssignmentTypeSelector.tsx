@@ -1,4 +1,4 @@
-import { RadioGroup } from '@hypothesis/frontend-shared';
+import { OptionButton } from '@hypothesis/frontend-shared';
 
 /**
  * The kind of assignment being created.
@@ -16,6 +16,12 @@ const ASSIGNMENT_TYPE_LABELS: Record<AssignmentType, string> = {
   hide_and_reveal: 'Guided Social annotation',
 };
 
+/** Short description shown under each option's label. */
+const ASSIGNMENT_TYPE_DETAILS: Record<AssignmentType, string> = {
+  reading: 'Standard annotation',
+  hide_and_reveal: 'Hidden until revealed',
+};
+
 export type AssignmentTypeSelectorProps = {
   /**
    * Assignment types the instructor can choose from, in display order. Decided
@@ -23,41 +29,46 @@ export type AssignmentTypeSelectorProps = {
    * union and in `ASSIGNMENT_TYPE_LABELS` to render with a proper label.
    */
   types: AssignmentType[];
-  selected: AssignmentType;
-  onChange: (type: AssignmentType) => void;
+
+  /**
+   * Called when the instructor picks a type. Selecting a type advances the
+   * workflow immediately, so this step has no separate "Next" button (it
+   * mirrors the content-selection buttons).
+   */
+  onSelect: (type: AssignmentType) => void;
 };
 
 /**
  * First step of the assignment-type workflow: lets instructors choose which
- * kind of assignment they are creating among the available `types`.
+ * kind of assignment they are creating among the available `types`. Rendered as
+ * clickable buttons (like the content selector) that advance on click.
  */
 export default function AssignmentTypeSelector({
   types,
-  selected,
-  onChange,
+  onSelect,
 }: AssignmentTypeSelectorProps) {
   return (
-    <div>
-      <RadioGroup
-        data-testid="assignment-type-radio-group"
-        aria-label="Assignment mode"
-        direction="vertical"
-        selected={selected}
-        onChange={onChange}
-      >
-        {types.map(type => {
-          // Fall back to the raw key if the backend sends a type this frontend
-          // build doesn't know yet (deploy ordering), so the radio is never
-          // blank. Statically unreachable, but `type` is backend JSON at runtime.
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          const label = ASSIGNMENT_TYPE_LABELS[type] ?? type;
-          return (
-            <RadioGroup.Radio key={type} value={type}>
-              {label}
-            </RadioGroup.Radio>
-          );
-        })}
-      </RadioGroup>
+    <div className="grid grid-cols-1 gap-y-2 w-fit">
+      {types.map(type => {
+        // Fall back to the raw key if the backend sends a type this frontend
+        // build doesn't know yet (deploy ordering), so the button is never
+        // blank. Statically unreachable, but `type` is backend JSON at runtime.
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        const label = ASSIGNMENT_TYPE_LABELS[type] ?? type;
+        const details = ASSIGNMENT_TYPE_DETAILS[type];
+        return (
+          <OptionButton
+            key={type}
+            data-testid={`assignment-type-${type}`}
+            // Extra left margin adds a bit of breathing room between the label
+            // and the right-aligned description.
+            details={details && <span className="ml-4">{details}</span>}
+            onClick={() => onSelect(type)}
+          >
+            {label}
+          </OptionButton>
+        );
+      })}
     </div>
   );
 }
