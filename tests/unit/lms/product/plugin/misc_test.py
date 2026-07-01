@@ -80,7 +80,7 @@ class TestMiscPlugin:
     def test_get_assignment_configuration_with_checkpoint_in_existing_db_assignment(
         self, plugin, pyramid_request
     ):
-        assignment = factories.AssignmentCheckpoint().assignment
+        assignment = factories.Assignment(checkpoint_enabled=True)
         pyramid_request.lti_params["resource_link_id"] = sentinel.link_id
 
         result = plugin.get_assignment_configuration(pyramid_request, assignment, None)

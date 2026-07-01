@@ -96,7 +96,11 @@ def sync(request):
         # checkpoint is revealed, report it as revealed.
         revealed = any(result.get("revealed") for result in h_checkpoint_results)
         reveal_date = next(
-            (result.get("reveal_date") for result in h_checkpoint_results if result.get("revealed")),
+            (
+                result.get("reveal_date")
+                for result in h_checkpoint_results
+                if result.get("revealed")
+            ),
             None,
         )
         response["checkpoint"] = {

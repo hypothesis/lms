@@ -15,7 +15,7 @@ import { apiCall } from '../utils/api';
 import ContentFrame from './ContentFrame';
 import InstructorToolbar from './InstructorToolbar';
 import LaunchErrorDialog from './LaunchErrorDialog';
-import StudentCheckpointBar from './StudentCheckpointBar';
+import StudentToolbar from './StudentToolbar';
 
 type SyncResponse = {
   groups: string[];
@@ -110,12 +110,14 @@ export default function BasicLTILaunchApp() {
   // the app's access to the user's files in the LMS.
   const authWindow = useRef<AuthWindow | null>(null);
 
-  // Checkpoint state from h, updated after the sync API resolves the
-  // actual groupings (sections/canvas groups). This overrides the initial
-  // checkpoint config from the server which is based on the course group.
+  // Checkpoint state from h, updated after the client-side sync resolves
+  // the actual groupings (sections/canvas groups).
   const [syncCheckpoint, setSyncCheckpoint] = useState<
     SyncResponse['checkpoint'] | null
   >(null);
+
+  // Whether a client-side sync is pending (sections/groups assignments).
+  const waitingForSync = syncAPICallInfo && syncCheckpoint === null;
 
   const contentReady = !!contentURL;
 
@@ -364,8 +366,14 @@ export default function BasicLTILaunchApp() {
         })}
         data-testid="content-wrapper"
       >
-        <InstructorToolbar syncCheckpoint={syncCheckpoint} />
-        <StudentCheckpointBar syncCheckpoint={syncCheckpoint} />
+        <InstructorToolbar
+          syncCheckpoint={syncCheckpoint}
+          waitingForSync={waitingForSync}
+        />
+        <StudentToolbar
+          syncCheckpoint={syncCheckpoint}
+          waitingForSync={waitingForSync}
+        />
         <ContentFrame url={contentURL ?? ''} />
       </div>
       {errorState && (

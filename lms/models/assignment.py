@@ -158,7 +158,6 @@ class Assignment(CreatedUpdatedMixin, Base):
     )
     """Whether this assignment has at least one checkpoint enabled."""
 
-
     __table_args__ = (
         sa.UniqueConstraint("resource_link_id", "tool_consumer_instance_guid"),
         sa.Index(

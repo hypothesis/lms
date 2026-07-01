@@ -482,15 +482,15 @@ class JSConfig:
             else None
         )
 
-        toolbar_config["checkpoint"] = {
-            "enabled": True,
+        toolbar_config["courseCheckpointConfig"] = {
             "revealed": h_revealed,
             "revealDate": h_reveal_date,
-            "dueDate": due_date_iso,
             "revealUrl": self._request.route_url(
                 "api.checkpoint.reveal", assignment_id=assignment.id
             ),
         }
+        toolbar_config["assignmentDueDate"] = due_date_iso
+        toolbar_config["assignmentCheckpointEnabled"] = True
         self._config["instructorToolbar"] = toolbar_config
 
     def enable_student_checkpoint(self, assignment, *, h_revealed=False):
@@ -500,9 +500,12 @@ class JSConfig:
             else None
         )
 
-        self._config["studentCheckpoint"] = {
-            "hidden": not h_revealed,
-            "dueDate": due_date_iso,
+        self._config["studentToolbar"] = {
+            "courseCheckpointConfig": {
+                "revealed": h_revealed,
+            },
+            "assignmentDueDate": due_date_iso,
+            "assignmentCheckpointEnabled": True,
         }
 
     def enable_toolbar_editing(self):

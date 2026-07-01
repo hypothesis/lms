@@ -17,8 +17,10 @@ type SyncCheckpoint = {
  */
 export default function InstructorToolbar({
   syncCheckpoint,
+  waitingForSync,
 }: {
   syncCheckpoint?: SyncCheckpoint | null;
+  waitingForSync?: boolean;
 }) {
   const { instructorToolbar } = useConfig();
   if (!instructorToolbar) {
@@ -34,8 +36,16 @@ export default function InstructorToolbar({
     gradingEnabled,
     scoreMaximum,
     acceptGradingComments,
-    checkpoint,
+    courseCheckpointConfig,
+    assignmentCheckpointEnabled,
   } = instructorToolbar;
+
+  const showCheckpoint = assignmentCheckpointEnabled && !waitingForSync;
+  const revealed =
+    syncCheckpoint?.revealed ?? courseCheckpointConfig?.revealed ?? false;
+  const revealDate =
+    syncCheckpoint?.revealDate ?? courseCheckpointConfig?.revealDate ?? null;
+  const revealUrl = courseCheckpointConfig?.revealUrl ?? '';
 
   const withGradingControls = gradingEnabled && !!students;
 
@@ -95,13 +105,10 @@ export default function InstructorToolbar({
         )}
       </header>
 
-      {checkpoint?.enabled && (
+      {showCheckpoint && (
         <CheckpointBar
-          checkpoint={{
-            ...checkpoint,
-            revealed: syncCheckpoint?.revealed ?? checkpoint.revealed,
-            revealDate: syncCheckpoint?.revealDate ?? checkpoint.revealDate,
-          }}
+          checkpoint={{ revealed, revealDate, revealUrl }}
+          dueDate={instructorToolbar.assignmentDueDate}
         />
       )}
     </>

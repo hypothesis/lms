@@ -14,14 +14,16 @@ from lms.services import HAPI
 )
 def reveal_checkpoint(request):
     if not request.lti_user.is_instructor:
-        raise HTTPForbidden("Only instructors can reveal annotations")
+        message = "Only instructors can reveal annotations"
+        raise HTTPForbidden(message)
 
     assignment_id = int(request.matchdict["assignment_id"])
     assignment_service = request.find_service(name="assignment")
     assignment = assignment_service.get_by_id(assignment_id)
 
     if not assignment or not assignment.checkpoint_enabled:
-        raise HTTPNotFound("Assignment or checkpoint not found")
+        message = "Assignment or checkpoint not found"
+        raise HTTPNotFound(message)
 
     # Reveal directly in h — h is the source of truth for reveal state.
     authority = request.registry.settings["h_authority"]
@@ -45,7 +47,8 @@ def reveal_checkpoint(request):
     ]
 
     if not checkpoints:
-        raise HTTPNotFound("No groupings found for this assignment")
+        message = "No groupings found for this assignment"
+        raise HTTPNotFound(message)
 
     results = h_api.reveal_checkpoints(
         authority=authority,

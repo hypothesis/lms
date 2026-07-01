@@ -73,7 +73,6 @@ class TestSync:
         groupings = factories.Course.create_batch(2)
         checkpoint_data = {
             "document_uri": "https://example.com/doc",
-            "reveal_date": "2026-07-01T12:00:00",
             "user": {"username": "teacher", "role": "instructor"},
         }
 
@@ -85,7 +84,6 @@ class TestSync:
                 {
                     "group_authority_provided_id": grouping.authority_provided_id,
                     "document_uri": "https://example.com/doc",
-                    "reveal_date": "2026-07-01T12:00:00",
                 }
                 for grouping in groupings
             ],

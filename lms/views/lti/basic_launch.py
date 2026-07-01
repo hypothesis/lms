@@ -173,7 +173,7 @@ class BasicLaunchViews:
         self._configure_assignment(assignment)
         return self._show_document(assignment)
 
-    def _show_document(self, assignment):
+    def _show_document(self, assignment):  # noqa: C901, PLR0912
         """Display a document to the user for annotation or grading."""
 
         # Determine the grouping type to decide whether to sync checkpoint

@@ -1,9 +1,7 @@
-from datetime import datetime
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import sentinel
 
 import pytest
 
-from lms.models.assignment_checkpoint import AssignmentCheckpoint
 from lms.product.plugin.grouping import GroupError
 from lms.views.api.sync import sync
 from tests import factories
@@ -46,7 +44,7 @@ class TestSync:
             groupings=grouping_service.get_groups.return_value,
         )
 
-        assert returned_ids == [
+        assert returned_ids["groups"] == [
             group.groupid(TEST_SETTINGS["h_authority"])
             for group in grouping_service.get_sections.return_value
         ]
@@ -90,7 +88,7 @@ class TestSync:
             groupings=grouping_service.get_groups.return_value,
         )
 
-        assert returned_ids == [
+        assert returned_ids["groups"] == [
             group.groupid(TEST_SETTINGS["h_authority"])
             for group in grouping_service.get_groups.return_value
         ]
@@ -156,7 +154,7 @@ class TestSync:
             groupings=grouping_service.get_groups.return_value,
         )
 
-        assert returned_ids == [
+        assert returned_ids["groups"] == [
             group.groupid(TEST_SETTINGS["h_authority"])
             for group in grouping_service.get_groups.return_value
         ]
@@ -196,10 +194,8 @@ class TestSync:
         assignment_service,
         lti_h_service,
     ):
-        checkpoint = create_autospec(AssignmentCheckpoint, instance=True)
-        checkpoint.reveal_date = None
         assignment = assignment_service.get_assignment.return_value
-        assignment.checkpoint = checkpoint
+        assignment.checkpoint_enabled = True
         assignment.document_url = "https://example.com/doc"
 
         sync(pyramid_request)
@@ -209,7 +205,6 @@ class TestSync:
             sentinel.group_info,
             checkpoint_data={
                 "document_uri": "https://example.com/doc",
-                "reveal_date": None,
                 "user": {
                     "username": pyramid_request.lti_user.h_user.username,
                     "role": "student",
@@ -225,10 +220,8 @@ class TestSync:
         assignment_service,
         lti_h_service,
     ):
-        checkpoint = create_autospec(AssignmentCheckpoint, instance=True)
-        checkpoint.reveal_date = None
         assignment = assignment_service.get_assignment.return_value
-        assignment.checkpoint = checkpoint
+        assignment.checkpoint_enabled = True
         assignment.document_url = "https://example.com/doc"
 
         sync(pyramid_request)
@@ -238,39 +231,9 @@ class TestSync:
             sentinel.group_info,
             checkpoint_data={
                 "document_uri": "https://example.com/doc",
-                "reveal_date": None,
                 "user": {
                     "username": pyramid_request.lti_user.h_user.username,
                     "role": "instructor",
-                },
-            },
-        )
-
-    @pytest.mark.usefixtures("course_service")
-    def test_it_syncs_checkpoint_data_with_reveal_date(
-        self,
-        pyramid_request,
-        grouping_service,
-        assignment_service,
-        lti_h_service,
-    ):
-        checkpoint = create_autospec(AssignmentCheckpoint, instance=True)
-        checkpoint.reveal_date = datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
-        assignment = assignment_service.get_assignment.return_value
-        assignment.checkpoint = checkpoint
-        assignment.document_url = "https://example.com/doc"
-
-        sync(pyramid_request)
-
-        lti_h_service.sync.assert_called_once_with(
-            grouping_service.get_sections.return_value,
-            sentinel.group_info,
-            checkpoint_data={
-                "document_uri": "https://example.com/doc",
-                "reveal_date": "2026-07-01T12:00:00",
-                "user": {
-                    "username": pyramid_request.lti_user.h_user.username,
-                    "role": "student",
                 },
             },
         )
@@ -284,10 +247,8 @@ class TestSync:
         lti_h_service,
     ):
         pyramid_request.parsed_params["group_set_id"] = sentinel.group_set_id
-        checkpoint = create_autospec(AssignmentCheckpoint, instance=True)
-        checkpoint.reveal_date = None
         assignment = assignment_service.get_assignment.return_value
-        assignment.checkpoint = checkpoint
+        assignment.checkpoint_enabled = True
         assignment.document_url = "https://example.com/doc"
 
         sync(pyramid_request)
@@ -297,7 +258,6 @@ class TestSync:
             sentinel.group_info,
             checkpoint_data={
                 "document_uri": "https://example.com/doc",
-                "reveal_date": None,
                 "user": {
                     "username": pyramid_request.lti_user.h_user.username,
                     "role": "student",
@@ -305,9 +265,30 @@ class TestSync:
             },
         )
 
+    @pytest.mark.usefixtures("grouping_service", "course_service")
+    def test_it_returns_checkpoint_state_from_h(
+        self,
+        pyramid_request,
+        assignment_service,
+        lti_h_service,
+    ):
+        assignment = assignment_service.get_assignment.return_value
+        assignment.checkpoint_enabled = True
+        assignment.document_url = "https://example.com/doc"
+        lti_h_service.sync.return_value = [
+            {"revealed": True, "reveal_date": "2026-07-01T12:00:00"}
+        ]
+
+        result = sync(pyramid_request)
+
+        assert result["checkpoint"] == {
+            "revealed": True,
+            "revealDate": "2026-07-01T12:00:00",
+        }
+
     @pytest.fixture
     def assignment_service(self, assignment_service):
-        assignment_service.get_assignment.return_value.checkpoint = None
+        assignment_service.get_assignment.return_value.checkpoint_enabled = False
         return assignment_service
 
     @pytest.fixture

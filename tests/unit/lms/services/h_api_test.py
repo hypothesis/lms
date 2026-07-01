@@ -271,11 +271,13 @@ class TestHAPI:
             {
                 "group_authority_provided_id": "group1",
                 "document_uri": "https://example.com/doc",
-                "reveal_date": None,
             }
         ]
+        _api_request.return_value.json.return_value = [{"revealed": False}]
 
-        h_api.sync_checkpoints(authority="lms.hypothes.is", checkpoints=checkpoints)
+        result = h_api.sync_checkpoints(
+            authority="lms.hypothes.is", checkpoints=checkpoints
+        )
 
         _api_request.assert_called_once_with(
             "POST",
@@ -285,16 +287,17 @@ class TestHAPI:
             ),
             headers={"Content-Type": "application/json"},
         )
+        assert result == [{"revealed": False}]
 
     def test_sync_checkpoints_with_user(self, h_api, _api_request):  # noqa: PT019
         checkpoints = [
             {
                 "group_authority_provided_id": "group1",
                 "document_uri": "https://example.com/doc",
-                "reveal_date": None,
             }
         ]
         user = {"username": "teacher", "role": "instructor"}
+        _api_request.return_value.json.return_value = [{"revealed": False}]
 
         h_api.sync_checkpoints(
             authority="lms.hypothes.is",
@@ -316,9 +319,10 @@ class TestHAPI:
         )
 
     def test_sync_checkpoints_with_no_checkpoints(self, h_api, _api_request):  # noqa: PT019
-        h_api.sync_checkpoints(authority="lms.hypothes.is", checkpoints=[])
+        result = h_api.sync_checkpoints(authority="lms.hypothes.is", checkpoints=[])
 
         _api_request.assert_not_called()
+        assert result is None
 
     def test_reveal_checkpoints(self, h_api, _api_request):  # noqa: PT019
         checkpoints = [
@@ -327,8 +331,13 @@ class TestHAPI:
                 "document_uri": "https://example.com/doc",
             }
         ]
+        _api_request.return_value.json.return_value = [
+            {"revealed": True, "reveal_date": "2026-07-01T12:00:00"}
+        ]
 
-        h_api.reveal_checkpoints(authority="lms.hypothes.is", checkpoints=checkpoints)
+        result = h_api.reveal_checkpoints(
+            authority="lms.hypothes.is", checkpoints=checkpoints
+        )
 
         _api_request.assert_called_once_with(
             "POST",
@@ -338,11 +347,13 @@ class TestHAPI:
             ),
             headers={"Content-Type": "application/json"},
         )
+        assert result == [{"revealed": True, "reveal_date": "2026-07-01T12:00:00"}]
 
     def test_reveal_checkpoints_with_no_checkpoints(self, h_api, _api_request):  # noqa: PT019
-        h_api.reveal_checkpoints(authority="lms.hypothes.is", checkpoints=[])
+        result = h_api.reveal_checkpoints(authority="lms.hypothes.is", checkpoints=[])
 
         _api_request.assert_not_called()
+        assert result is None
 
     def test__api_request(self, h_api, http_service):
         h_api._api_request(sentinel.method, "dummy-path", body=sentinel.raw_body)  # noqa: SLF001
