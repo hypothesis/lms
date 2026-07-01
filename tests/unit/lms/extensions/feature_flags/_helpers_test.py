@@ -107,12 +107,18 @@ class TestJWTCookieHelper:
         helper.set(response, original_payload)
 
         cookie = response.headers["Set-Cookie"].split(";")[0].split("=")[1]
-        decoded_payload = jwt.decode(cookie, "test_secret", algorithms=["HS256"])
+        decoded_payload = jwt.decode(
+            cookie, "test_secret_at_least_32_bytes_for_hs256", algorithms=["HS256"]
+        )
         assert decoded_payload == original_payload
 
     def test_get_returns_the_decoded_payload(self, pyramid_request):
         original_payload = {"test_key": "test_value"}
-        encoded_payload = jwt.encode(original_payload, "test_secret", algorithm="HS256")
+        encoded_payload = jwt.encode(
+            original_payload,
+            "test_secret_at_least_32_bytes_for_hs256",
+            algorithm="HS256",
+        )
         pyramid_request.cookies["test_cookie_name"] = encoded_payload
         helper = JWTCookieHelper("test_cookie_name", pyramid_request)
 
@@ -143,5 +149,7 @@ class TestJWTCookieHelper:
 
     @pytest.fixture(autouse=True)
     def pyramid_config(self, pyramid_config):
-        pyramid_config.registry.settings["feature_flags_cookie_secret"] = "test_secret"  # noqa: S105
+        pyramid_config.registry.settings["feature_flags_cookie_secret"] = (
+            "test_secret_at_least_32_bytes_for_hs256"  # noqa: S105
+        )
         return pyramid_config
