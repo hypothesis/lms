@@ -75,8 +75,9 @@ def sync(request):
         request.parsed_params["resource_link_id"],
     )
 
-    # Sync the groups over to H so they are ready to be annotated against
-    request.find_service(name="lti_h").sync(
+    # Sync the groups over to H so they are ready to be annotated against.
+    # Also sync checkpoint data if the assignment has checkpoint enabled.
+    h_checkpoint_results = request.find_service(name="lti_h").sync(
         groupings,
         request.parsed_params["group_info"],
         checkpoint_data=checkpoint_sync_data(assignment, request.lti_user),
@@ -86,4 +87,25 @@ def sync(request):
     assignment_service.upsert_assignment_groupings(assignment, groupings=groupings)
 
     authority = request.registry.settings["h_authority"]
-    return [group.groupid(authority) for group in groupings]
+    groups = [group.groupid(authority) for group in groupings]
+
+    response: dict = {"groups": groups}
+
+    if h_checkpoint_results:
+        # Derive the checkpoint state from h's response. If any group's
+        # checkpoint is revealed, report it as revealed.
+        revealed = any(result.get("revealed") for result in h_checkpoint_results)
+        reveal_date = next(
+            (
+                result.get("reveal_date")
+                for result in h_checkpoint_results
+                if result.get("revealed")
+            ),
+            None,
+        )
+        response["checkpoint"] = {
+            "revealed": revealed,
+            "revealDate": reveal_date,
+        }
+
+    return response

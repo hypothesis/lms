@@ -104,6 +104,8 @@ class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
         AutoGradingConfigSchema, required=False, allow_none=True
     )
     checkpoint_enabled = fields.Bool(required=False, load_default=False)
+    # ISO 8601 string, normalised to naive UTC on persist.
+    due_date = fields.Str(required=False, allow_none=True)
 
 
 class LTI11DeepLinkingFieldsRequestSchema(DeepLinkingFieldsRequestSchema):
@@ -283,6 +285,9 @@ class DeepLinkingFieldsViews:
 
         if request.parsed_params.get("checkpoint_enabled"):
             params["checkpoint_enabled"] = "true"
+
+        if due_date := request.parsed_params.get("due_date"):
+            params["due_date"] = due_date
 
         if content["type"] == "url":
             params["url"] = content["url"]

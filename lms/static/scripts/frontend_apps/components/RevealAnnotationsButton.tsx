@@ -8,6 +8,7 @@ import { useCallback, useRef, useState } from 'preact/hooks';
 import type { CheckpointConfig } from '../config';
 import { useConfig } from '../config';
 import { apiCall } from '../utils/api';
+import ErrorDisplay from './ErrorDisplay';
 
 export type RevealAnnotationsButtonProps = {
   checkpoint: CheckpointConfig;
@@ -32,7 +33,7 @@ export default function RevealAnnotationsButton({
     checkpoint.revealDate,
   );
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const revealButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const handleReveal = useCallback(async () => {
@@ -47,8 +48,8 @@ export default function RevealAnnotationsButton({
       setRevealed(true);
       setRevealDate(result.reveal_date);
       setShowModal(false);
-    } catch {
-      setError('Failed to reveal annotations. Please try again.');
+    } catch (err) {
+      setError(err);
     } finally {
       setBusy(false);
     }
@@ -57,10 +58,13 @@ export default function RevealAnnotationsButton({
   if (revealed) {
     return (
       <span
-        className="text-sm text-color-text-light italic whitespace-nowrap"
+        className="text-sm text-color-text-light italic"
         data-testid="checkpoint-revealed"
       >
-        Annotations revealed on {revealDate ? formatDateTime(revealDate) : ''}
+        Annotations revealed on
+        <br className="md:hidden" />
+        {' '}
+        {revealDate ? formatDateTime(revealDate) : ''}
       </span>
     );
   }
@@ -96,12 +100,11 @@ export default function RevealAnnotationsButton({
             will be revealed and cannot be hidden again.
           </p>
           {error && (
-            <p
-              className="text-sm text-red-error mt-2"
-              data-testid="reveal-error"
-            >
-              {error}
-            </p>
+            <ErrorDisplay
+              classes="pt-4"
+              description="Failed to reveal annotations"
+              error={error}
+            />
           )}
         </ModalDialog>
       )}

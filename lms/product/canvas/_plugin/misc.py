@@ -70,6 +70,9 @@ class CanvasMiscPlugin(MiscPlugin):
         if deep_linked_config.get("checkpoint_enabled") in ("true", True):
             assignment_config["checkpoint_enabled"] = True
 
+        if due_date := deep_linked_config.get("due_date"):
+            assignment_config["due_date"] = due_date
+
         return assignment_config
 
     @lru_cache(1)  # noqa: B019
@@ -154,6 +157,7 @@ class CanvasMiscPlugin(MiscPlugin):
             "group_set",
             "auto_grading_config",
             "checkpoint_enabled",
+            "due_date",
             # VS, legacy method
             "vitalsource_book",
             "book_id",

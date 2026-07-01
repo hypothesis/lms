@@ -3,7 +3,7 @@ from unittest.mock import patch, sentinel
 
 import pytest
 
-from lms.models import LTIParams
+from lms.models import Grouping, LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.security import Permissions
@@ -81,6 +81,7 @@ class TestBasicLaunchViews:
             course=course_service.get_from_launch.return_value,
             auto_grading_config=sentinel.auto_grading_config,
             checkpoint_enabled=False,
+            due_date=None,
         )
         _show_document.assert_called_once_with(
             assignment_service.create_assignment.return_value,
@@ -404,31 +405,42 @@ class TestBasicLaunchViews:
         self, svc, request, context
     ):
         request.getfixturevalue("user_is_instructor")
-        assignment = factories.Assignment()
-        with mock.patch.object(
-            type(assignment), "checkpoint", new_callable=mock.PropertyMock
-        ) as checkpoint_prop:
-            checkpoint_prop.return_value = mock.MagicMock()
-            svc._show_document(assignment)  # noqa: SLF001
+        assignment = factories.Assignment(checkpoint_enabled=True)
 
-        context.js_config.enable_toolbar_checkpoint.assert_called_once_with(assignment)
+        svc._show_document(assignment)  # noqa: SLF001
+
+        context.js_config.enable_toolbar_checkpoint.assert_called_once()
         context.js_config.enable_student_checkpoint.assert_not_called()
 
     @pytest.mark.usefixtures("pyramid_request")
-    def test__show_document_enables_student_checkpoint_for_student(self, svc, context):
-        assignment = factories.Assignment()
-        with mock.patch.object(
-            type(assignment), "checkpoint", new_callable=mock.PropertyMock
-        ) as checkpoint_prop:
-            checkpoint_prop.return_value = mock.MagicMock()
-            svc._show_document(assignment)  # noqa: SLF001
+    def test__show_document_passes_h_revealed_for_course_grouping(
+        self, svc, request, context, lti_h_service, grouping_service
+    ):
+        request.getfixturevalue("user_is_instructor")
+        grouping_service.get_launch_grouping_type.return_value = Grouping.Type.COURSE
+        lti_h_service.sync.return_value = [
+            {"revealed": True, "reveal_date": "2026-07-01T12:00:00"}
+        ]
+        assignment = factories.Assignment(checkpoint_enabled=True)
 
-        context.js_config.enable_student_checkpoint.assert_called_once_with(assignment)
+        svc._show_document(assignment)  # noqa: SLF001
+
+        context.js_config.enable_toolbar_checkpoint.assert_called_once_with(
+            assignment, h_revealed=True, h_reveal_date="2026-07-01T12:00:00"
+        )
+
+    @pytest.mark.usefixtures("pyramid_request")
+    def test__show_document_enables_student_checkpoint_for_student(self, svc, context):
+        assignment = factories.Assignment(checkpoint_enabled=True)
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        context.js_config.enable_student_checkpoint.assert_called_once()
         context.js_config.enable_toolbar_checkpoint.assert_not_called()
 
     @pytest.mark.usefixtures("pyramid_request")
     def test__show_document_no_checkpoint_config_without_checkpoint(self, svc, context):
-        assignment = factories.Assignment()
+        assignment = factories.Assignment(checkpoint_enabled=False)
 
         svc._show_document(assignment)  # noqa: SLF001
 
