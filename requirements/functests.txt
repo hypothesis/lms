@@ -261,7 +261,7 @@ pydantic-core==2.41.5
     #   pydantic
 pygments==2.19.2
     # via pytest
-pyjwt[crypto]==2.10.1
+pyjwt[crypto]==2.13.0
     # via
     #   -r prod.txt
     #   pyramid-googleauth

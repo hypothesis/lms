@@ -162,9 +162,10 @@ pydantic==2.12.5
     # via -r prod.in
 pydantic-core==2.41.5
     # via pydantic
-pyjwt[crypto]==2.10.1
+pyjwt[crypto]==2.13.0
     # via
     #   -r prod.in
+    #   pyjwt
     #   pyramid-googleauth
 pyramid==2.0.2
     # via
