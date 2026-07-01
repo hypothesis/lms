@@ -79,7 +79,7 @@ click-repl==0.3.0
     # via
     #   -r prod.txt
     #   celery
-cryptography==46.0.7
+cryptography==48.0.1
     # via
     #   -r prod.txt
     #   joserfc
