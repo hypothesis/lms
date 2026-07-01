@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 from lms.models import (
     Assignment,
-    AssignmentCheckpoint,
     AssignmentGrouping,
     AssignmentMembership,
     AutoGradingConfig,
@@ -388,17 +387,13 @@ class AssignmentService:
         assignment: Assignment,
         checkpoint_enabled: bool,  # noqa: FBT001
     ) -> None:
-        """Create a checkpoint for an assignment if enabled and not already present.
+        """Mark an assignment as checkpoint_enabled.
 
-        Checkpoints can only be set at creation time -- once created they
-        are never removed by an edit, and calling this with
-        checkpoint_enabled=False on an assignment that already has a
-        checkpoint is a no-op.
+        Checkpoints can only be enabled at creation time -- once enabled
+        they are never disabled by an edit.
         """
-        if checkpoint_enabled and not assignment.checkpoint:
-            checkpoint = AssignmentCheckpoint(assignment=assignment)
-            self._db.add(checkpoint)
-            assignment.checkpoint = checkpoint
+        if checkpoint_enabled and not assignment.checkpoint_enabled:
+            assignment.checkpoint_enabled = True
 
     def _update_auto_grading_config(
         self, assignment: Assignment, auto_grading_config: dict | None

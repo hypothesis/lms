@@ -222,7 +222,7 @@ class HAPI:
         authority: str,
         checkpoints: list[dict],
         user: dict | None = None,
-    ) -> None:
+    ) -> list[dict] | None:
         """Sync checkpoint data to h via the bulk checkpoint endpoint.
 
         :param authority: The h authority
@@ -230,9 +230,11 @@ class HAPI:
             document_uri, and optionally reveal_date
         :param user: Optional dict with 'username' and 'role' to set
             their lms_role in the group memberships
+        :return: List of checkpoint results from h, each containing
+            revealed and reveal_date fields, or None if no checkpoints
         """
         if not checkpoints:
-            return
+            return None
 
         payload: dict = {
             "authority": authority,
@@ -241,7 +243,7 @@ class HAPI:
         if user:
             payload["user"] = user
 
-        self._api_request(
+        response = self._api_request(
             "POST",
             path="bulk/checkpoint",
             body=json.dumps(payload),
@@ -249,27 +251,29 @@ class HAPI:
                 "Content-Type": "application/json",
             },
         )
+        return response.json()
 
     def reveal_checkpoints(
         self,
         authority: str,
         checkpoints: list[dict],
-    ) -> None:
+    ) -> list[dict] | None:
         """Reveal checkpoints in h, making annotations visible immediately.
 
         :param authority: The h authority
         :param checkpoints: List of dicts with group_authority_provided_id
             and document_uri
+        :return: List of reveal results from h, or None if no checkpoints
         """
         if not checkpoints:
-            return
+            return None
 
         payload = {
             "authority": authority,
             "checkpoints": checkpoints,
         }
 
-        self._api_request(
+        response = self._api_request(
             "POST",
             path="bulk/checkpoint/reveal",
             body=json.dumps(payload),
@@ -277,6 +281,7 @@ class HAPI:
                 "Content-Type": "application/json",
             },
         )
+        return response.json()
 
     def _api_request(self, method, path, body=None, headers=None, stream=False):  # noqa: FBT002
         """

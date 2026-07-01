@@ -6,7 +6,6 @@ from h_matchers import Any
 from sqlalchemy import select
 
 from lms.models import (
-    AssignmentCheckpoint,
     AssignmentGrouping,
     AssignmentMembership,
     AutoGradingConfig,
@@ -151,7 +150,7 @@ class TestAssignmentService:
             checkpoint_enabled=True,
         )
 
-        assert assignment.checkpoint
+        assert assignment.checkpoint_enabled is True
 
     def test_update_assignment_without_checkpoint(self, svc, pyramid_request, course):
         assignment = factories.Assignment()
@@ -165,14 +164,12 @@ class TestAssignmentService:
             checkpoint_enabled=False,
         )
 
-        assert not assignment.checkpoint
+        assert assignment.checkpoint_enabled is False
 
     def test_update_assignment_keeps_existing_checkpoint(
         self, svc, pyramid_request, course
     ):
-        existing_checkpoint = AssignmentCheckpoint()
-        assignment = factories.Assignment()
-        assignment.checkpoint = existing_checkpoint
+        assignment = factories.Assignment(checkpoint_enabled=True)
 
         assignment = svc.update_assignment(
             pyramid_request,
@@ -183,7 +180,7 @@ class TestAssignmentService:
             checkpoint_enabled=True,
         )
 
-        assert assignment.checkpoint is existing_checkpoint
+        assert assignment.checkpoint_enabled is True
 
     @pytest.mark.parametrize(
         "param",

@@ -6,11 +6,22 @@ import { useConfig } from '../config';
 import CheckpointBar from './CheckpointBar';
 import GradingControls from './GradingControls';
 
+type SyncCheckpoint = {
+  revealed: boolean;
+  revealDate: string | null;
+};
+
 /**
  * Toolbar for instructors.
  * Shows assignment information and grading controls (for gradable assignments).
  */
-export default function InstructorToolbar() {
+export default function InstructorToolbar({
+  syncCheckpoint,
+  waitingForSync,
+}: {
+  syncCheckpoint?: SyncCheckpoint | null;
+  waitingForSync?: boolean;
+}) {
   const { instructorToolbar } = useConfig();
   if (!instructorToolbar) {
     // User is not an instructor or toolbar is disabled in the current environment.
@@ -25,8 +36,16 @@ export default function InstructorToolbar() {
     gradingEnabled,
     scoreMaximum,
     acceptGradingComments,
-    checkpoint,
+    courseCheckpointConfig,
+    assignmentCheckpointEnabled,
   } = instructorToolbar;
+
+  const showCheckpoint = assignmentCheckpointEnabled && !waitingForSync;
+  const revealed =
+    syncCheckpoint?.revealed ?? courseCheckpointConfig?.revealed ?? false;
+  const revealDate =
+    syncCheckpoint?.revealDate ?? courseCheckpointConfig?.revealDate ?? null;
+  const revealUrl = courseCheckpointConfig?.revealUrl ?? '';
 
   const withGradingControls = gradingEnabled && !!students;
 
@@ -86,7 +105,12 @@ export default function InstructorToolbar() {
         )}
       </header>
 
-      {checkpoint?.enabled && <CheckpointBar checkpoint={checkpoint} />}
+      {showCheckpoint && (
+        <CheckpointBar
+          checkpoint={{ revealed, revealDate, revealUrl }}
+          dueDate={instructorToolbar.assignmentDueDate}
+        />
+      )}
     </>
   );
 }

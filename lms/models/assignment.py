@@ -150,9 +150,13 @@ class Assignment(CreatedUpdatedMixin, Base):
     due_date: Mapped[datetime | None] = mapped_column()
     """The due date for this assignment; NULL if not set."""
 
-    checkpoint = relationship(
-        "AssignmentCheckpoint", uselist=False, back_populates="assignment"
+    checkpoint_enabled: Mapped[bool] = mapped_column(
+        sa.Boolean(),
+        default=False,
+        server_default=sa.sql.expression.false(),
+        nullable=False,
     )
+    """Whether this assignment has at least one checkpoint enabled."""
 
     __table_args__ = (
         sa.UniqueConstraint("resource_link_id", "tool_consumer_instance_guid"),

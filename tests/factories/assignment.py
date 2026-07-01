@@ -12,6 +12,7 @@ Assignment = make_factory(
     document_url=Faker("uri"),
     extra={},
     title=Sequence(lambda n: f"Assignment {n}"),
+    checkpoint_enabled=False,
 )
 
 

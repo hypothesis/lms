@@ -15,7 +15,15 @@ import { apiCall } from '../utils/api';
 import ContentFrame from './ContentFrame';
 import InstructorToolbar from './InstructorToolbar';
 import LaunchErrorDialog from './LaunchErrorDialog';
-import StudentCheckpointBar from './StudentCheckpointBar';
+import StudentToolbar from './StudentToolbar';
+
+type SyncResponse = {
+  groups: string[];
+  checkpoint?: {
+    revealed: boolean;
+    revealDate: string | null;
+  };
+};
 
 /**
  * Error states managed by this component that can arise during assignment
@@ -102,6 +110,15 @@ export default function BasicLTILaunchApp() {
   // the app's access to the user's files in the LMS.
   const authWindow = useRef<AuthWindow | null>(null);
 
+  // Checkpoint state from h, updated after the client-side sync resolves
+  // the actual groupings (sections/canvas groups).
+  const [syncCheckpoint, setSyncCheckpoint] = useState<
+    SyncResponse['checkpoint'] | null
+  >(null);
+
+  // Whether a client-side sync is pending (sections/groups assignments).
+  const waitingForSync = syncAPICallInfo && syncCheckpoint === null;
+
   const contentReady = !!contentURL;
 
   const incFetchCount = () => {
@@ -160,12 +177,15 @@ export default function BasicLTILaunchApp() {
       }
 
       try {
-        const groups = await apiCall<string[]>({
+        const { groups, checkpoint } = await apiCall<SyncResponse>({
           authToken,
           path: syncAPICallInfo.path,
           data: syncAPICallInfo.data,
         });
         clientRPC.setGroups(groups);
+        if (checkpoint) {
+          setSyncCheckpoint(checkpoint);
+        }
         success = true;
       } catch (e) {
         handleError(
@@ -346,8 +366,14 @@ export default function BasicLTILaunchApp() {
         })}
         data-testid="content-wrapper"
       >
-        <InstructorToolbar />
-        <StudentCheckpointBar />
+        <InstructorToolbar
+          syncCheckpoint={syncCheckpoint}
+          waitingForSync={waitingForSync}
+        />
+        <StudentToolbar
+          syncCheckpoint={syncCheckpoint}
+          waitingForSync={waitingForSync}
+        />
         <ContentFrame url={contentURL ?? ''} />
       </div>
       {errorState && (

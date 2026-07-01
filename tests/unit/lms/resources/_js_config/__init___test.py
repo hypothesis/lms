@@ -605,51 +605,62 @@ class TestInstructorToolbar:
 class TestCheckpointToolbar:
     def test_enable_toolbar_checkpoint_unrevealed(self, js_config):
         assignment = MagicMock()
-        assignment.checkpoint.reveal_date = None
         assignment.id = 42
+        assignment.due_date = None
 
         js_config.enable_toolbar_checkpoint(assignment)
 
         config = js_config.asdict()
-        checkpoint = config["instructorToolbar"]["checkpoint"]
-        assert checkpoint["enabled"] is True
+        toolbar = config["instructorToolbar"]
+        checkpoint = toolbar["courseCheckpointConfig"]
         assert checkpoint["revealed"] is False
         assert checkpoint["revealDate"] is None
-        assert checkpoint["dueDate"] is None
         assert "revealUrl" in checkpoint
+        assert toolbar["assignmentDueDate"] is None
+        assert toolbar["assignmentCheckpointEnabled"] is True
 
     def test_enable_toolbar_checkpoint_revealed(self, js_config):
         assignment = MagicMock()
-        assignment.checkpoint.reveal_date = datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
         assignment.id = 42
+        assignment.due_date = datetime(2026, 8, 1, 23, 59, 0)  # noqa: DTZ001
 
-        js_config.enable_toolbar_checkpoint(assignment)
+        js_config.enable_toolbar_checkpoint(
+            assignment,
+            h_revealed=True,
+            h_reveal_date="2026-07-01T12:00:00",
+        )
 
         config = js_config.asdict()
-        checkpoint = config["instructorToolbar"]["checkpoint"]
-        assert checkpoint["enabled"] is True
+        toolbar = config["instructorToolbar"]
+        checkpoint = toolbar["courseCheckpointConfig"]
         assert checkpoint["revealed"] is True
-        assert checkpoint["revealDate"] == "2026-07-01T12:00:00+00:00"
+        assert checkpoint["revealDate"] == "2026-07-01T12:00:00"
+        assert toolbar["assignmentDueDate"] == "2026-08-01T23:59:00+00:00"
+        assert toolbar["assignmentCheckpointEnabled"] is True
 
     def test_enable_student_checkpoint_hidden(self, js_config):
         assignment = MagicMock()
-        assignment.checkpoint.reveal_date = None
+        assignment.due_date = None
 
         js_config.enable_student_checkpoint(assignment)
 
         config = js_config.asdict()
-        assert config["studentCheckpoint"]["hidden"] is True
-        assert config["studentCheckpoint"]["dueDate"] is None
+        toolbar = config["studentToolbar"]
+        assert toolbar["courseCheckpointConfig"]["revealed"] is False
+        assert toolbar["assignmentDueDate"] is None
+        assert toolbar["assignmentCheckpointEnabled"] is True
 
     def test_enable_student_checkpoint_revealed(self, js_config):
         assignment = MagicMock()
-        assignment.checkpoint.reveal_date = datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
+        assignment.due_date = datetime(2026, 8, 1, 23, 59, 0)  # noqa: DTZ001
 
-        js_config.enable_student_checkpoint(assignment)
+        js_config.enable_student_checkpoint(assignment, h_revealed=True)
 
         config = js_config.asdict()
-        assert config["studentCheckpoint"]["hidden"] is False
-        assert config["studentCheckpoint"]["dueDate"] == "2026-07-01T12:00:00+00:00"
+        toolbar = config["studentToolbar"]
+        assert toolbar["courseCheckpointConfig"]["revealed"] is True
+        assert toolbar["assignmentDueDate"] == "2026-08-01T23:59:00+00:00"
+        assert toolbar["assignmentCheckpointEnabled"] is True
 
 
 class TestSetFocusedUser:
