@@ -24,6 +24,9 @@ export type FilePickerFormFieldsProps = {
 
   /** Auto-grading configuration for assignments where it is enabled */
   autoGradingConfig: AutoGradingConfig | null;
+
+  /** Whether hide & reveal checkpoint is enabled for this assignment */
+  checkpointEnabled: boolean;
 };
 
 /**
@@ -38,6 +41,7 @@ export default function FilePickerFormFields({
   formFields,
   groupSet,
   autoGradingConfig,
+  checkpointEnabled,
 }: FilePickerFormFieldsProps) {
   return (
     <>
@@ -57,6 +61,9 @@ export default function FilePickerFormFields({
           name="auto_grading_config"
           value={JSON.stringify(autoGradingConfig)}
         />
+      )}
+      {checkpointEnabled && (
+        <input type="hidden" name="checkpoint_enabled" value="true" />
       )}
     </>
   );

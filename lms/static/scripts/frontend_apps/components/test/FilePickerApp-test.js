@@ -74,6 +74,7 @@ describe('FilePickerApp', () => {
       formFields = {},
       title = null,
       autoGradingConfig = null,
+      checkpointEnabled = false,
     },
   ) {
     const fieldsComponent = wrapper.find('FilePickerFormFields');
@@ -84,6 +85,7 @@ describe('FilePickerApp', () => {
       groupSet,
       title,
       autoGradingConfig,
+      checkpointEnabled,
     });
   }
 
@@ -205,6 +207,7 @@ describe('FilePickerApp', () => {
           title: null,
           group_set: null,
           auto_grading_config: null,
+          checkpoint_enabled: false,
           assignment_gradable_max_points: null,
         },
       });
@@ -570,6 +573,7 @@ describe('FilePickerApp', () => {
           title: null,
           group_set: null,
           auto_grading_config: null,
+          checkpoint_enabled: false,
           assignment_gradable_max_points: 10,
         },
       });
@@ -600,6 +604,7 @@ describe('FilePickerApp', () => {
           title: null,
           group_set: null,
           auto_grading_config: null,
+          checkpoint_enabled: false,
           assignment_gradable_max_points: null,
         },
       });
