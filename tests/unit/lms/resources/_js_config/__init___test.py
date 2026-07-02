@@ -1,5 +1,5 @@
-from datetime import timedelta
-from unittest.mock import create_autospec, patch, sentinel
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock, create_autospec, patch, sentinel
 
 import pytest
 from h_matchers import Any
@@ -600,6 +600,67 @@ class TestInstructorToolbar:
             expected["scoreMaximum"] = sentinel.score_maximum
 
         assert js_config.asdict()["instructorToolbar"] == expected
+
+
+class TestCheckpointToolbar:
+    def test_enable_toolbar_checkpoint_unrevealed(self, js_config):
+        assignment = MagicMock()
+        assignment.id = 42
+        assignment.due_date = None
+
+        js_config.enable_toolbar_checkpoint(assignment)
+
+        config = js_config.asdict()
+        toolbar = config["instructorToolbar"]
+        checkpoint = toolbar["courseCheckpointConfig"]
+        assert checkpoint["revealed"] is False
+        assert checkpoint["revealDate"] is None
+        assert "revealUrl" in checkpoint
+        assert toolbar["assignmentDueDate"] is None
+        assert toolbar["assignmentCheckpointEnabled"] is True
+
+    def test_enable_toolbar_checkpoint_revealed(self, js_config):
+        assignment = MagicMock()
+        assignment.id = 42
+        assignment.due_date = datetime(2026, 8, 1, 23, 59, 0)  # noqa: DTZ001
+
+        js_config.enable_toolbar_checkpoint(
+            assignment,
+            h_revealed=True,
+            h_reveal_date="2026-07-01T12:00:00",
+        )
+
+        config = js_config.asdict()
+        toolbar = config["instructorToolbar"]
+        checkpoint = toolbar["courseCheckpointConfig"]
+        assert checkpoint["revealed"] is True
+        assert checkpoint["revealDate"] == "2026-07-01T12:00:00"
+        assert toolbar["assignmentDueDate"] == "2026-08-01T23:59:00+00:00"
+        assert toolbar["assignmentCheckpointEnabled"] is True
+
+    def test_enable_student_checkpoint_hidden(self, js_config):
+        assignment = MagicMock()
+        assignment.due_date = None
+
+        js_config.enable_student_checkpoint(assignment)
+
+        config = js_config.asdict()
+        toolbar = config["studentToolbar"]
+        assert toolbar["courseCheckpointConfig"]["revealed"] is False
+        assert toolbar["assignmentDueDate"] is None
+        assert toolbar["assignmentCheckpointEnabled"] is True
+
+    def test_enable_student_checkpoint_revealed(self, js_config):
+        assignment = MagicMock()
+        assignment.due_date = datetime(2026, 8, 1, 23, 59, 0)  # noqa: DTZ001
+
+        js_config.enable_student_checkpoint(assignment, h_revealed=True)
+
+        config = js_config.asdict()
+        toolbar = config["studentToolbar"]
+        assert toolbar["courseCheckpointConfig"]["revealed"] is True
+        assert toolbar["assignmentDueDate"] == "2026-08-01T23:59:00+00:00"
+        assert toolbar["assignmentCheckpointEnabled"] is True
 
 
 class TestSetFocusedUser:

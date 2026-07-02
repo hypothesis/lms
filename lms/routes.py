@@ -46,6 +46,11 @@ def includeme(config):  # noqa: PLR0915
 
     config.add_route("api.sync", "/api/sync", request_method="POST")
     config.add_route(
+        "api.checkpoint.reveal",
+        "/api/assignments/{assignment_id}/checkpoint/reveal",
+        request_method="POST",
+    )
+    config.add_route(
         "api.courses.group_sets.list", "/api/courses/{course_id}/group_sets"
     )
     config.add_route("api.grant_token", "/api/grant_token", request_method="GET")

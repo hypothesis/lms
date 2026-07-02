@@ -62,6 +62,7 @@ class AssignmentService:
         group_set_id,
         course: Course,
         auto_grading_config: dict | None = None,
+        checkpoint_enabled: bool = False,  # noqa: FBT001, FBT002
     ):
         """Update an existing assignment."""
         if self._misc_plugin.is_speed_grader_launch(request):
@@ -96,6 +97,7 @@ class AssignmentService:
 
         assignment.course_id = course.id
         self._update_auto_grading_config(assignment, auto_grading_config)
+        self._update_checkpoint(assignment, checkpoint_enabled)
 
         return assignment
 
@@ -151,6 +153,7 @@ class AssignmentService:
         document_url = assignment_config.get("document_url")
         group_set_id = assignment_config.get("group_set_id")
         auto_grading_config = assignment_config.get("auto_grading_config")
+        checkpoint_enabled = assignment_config.get("checkpoint_enabled", False)
 
         if not document_url:
             # We can't find a document_url, we shouldn't try to create an
@@ -181,7 +184,13 @@ class AssignmentService:
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
         return self.update_assignment(
-            request, assignment, document_url, group_set_id, course, auto_grading_config
+            request,
+            assignment,
+            document_url,
+            group_set_id,
+            course,
+            auto_grading_config,
+            checkpoint_enabled=checkpoint_enabled,
         )
 
     def upsert_assignment_membership(
@@ -372,6 +381,19 @@ class AssignmentService:
             )
             .order_by(Grouping.lms_name.asc())
         ).all()
+
+    def _update_checkpoint(
+        self,
+        assignment: Assignment,
+        checkpoint_enabled: bool,  # noqa: FBT001
+    ) -> None:
+        """Mark an assignment as checkpoint_enabled.
+
+        Checkpoints can only be enabled at creation time -- once enabled
+        they are never disabled by an edit.
+        """
+        if checkpoint_enabled and not assignment.checkpoint_enabled:
+            assignment.checkpoint_enabled = True
 
     def _update_auto_grading_config(
         self, assignment: Assignment, auto_grading_config: dict | None

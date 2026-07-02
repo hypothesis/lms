@@ -138,6 +138,50 @@ class TestAssignmentService:
         assert not assignment.auto_grading_config
         assert not db_session.get(AutoGradingConfig, auto_grading_config.id)
 
+    def test_update_assignment_with_checkpoint(self, svc, pyramid_request, course):
+        assignment = factories.Assignment()
+
+        assignment = svc.update_assignment(
+            pyramid_request,
+            assignment,
+            sentinel.document_url,
+            sentinel.group_set_id,
+            course,
+            checkpoint_enabled=True,
+        )
+
+        assert assignment.checkpoint_enabled is True
+
+    def test_update_assignment_without_checkpoint(self, svc, pyramid_request, course):
+        assignment = factories.Assignment()
+
+        assignment = svc.update_assignment(
+            pyramid_request,
+            assignment,
+            sentinel.document_url,
+            sentinel.group_set_id,
+            course,
+            checkpoint_enabled=False,
+        )
+
+        assert assignment.checkpoint_enabled is False
+
+    def test_update_assignment_keeps_existing_checkpoint(
+        self, svc, pyramid_request, course
+    ):
+        assignment = factories.Assignment(checkpoint_enabled=True)
+
+        assignment = svc.update_assignment(
+            pyramid_request,
+            assignment,
+            sentinel.document_url,
+            sentinel.group_set_id,
+            course,
+            checkpoint_enabled=True,
+        )
+
+        assert assignment.checkpoint_enabled is True
+
     @pytest.mark.parametrize(
         "param",
         (

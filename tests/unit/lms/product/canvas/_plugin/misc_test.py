@@ -62,6 +62,17 @@ class TestCanvasMiscPlugin:
             "auto_grading_config": {"some": "value"},
         }
 
+    def test_get_assignment_configuration_with_checkpoint(
+        self, plugin, pyramid_request
+    ):
+        pyramid_request.params["checkpoint_enabled"] = "true"
+
+        config = plugin.get_assignment_configuration(
+            pyramid_request, sentinel.assignment, sentinel.historical_assignment
+        )
+
+        assert config["checkpoint_enabled"] is True
+
     def test_get_assignment_configuration(self, plugin, pyramid_request):
         config = plugin.get_assignment_configuration(
             pyramid_request, sentinel.assignment, sentinel.historical_assignment

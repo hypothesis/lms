@@ -1,6 +1,6 @@
 import functools
 import re
-from datetime import timedelta
+from datetime import UTC, timedelta
 from enum import Enum, StrEnum
 from typing import Any
 from urllib.parse import urlparse
@@ -470,6 +470,43 @@ class JSConfig:
             "authFieldName": "authorization",
         }
         self._config["hypothesisClient"] = self._hypothesis_client
+
+    def enable_toolbar_checkpoint(
+        self, assignment, *, h_revealed=False, h_reveal_date=None
+    ):
+        toolbar_config = self._config.get("instructorToolbar", {})
+
+        due_date_iso = (
+            assignment.due_date.replace(tzinfo=UTC).isoformat()
+            if assignment.due_date
+            else None
+        )
+
+        toolbar_config["courseCheckpointConfig"] = {
+            "revealed": h_revealed,
+            "revealDate": h_reveal_date,
+            "revealUrl": self._request.route_url(
+                "api.checkpoint.reveal", assignment_id=assignment.id
+            ),
+        }
+        toolbar_config["assignmentDueDate"] = due_date_iso
+        toolbar_config["assignmentCheckpointEnabled"] = True
+        self._config["instructorToolbar"] = toolbar_config
+
+    def enable_student_checkpoint(self, assignment, *, h_revealed=False):
+        due_date_iso = (
+            assignment.due_date.replace(tzinfo=UTC).isoformat()
+            if assignment.due_date
+            else None
+        )
+
+        self._config["studentToolbar"] = {
+            "courseCheckpointConfig": {
+                "revealed": h_revealed,
+            },
+            "assignmentDueDate": due_date_iso,
+            "assignmentCheckpointEnabled": True,
+        }
 
     def enable_toolbar_editing(self):
         toolbar_config = self._get_toolbar_config()

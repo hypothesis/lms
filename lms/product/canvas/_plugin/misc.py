@@ -59,13 +59,16 @@ class CanvasMiscPlugin(MiscPlugin):
             group_set_id=request.params.get("group_set"),
         )
 
-        if auto_grading_config := self.get_deep_linked_assignment_configuration(
-            request
-        ).get("auto_grading_config"):
+        deep_linked_config = self.get_deep_linked_assignment_configuration(request)
+
+        if auto_grading_config := deep_linked_config.get("auto_grading_config"):
             # Auto grading is a complex structure, deserialize it beforehand
             assignment_config["auto_grading_config"] = cast(
                 "AutoGradingConfig", json.loads(auto_grading_config)
             )
+
+        if deep_linked_config.get("checkpoint_enabled") in ("true", True):
+            assignment_config["checkpoint_enabled"] = True
 
         return assignment_config
 
@@ -150,6 +153,7 @@ class CanvasMiscPlugin(MiscPlugin):
         possible_parameters = [
             "group_set",
             "auto_grading_config",
+            "checkpoint_enabled",
             # VS, legacy method
             "vitalsource_book",
             "book_id",

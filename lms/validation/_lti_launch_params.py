@@ -185,6 +185,12 @@ class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
     auto_grading_config = fields.Nested(
         AutoGradingConfigSchema, required=False, allow_none=True
     )
+    checkpoint_enabled = fields.Bool(
+        required=False,
+        load_default=False,
+        truthy={"true", "1"},
+        falsy={"false", "0", ""},
+    )
 
     @pre_load
     def _load_auto_grading_config(self, data, **_kwargs):
