@@ -75,7 +75,6 @@ describe('FilePickerApp', () => {
       formFields = {},
       title = null,
       autoGradingConfig = null,
-      checkpointEnabled = false,
     },
   ) {
     const fieldsComponent = wrapper.find('FilePickerFormFields');
@@ -86,7 +85,6 @@ describe('FilePickerApp', () => {
       groupSet,
       title,
       autoGradingConfig,
-      checkpointEnabled,
     });
   }
 
@@ -144,7 +142,7 @@ describe('FilePickerApp', () => {
 
     function setDueDate(wrapper, date) {
       interact(wrapper, () => {
-        wrapper.find('DueDateSelector').props().onChange(date);
+        wrapper.find('DueDateSelector').first().props().onChange(date);
       });
     }
 
@@ -498,7 +496,7 @@ describe('FilePickerApp', () => {
       clickNext(); // -> due-date
       const localDueDate = '2035-01-15T10:30';
       interact(wrapper, () => {
-        wrapper.find('DueDateSelector').props().onChange(localDueDate);
+        wrapper.find('DueDateSelector').first().props().onChange(localDueDate);
       });
       clickNext(); // -> content selection
 
