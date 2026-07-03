@@ -57,6 +57,24 @@ class TestRevealCheckpoint:
             reveal_checkpoint(pyramid_request)
 
     @pytest.mark.usefixtures("user_is_instructor")
+    def test_it_returns_404_for_assignment_in_another_application_instance(
+        self, pyramid_request, assignment_service, h_api
+    ):
+        # Security: an instructor must not be able to reveal an assignment that
+        # belongs to a different application instance (tenant) than their own.
+        assignment = self._assignment_with_checkpoint()
+        assignment.course.application_instance_id = (
+            pyramid_request.lti_user.application_instance_id + 1
+        )
+        assignment_service.get_by_id.return_value = assignment
+        pyramid_request.matchdict = {"assignment_id": "1"}
+
+        with pytest.raises(HTTPNotFound):
+            reveal_checkpoint(pyramid_request)
+
+        h_api.reveal_checkpoints.assert_not_called()
+
+    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_reveals_only_non_course_groupings(
         self, pyramid_request, assignment_service, h_api
     ):
