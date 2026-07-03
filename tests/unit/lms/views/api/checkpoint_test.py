@@ -96,6 +96,22 @@ class TestRevealCheckpoint:
         h_api.reveal_checkpoints.assert_not_called()
 
     @pytest.mark.usefixtures("user_is_instructor")
+    def test_it_returns_404_when_assignment_has_no_course(
+        self, pyramid_request, assignment_service, h_api
+    ):
+        # Defensive: course is nullable, so the tenant check must not raise
+        # AttributeError — a course-less assignment 404s.
+        assignment = self._assignment_with_checkpoint()
+        assignment.course = None
+        assignment_service.get_by_id.return_value = assignment
+        pyramid_request.matchdict = {"assignment_id": "1"}
+
+        with pytest.raises(HTTPNotFound):
+            reveal_checkpoint(pyramid_request)
+
+        h_api.reveal_checkpoints.assert_not_called()
+
+    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_reveals_only_non_course_groupings(
         self, pyramid_request, assignment_service, h_api
     ):
