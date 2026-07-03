@@ -20,7 +20,9 @@ class TestRevealCheckpoint:
     def test_it_reveals_checkpoint_via_h(
         self, pyramid_request, assignment_service, h_api
     ):
-        assignment = self._assignment_with_checkpoint()
+        assignment = self._assignment_with_checkpoint(
+            pyramid_request.lti_user.application_instance_id
+        )
         assignment_service.get_by_id.return_value = assignment
         h_api.reveal_checkpoints.return_value = [
             {"revealed": True, "reveal_date": "2026-07-01T12:00:00"}
@@ -97,7 +99,9 @@ class TestRevealCheckpoint:
     def test_it_reveals_only_non_course_groupings(
         self, pyramid_request, assignment_service, h_api
     ):
-        assignment = self._assignment_with_checkpoint()
+        assignment = self._assignment_with_checkpoint(
+            pyramid_request.lti_user.application_instance_id
+        )
         course_grouping = MagicMock()
         course_grouping.type = Grouping.Type.COURSE
         course_grouping.authority_provided_id = "course1"
@@ -123,7 +127,9 @@ class TestRevealCheckpoint:
     def test_it_returns_null_reveal_date_when_no_result_revealed(
         self, pyramid_request, assignment_service, h_api
     ):
-        assignment = self._assignment_with_checkpoint()
+        assignment = self._assignment_with_checkpoint(
+            pyramid_request.lti_user.application_instance_id
+        )
         assignment_service.get_by_id.return_value = assignment
         h_api.reveal_checkpoints.return_value = [{"revealed": False}]
         pyramid_request.matchdict = {"assignment_id": "1"}
@@ -137,7 +143,9 @@ class TestRevealCheckpoint:
     def test_it_returns_404_when_no_groupings(
         self, pyramid_request, assignment_service
     ):
-        assignment = self._assignment_with_checkpoint()
+        assignment = self._assignment_with_checkpoint(
+            pyramid_request.lti_user.application_instance_id
+        )
         assignment.groupings.all.return_value = []
         assignment_service.get_by_id.return_value = assignment
         pyramid_request.matchdict = {"assignment_id": "1"}
@@ -145,10 +153,12 @@ class TestRevealCheckpoint:
         with pytest.raises(HTTPNotFound):
             reveal_checkpoint(pyramid_request)
 
-    def _assignment_with_checkpoint(self):
+    def _assignment_with_checkpoint(self, application_instance_id=None):
         assignment = MagicMock()
         assignment.checkpoint_enabled = True
         assignment.document_url = "https://example.com/doc"
+        if application_instance_id is not None:
+            assignment.course.application_instance_id = application_instance_id
         grouping = MagicMock()
         grouping.type = Grouping.Type.CANVAS_SECTION
         grouping.authority_provided_id = "group1"
