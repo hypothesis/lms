@@ -286,6 +286,22 @@ class TestSync:
             "revealDate": "2026-07-01T12:00:00",
         }
 
+    @pytest.mark.usefixtures("grouping_service", "course_service")
+    def test_it_omits_checkpoint_state_when_h_returns_no_results(
+        self,
+        pyramid_request,
+        assignment_service,
+        lti_h_service,
+    ):
+        assignment = assignment_service.get_assignment.return_value
+        assignment.checkpoint_enabled = True
+        assignment.document_url = "https://example.com/doc"
+        lti_h_service.sync.return_value = None
+
+        result = sync(pyramid_request)
+
+        assert "checkpoint" not in result
+
     @pytest.fixture
     def assignment_service(self, assignment_service):
         assignment_service.get_assignment.return_value.checkpoint_enabled = False

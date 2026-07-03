@@ -429,6 +429,21 @@ class TestBasicLaunchViews:
         )
 
     @pytest.mark.usefixtures("pyramid_request")
+    def test__show_document_passes_h_revealed_false_when_no_result_revealed(
+        self, svc, request, context, lti_h_service, grouping_service
+    ):
+        request.getfixturevalue("user_is_instructor")
+        grouping_service.get_launch_grouping_type.return_value = Grouping.Type.COURSE
+        lti_h_service.sync.return_value = [{"revealed": False}]
+        assignment = factories.Assignment(checkpoint_enabled=True)
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        context.js_config.enable_toolbar_checkpoint.assert_called_once_with(
+            assignment, h_revealed=False, h_reveal_date=None
+        )
+
+    @pytest.mark.usefixtures("pyramid_request")
     def test__show_document_enables_student_checkpoint_for_student(self, svc, context):
         assignment = factories.Assignment(checkpoint_enabled=True)
 
