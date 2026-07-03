@@ -156,6 +156,22 @@ class TestRevealCheckpoint:
         assert result["reveal_date"] is None
 
     @pytest.mark.usefixtures("user_is_instructor")
+    def test_it_returns_null_reveal_date_when_h_returns_no_results(
+        self, pyramid_request, assignment_service, h_api
+    ):
+        # reveal_checkpoints is typed list | None; guard against the None case.
+        assignment = self._assignment_with_checkpoint(
+            pyramid_request.lti_user.application_instance_id
+        )
+        assignment_service.get_by_id.return_value = assignment
+        h_api.reveal_checkpoints.return_value = None
+        pyramid_request.matchdict = {"assignment_id": "1"}
+
+        result = reveal_checkpoint(pyramid_request)
+
+        assert result == {"revealed": True, "reveal_date": None}
+
+    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_returns_404_when_no_groupings(
         self, pyramid_request, assignment_service
     ):
