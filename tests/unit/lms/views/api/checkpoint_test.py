@@ -75,6 +75,25 @@ class TestRevealCheckpoint:
         h_api.reveal_checkpoints.assert_not_called()
 
     @pytest.mark.usefixtures("user_is_instructor")
+    def test_it_returns_404_when_instructor_is_not_a_member_of_the_assignment(
+        self, pyramid_request, assignment_service, h_api
+    ):
+        # Security: even within the same tenant, an instructor must not reveal an
+        # assignment they are not a member of (e.g. one in a different course).
+        assignment = self._assignment_with_checkpoint()
+        assignment.course.application_instance_id = (
+            pyramid_request.lti_user.application_instance_id
+        )
+        assignment_service.get_by_id.return_value = assignment
+        assignment_service.is_member.return_value = False
+        pyramid_request.matchdict = {"assignment_id": "1"}
+
+        with pytest.raises(HTTPNotFound):
+            reveal_checkpoint(pyramid_request)
+
+        h_api.reveal_checkpoints.assert_not_called()
+
+    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_reveals_only_non_course_groupings(
         self, pyramid_request, assignment_service, h_api
     ):
