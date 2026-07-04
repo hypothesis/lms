@@ -62,8 +62,7 @@ export default function RevealAnnotationsButton({
         data-testid="checkpoint-revealed"
       >
         Annotations revealed on
-        <br className="md:hidden" />
-        {' '}
+        <br className="md:hidden" />{' '}
         {revealDate ? formatDateTime(revealDate) : ''}
       </span>
     );
