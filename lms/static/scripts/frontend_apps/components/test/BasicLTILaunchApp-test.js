@@ -131,7 +131,9 @@ describe('BasicLTILaunchApp', () => {
     });
 
     it('passes the groups array from api call to rpcServer.setGroups', async () => {
-      const groups = await fakeApiCall.resolves(['group1', 'group2']);
+      const groups = await fakeApiCall.resolves({
+        groups: ['group1', 'group2'],
+      });
       renderLTILaunchApp();
       await groups;
       assert.calledWith(fakeRpcServer.setGroups, ['group1', 'group2']);
