@@ -17,7 +17,10 @@ export default function CheckpointBar({
         <div>Manual</div>
       </div>
       {dueDate && (
-        <div className="text-sm md:text-center" data-testid="checkpoint-due-date">
+        <div
+          className="text-sm md:text-center"
+          data-testid="checkpoint-due-date"
+        >
           <div className="font-semibold">Due Date:</div>
           <div>{formatDateTime(dueDate)}</div>
         </div>

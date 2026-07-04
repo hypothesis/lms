@@ -27,7 +27,7 @@ export default function StudentToolbar({
 
   const revealed = syncCheckpoint
     ? syncCheckpoint.revealed
-    : courseCheckpointConfig?.revealed ?? false;
+    : (courseCheckpointConfig?.revealed ?? false);
 
   return (
     <header className="p-2 grid grid-cols-1 gap-2 items-center text-center md:text-left md:grid-cols-[auto_1fr]">
