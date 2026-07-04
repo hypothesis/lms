@@ -49,6 +49,28 @@ export type StudentInfo = {
 };
 
 /**
+ * Configuration for a checkpoint shown in the instructor/student toolbars.
+ */
+export type CheckpointConfig = {
+  /** Whether the checkpoint has already been revealed. */
+  revealed: boolean;
+  /** ISO date string of when the checkpoint was revealed, or null. */
+  revealDate: string | null;
+  /** API path to call to reveal the checkpoint. */
+  revealUrl: string;
+};
+
+/**
+ * Data needed to render the checkpoint bar shown when a student views an
+ * assignment with Hide & Reveal enabled.
+ */
+export type StudentToolbarConfig = {
+  courseCheckpointConfig?: Pick<CheckpointConfig, 'revealed'>;
+  assignmentDueDate?: string | null;
+  assignmentCheckpointEnabled: boolean;
+};
+
+/**
  * Data needed to render the grading bar shown when an instructor views an assignment.
  */
 export type InstructorConfig = {
@@ -59,6 +81,9 @@ export type InstructorConfig = {
   acceptGradingComments: boolean;
   students: StudentInfo[] | null;
   scoreMaximum: number | null;
+  courseCheckpointConfig?: CheckpointConfig;
+  assignmentDueDate?: string | null;
+  assignmentCheckpointEnabled?: boolean;
 };
 
 /**
@@ -348,6 +373,7 @@ export type ConfigObject = {
     getConfig: APICallInfo;
   };
   instructorToolbar?: InstructorConfig;
+  studentToolbar?: StudentToolbarConfig;
   hypothesisClient?: ClientConfig;
   rpcServer?: {
     allowedOrigins: string[];
