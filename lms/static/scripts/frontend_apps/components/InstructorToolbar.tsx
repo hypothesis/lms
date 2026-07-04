@@ -40,12 +40,12 @@ export default function InstructorToolbar({
     assignmentCheckpointEnabled,
   } = instructorToolbar;
 
-  // Only show the checkpoint bar (and its reveal button) when the backend has
-  // sent the checkpoint config. `revealUrl` is required to reveal, and it only
-  // arrives with `courseCheckpointConfig`, so gate on its presence rather than
-  // rendering a reveal button that would POST to an empty URL.
-  const showCheckpoint =
-    assignmentCheckpointEnabled && !waitingForSync && !!courseCheckpointConfig;
+  // Only show the checkpoint bar (and its reveal button) once the backend has
+  // sent `courseCheckpointConfig` (enforced by the render guard below).
+  // `revealUrl` is required to reveal and only arrives with that config, so
+  // without it we must not render a reveal button that would POST to an empty
+  // URL.
+  const showCheckpoint = assignmentCheckpointEnabled && !waitingForSync;
 
   const withGradingControls = gradingEnabled && !!students;
 
