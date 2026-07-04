@@ -3,6 +3,7 @@ import {
   mount,
   waitFor,
 } from '@hypothesis/frontend-testing';
+import { act } from 'preact/test-utils';
 
 import { Config } from '../../config';
 import RevealAnnotationsButton, { $imports } from '../RevealAnnotationsButton';
@@ -67,6 +68,19 @@ describe('RevealAnnotationsButton', () => {
     const wrapper = render();
     clickButton(wrapper, 'reveal-annotations-button');
     assert.isTrue(wrapper.exists('ModalDialog'));
+  });
+
+  it('closes the modal without revealing when dismissed', () => {
+    const wrapper = render();
+    clickButton(wrapper, 'reveal-annotations-button');
+
+    act(() => {
+      wrapper.find('ModalDialog').prop('onClose')();
+    });
+    wrapper.update();
+
+    assert.isFalse(wrapper.exists('ModalDialog'));
+    assert.notCalled(fakeApiCall);
   });
 
   it('reveals annotations when confirmed', async () => {
