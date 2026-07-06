@@ -219,13 +219,11 @@ class HAPI:
 
     def sync_checkpoints(
         self,
-        authority: str,
         checkpoints: list[dict],
         user: dict | None = None,
     ) -> list[dict] | None:
         """Sync checkpoint data to h via the bulk checkpoint endpoint.
 
-        :param authority: The h authority
         :param checkpoints: List of dicts with group_authority_provided_id,
             document_uri, and optionally reveal_date
         :param user: Optional dict with 'username' and 'role' to set
@@ -237,7 +235,6 @@ class HAPI:
             return None
 
         payload: dict = {
-            "authority": authority,
             "checkpoints": checkpoints,
         }
         if user:
@@ -248,19 +245,17 @@ class HAPI:
             path="bulk/checkpoint",
             body=json.dumps(payload),
             headers={
-                "Content-Type": "application/json",
+                "Content-Type": "application/vnd.hypothesis.v1+json",
             },
         )
         return response.json()
 
     def reveal_checkpoints(
         self,
-        authority: str,
         checkpoints: list[dict],
     ) -> list[dict] | None:
         """Reveal checkpoints in h, making annotations visible immediately.
 
-        :param authority: The h authority
         :param checkpoints: List of dicts with group_authority_provided_id
             and document_uri
         :return: List of reveal results from h, or None if no checkpoints
@@ -269,7 +264,6 @@ class HAPI:
             return None
 
         payload = {
-            "authority": authority,
             "checkpoints": checkpoints,
         }
 
@@ -278,7 +272,7 @@ class HAPI:
             path="bulk/checkpoint/reveal",
             body=json.dumps(payload),
             headers={
-                "Content-Type": "application/json",
+                "Content-Type": "application/vnd.hypothesis.v1+json",
             },
         )
         return response.json()

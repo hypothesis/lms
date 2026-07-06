@@ -125,7 +125,6 @@ class LTIHService:
         ]
 
         return self._h_api.sync_checkpoints(
-            authority=self._authority,
             checkpoints=checkpoints,
             user=checkpoint_data.get("user"),
         )

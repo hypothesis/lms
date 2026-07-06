@@ -33,13 +33,15 @@ def reveal_checkpoint(request):
         or not assignment.course
         or assignment.course.application_instance_id
         != request.lti_user.application_instance_id
-        or not assignment_service.is_member(assignment, request.lti_user.h_user.userid)
+        or not assignment_service.is_member(
+            assignment,
+            request.lti_user.h_user.userid(request.registry.settings["h_authority"]),
+        )
     ):
         message = "Assignment or checkpoint not found"
         raise HTTPNotFound(message)
 
     # Reveal directly in h — h is the source of truth for reveal state.
-    authority = request.registry.settings["h_authority"]
     h_api = request.find_service(HAPI)
     # If the assignment has section/group groupings, only reveal those —
     # not the course group. The course group's checkpoint may be shared
@@ -64,7 +66,6 @@ def reveal_checkpoint(request):
         raise HTTPNotFound(message)
 
     results = h_api.reveal_checkpoints(
-        authority=authority,
         checkpoints=checkpoints,
     )
 
