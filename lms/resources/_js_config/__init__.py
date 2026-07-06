@@ -431,6 +431,20 @@ class JSConfig:
         self._config["debug"]["values"] = self._get_lti_launch_debug_values(
             course, assignment
         )
+
+        # When re-configuring an existing assignment (edit), pass its current
+        # config so the frontend knows it's an edit (`isEditing`) and skips the
+        # assignment-type workflow. `assignment` is None for a create.
+        if assignment is not None:
+            self._config["assignment"] = {
+                "group_set_id": assignment.extra.get("group_set_id"),
+                "document": {"url": assignment.document_url},
+            }
+            if auto_grading_config := assignment.auto_grading_config:
+                self._config["assignment"]["auto_grading_config"] = (
+                    auto_grading_config.asdict()
+                )
+
         return self._config
 
     def _get_assignment_types(self) -> list[str]:

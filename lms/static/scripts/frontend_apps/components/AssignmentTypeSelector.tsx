@@ -18,8 +18,8 @@ const ASSIGNMENT_TYPE_LABELS: Record<AssignmentType, string> = {
 
 /** Short description shown under each option's label. */
 const ASSIGNMENT_TYPE_DETAILS: Record<AssignmentType, string> = {
-  reading: 'Standard annotation',
-  hide_and_reveal: 'Hidden until revealed',
+  reading: 'Real-time engagement',
+  hide_and_reveal: 'Structured engagement',
 };
 
 export type AssignmentTypeSelectorProps = {

@@ -43,6 +43,30 @@ class AssignmentService:
             .one_or_none()
         )
 
+    def get_by_canvas_assignment_id(
+        self, tool_consumer_instance_guid, canvas_assignment_id
+    ):
+        """Get an assignment by the Canvas assignment id recorded in `extra`.
+
+        Canvas deep-linking "edit" launches don't carry a resource_link_id, but
+        they do send `custom_assignment_id`. We record that id in `extra` on
+        resource-link launches (see `_show_document`) so that a later edit can
+        find the existing assignment. Returns None when nothing matches (e.g. a
+        create, or an assignment not launched since this was introduced).
+        """
+        return (
+            self._db.query(Assignment)
+            .filter(
+                Assignment.tool_consumer_instance_guid == tool_consumer_instance_guid,
+                Assignment.extra["canvas_assignment_id"].astext
+                == str(canvas_assignment_id),
+            )
+            # Deterministic and crash-proof: never break the launch if, somehow,
+            # more than one row shares the id.
+            .order_by(Assignment.id.desc())
+            .first()
+        )
+
     def create_assignment(self, tool_consumer_instance_guid, resource_link_id):
         """Create a new assignment."""
 
