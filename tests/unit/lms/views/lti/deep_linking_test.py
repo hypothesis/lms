@@ -105,10 +105,64 @@ class TestDeepLinkingLaunch:
                 "lti_version": "TEST_LTI_VERSION",
             },
             course=course_service.get_from_launch.return_value,
+            # No `custom_assignment_id` in the launch params (e.g. a create, or a
+            # non-Canvas LMS), so this stays a fresh configuration.
+            assignment=None,
             prompt_for_title=misc_plugin.deep_linking_prompt_for_title,
             prompt_for_gradable=misc_plugin.deep_linking_prompt_for_gradable.return_value,
         )
         context.js_config.add_deep_linking_api.assert_called_once()
+
+    def test_it_detects_a_canvas_edit_via_custom_assignment_id(
+        self,
+        context,
+        pyramid_request,
+        assignment_service,
+        misc_plugin,
+        course_service,
+        user_service,  # noqa: ARG002
+    ):
+        # A Canvas deep-linking "edit" launch carries no resource_link_id but does
+        # send `custom_assignment_id`; we look the assignment up by the Canvas id
+        # recorded on previous resource-link launches so the frontend treats it as
+        # an edit.
+        pyramid_request.lti_params["tool_consumer_instance_guid"] = "GUID"
+        pyramid_request.lti_params["custom_assignment_id"] = "9714"
+
+        deep_linking_launch(context, pyramid_request)
+
+        assignment_service.get_by_canvas_assignment_id.assert_called_once_with(
+            tool_consumer_instance_guid="GUID", canvas_assignment_id="9714"
+        )
+        context.js_config.enable_file_picker_mode.assert_called_once_with(
+            form_action="TEST_CONTENT_ITEM_RETURN_URL",
+            form_fields=Any(),
+            course=course_service.get_from_launch.return_value,
+            assignment=assignment_service.get_by_canvas_assignment_id.return_value,
+            prompt_for_title=misc_plugin.deep_linking_prompt_for_title,
+            prompt_for_gradable=misc_plugin.deep_linking_prompt_for_gradable.return_value,
+        )
+
+    def test_it_ignores_unsubstituted_custom_assignment_id(
+        self,
+        context,
+        pyramid_request,
+        assignment_service,
+        course_service,  # noqa: ARG002
+        user_service,  # noqa: ARG002
+        misc_plugin,  # noqa: ARG002
+    ):
+        # If Canvas doesn't substitute the variable we get the literal string;
+        # never treat that as an id.
+        pyramid_request.lti_params["custom_assignment_id"] = "$Canvas.assignment.id"
+
+        deep_linking_launch(context, pyramid_request)
+
+        assignment_service.get_by_canvas_assignment_id.assert_not_called()
+        assert (
+            context.js_config.enable_file_picker_mode.call_args.kwargs["assignment"]
+            is None
+        )
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):

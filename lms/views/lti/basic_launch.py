@@ -176,6 +176,18 @@ class BasicLaunchViews:
     def _show_document(self, assignment):  # noqa: C901, PLR0912
         """Display a document to the user for annotation or grading."""
 
+        # Record the Canvas assignment id so that a later deep-linking "edit"
+        # launch (which carries no resource_link_id) can find this assignment and
+        # know it's an edit. No-op for other LMS (they don't send this param) and
+        # for unsubstituted values like "$Canvas.assignment.id".
+        canvas_assignment_id = self.request.lti_params.get("custom_assignment_id")
+        if (
+            canvas_assignment_id
+            and not str(canvas_assignment_id).startswith("$")
+            and assignment.extra.get("canvas_assignment_id") != canvas_assignment_id
+        ):
+            assignment.extra["canvas_assignment_id"] = canvas_assignment_id
+
         # Determine the grouping type to decide whether to sync checkpoint
         # data for the course group. When the assignment uses sections/groups,
         # the checkpoint sync happens in the client-side sync (POST /api/sync)

@@ -207,6 +207,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       settings: { groupsEnabled: enableGroupConfig },
     },
     assignment,
+    editing,
     filePicker: {
       autoGradingEnabled,
       assignmentTypes,
@@ -265,6 +266,12 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   const [editingContent, setEditingContent] = useState(false);
   // True if we are editing an existing assignment configuration.
   const isEditing = !!assignment;
+
+  // "Back to assignment" only makes sense for the in-app edit (reconfigure),
+  // which carries `editing` config and has an assignment launch to return to.
+  // The deep-linking file picker (e.g. Canvas "edit") is a standalone page with
+  // nowhere to go back to, so the link would dead-end there.
+  const canReturnToAssignment = isEditing && !!editing;
 
   // Type of assignment being created, chosen in the first ("assignment-type")
   // step of the workflow. Defaults to the first available type so it is always
@@ -554,7 +561,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         }}
         ref={formRef}
       >
-        {isEditing && (
+        {canReturnToAssignment && (
           <RouterLink
             href="/app/basic-lti-launch"
             data-testid="back-link"

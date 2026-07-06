@@ -91,6 +91,41 @@ class TestFilePickerMode:
 
         assert js_config.asdict()["filePicker"]["assignmentTypes"] == expected_types
 
+    def test_it_does_not_set_assignment_config_for_a_create(self, js_config, course):
+        js_config.enable_file_picker_mode(
+            sentinel.form_action, sentinel.form_fields, course
+        )
+
+        assert "assignment" not in js_config.asdict()
+
+    def test_it_sets_assignment_config_when_editing(
+        self, js_config, course, assignment
+    ):
+        js_config.enable_file_picker_mode(
+            sentinel.form_action, sentinel.form_fields, course, assignment=assignment
+        )
+
+        assert js_config.asdict()["assignment"] == {
+            "group_set_id": assignment.extra.get("group_set_id"),
+            "document": {"url": assignment.document_url},
+        }
+
+    def test_it_sets_auto_grading_config_when_editing_an_auto_graded_assignment(
+        self, js_config, course
+    ):
+        assignment = factories.Assignment(
+            auto_grading_config=factories.AutoGradingConfig()
+        )
+
+        js_config.enable_file_picker_mode(
+            sentinel.form_action, sentinel.form_fields, course, assignment=assignment
+        )
+
+        assert (
+            js_config.asdict()["assignment"]["auto_grading_config"]
+            == assignment.auto_grading_config.asdict()
+        )
+
     @pytest.mark.parametrize(
         "config_function,key",
         (

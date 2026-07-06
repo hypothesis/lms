@@ -24,6 +24,39 @@ class TestAssignmentService:
     def test_get_assignment_without_match(self, svc, non_matching_params):
         assert svc.get_assignment(**non_matching_params) is None
 
+    def test_get_by_canvas_assignment_id(self, svc):
+        assignment = factories.Assignment(
+            tool_consumer_instance_guid="GUID",
+            extra={"canvas_assignment_id": "9714"},
+        )
+
+        assert (
+            svc.get_by_canvas_assignment_id(
+                tool_consumer_instance_guid="GUID", canvas_assignment_id="9714"
+            )
+            == assignment
+        )
+
+    @pytest.mark.parametrize(
+        "guid,canvas_id",
+        [
+            ("GUID", "OTHER"),  # right guid, wrong canvas id
+            ("OTHER", "9714"),  # wrong guid, right canvas id
+        ],
+    )
+    def test_get_by_canvas_assignment_id_without_match(self, svc, guid, canvas_id):
+        factories.Assignment(
+            tool_consumer_instance_guid="GUID",
+            extra={"canvas_assignment_id": "9714"},
+        )
+
+        assert (
+            svc.get_by_canvas_assignment_id(
+                tool_consumer_instance_guid=guid, canvas_assignment_id=canvas_id
+            )
+            is None
+        )
+
     def test_create_assignment(self, svc, db_session):
         assignment = svc.create_assignment(sentinel.guid, sentinel.resource_link_id)
 
