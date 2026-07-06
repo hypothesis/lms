@@ -79,7 +79,6 @@ class TestSync:
         lti_h_svc.sync(groupings, sentinel.params, checkpoint_data=checkpoint_data)
 
         h_api.sync_checkpoints.assert_called_once_with(
-            authority=lti_h_svc._authority,  # noqa: SLF001
             checkpoints=[
                 {
                     "group_authority_provided_id": grouping.authority_provided_id,
