@@ -955,9 +955,21 @@ describe('FilePickerApp', () => {
       };
     });
 
-    it('shows "Back to assignment" link', () => {
+    it('shows "Back to assignment" link when reconfiguring in-app', () => {
+      // The in-app reconfigure flow carries `editing` config and has an
+      // assignment launch to return to.
+      fakeConfig.editing = {
+        getConfig: { path: '/assignments/edit', data: {} },
+      };
       const wrapper = renderFilePicker();
       assert.isTrue(wrapper.exists('[data-testid="back-link"]'));
+    });
+
+    it('hides "Back to assignment" link in the deep-linking file picker', () => {
+      // The deep-linking file picker (e.g. Canvas "edit") is a standalone page
+      // with no `editing` config and nowhere to go back to.
+      const wrapper = renderFilePicker();
+      assert.isFalse(wrapper.exists('[data-testid="back-link"]'));
     });
 
     it('shows description of existing content and "Change" button', () => {

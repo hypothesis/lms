@@ -462,6 +462,30 @@ class TestBasicLaunchViews:
         context.js_config.enable_toolbar_checkpoint.assert_not_called()
         context.js_config.enable_student_checkpoint.assert_not_called()
 
+    @pytest.mark.usefixtures("lti_h_service", "assignment_service", "course_service")
+    def test__show_document_records_canvas_assignment_id(
+        self, svc, pyramid_request, assignment
+    ):
+        pyramid_request.lti_params["custom_assignment_id"] = "9714"
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        assert assignment.extra["canvas_assignment_id"] == "9714"
+
+    @pytest.mark.usefixtures("lti_h_service", "assignment_service", "course_service")
+    @pytest.mark.parametrize("value", [None, "$Canvas.assignment.id"])
+    def test__show_document_ignores_invalid_canvas_assignment_id(
+        self, svc, pyramid_request, assignment, value
+    ):
+        # None = non-Canvas LMS (no such param); "$..." = Canvas didn't substitute
+        # the variable. Neither should be recorded.
+        if value is not None:
+            pyramid_request.lti_params["custom_assignment_id"] = value
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        assert "canvas_assignment_id" not in assignment.extra
+
     @pytest.fixture
     def assignment(self):
         return factories.Assignment(is_gradable=False)
