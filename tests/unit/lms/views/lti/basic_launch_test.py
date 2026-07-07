@@ -486,6 +486,27 @@ class TestBasicLaunchViews:
 
         assert "canvas_assignment_id" not in assignment.extra
 
+    def test__show_document_records_ext_lti_assignment_id(
+        self, svc, pyramid_request, assignment
+    ):
+        # LTI 1.1 Canvas launches identify the assignment with
+        # `ext_lti_assignment_id` instead of `custom_assignment_id`.
+        pyramid_request.lti_params["ext_lti_assignment_id"] = "a4c7af3a-uuid"
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        assert assignment.extra["ext_lti_assignment_id"] == "a4c7af3a-uuid"
+
+    @pytest.mark.usefixtures("lti_h_service", "assignment_service", "course_service")
+    def test__show_document_ignores_missing_ext_lti_assignment_id(
+        self, svc, pyramid_request, assignment
+    ):
+        assert "ext_lti_assignment_id" not in pyramid_request.lti_params
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        assert "ext_lti_assignment_id" not in assignment.extra
+
     @pytest.fixture
     def assignment(self):
         return factories.Assignment(is_gradable=False)
