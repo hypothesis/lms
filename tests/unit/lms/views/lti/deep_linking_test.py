@@ -122,17 +122,50 @@ class TestDeepLinkingLaunch:
         course_service,
         user_service,  # noqa: ARG002
     ):
-        # A Canvas deep-linking "edit" launch carries no resource_link_id but does
-        # send `custom_assignment_id`; we look the assignment up by the Canvas id
-        # recorded on previous resource-link launches so the frontend treats it as
-        # an edit.
+        # An LTI 1.3 Canvas deep-linking "edit" launch carries no resource_link_id
+        # but does send `custom_assignment_id`; we look the assignment up by the
+        # Canvas id recorded on previous resource-link launches so the frontend
+        # treats it as an edit.
         pyramid_request.lti_params["tool_consumer_instance_guid"] = "GUID"
         pyramid_request.lti_params["custom_assignment_id"] = "9714"
 
         deep_linking_launch(context, pyramid_request)
 
         assignment_service.get_by_canvas_assignment_id.assert_called_once_with(
-            tool_consumer_instance_guid="GUID", canvas_assignment_id="9714"
+            tool_consumer_instance_guid="GUID",
+            canvas_assignment_id="9714",
+            ext_lti_assignment_id=None,
+        )
+        context.js_config.enable_file_picker_mode.assert_called_once_with(
+            form_action="TEST_CONTENT_ITEM_RETURN_URL",
+            form_fields=Any(),
+            course=course_service.get_from_launch.return_value,
+            assignment=assignment_service.get_by_canvas_assignment_id.return_value,
+            prompt_for_title=misc_plugin.deep_linking_prompt_for_title,
+            prompt_for_gradable=misc_plugin.deep_linking_prompt_for_gradable.return_value,
+        )
+
+    def test_it_detects_a_canvas_edit_via_ext_lti_assignment_id(
+        self,
+        context,
+        pyramid_request,
+        assignment_service,
+        misc_plugin,
+        course_service,
+        user_service,  # noqa: ARG002
+    ):
+        # An LTI 1.1 Canvas deep-linking "edit" launch doesn't send
+        # `custom_assignment_id` but does send `ext_lti_assignment_id` (a UUID);
+        # we look the assignment up by that id instead.
+        pyramid_request.lti_params["tool_consumer_instance_guid"] = "GUID"
+        pyramid_request.lti_params["ext_lti_assignment_id"] = "a4c7af3a-uuid"
+
+        deep_linking_launch(context, pyramid_request)
+
+        assignment_service.get_by_canvas_assignment_id.assert_called_once_with(
+            tool_consumer_instance_guid="GUID",
+            canvas_assignment_id=None,
+            ext_lti_assignment_id="a4c7af3a-uuid",
         )
         context.js_config.enable_file_picker_mode.assert_called_once_with(
             form_action="TEST_CONTENT_ITEM_RETURN_URL",
