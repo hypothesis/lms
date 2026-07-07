@@ -63,7 +63,11 @@ export default function RevealAnnotationsButton({
       >
         Annotations revealed on
         <br className="md:hidden" />{' '}
-        {revealDate ? formatDateTime(revealDate.endsWith('Z') ? revealDate : revealDate + 'Z') : ''}
+        {revealDate
+          ? formatDateTime(
+              revealDate.endsWith('Z') ? revealDate : revealDate + 'Z',
+            )
+          : ''}
       </span>
     );
   }
