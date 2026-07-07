@@ -119,7 +119,6 @@ export default function BasicLTILaunchApp() {
     SyncResponse['checkpoint'] | null
   >(null);
 
-
   const contentReady = !!contentURL;
 
   const incFetchCount = () => {

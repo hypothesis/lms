@@ -40,21 +40,31 @@ describe('StudentToolbar', () => {
   });
 
   it('shows annotations as hidden when not revealed', () => {
-    assert.include(status(render()).text(), 'Annotations are hidden');
+    assert.include(
+      status(render({ syncComplete: true })).text(),
+      'Annotations are hidden',
+    );
   });
 
   it('defaults to hidden when no checkpoint config is present', () => {
     delete fakeConfig.studentToolbar.courseCheckpointConfig;
-    assert.include(status(render()).text(), 'Annotations are hidden');
+    assert.include(
+      status(render({ syncComplete: true })).text(),
+      'Annotations are hidden',
+    );
   });
 
   it('shows annotations as visible when revealed via course config', () => {
     fakeConfig.studentToolbar.courseCheckpointConfig = { revealed: true };
-    assert.include(status(render()).text(), 'Annotations are visible');
+    assert.include(
+      status(render({ syncComplete: true })).text(),
+      'Annotations are visible',
+    );
   });
 
   it('prefers the sync checkpoint state over the course config', () => {
     const wrapper = render({
+      syncComplete: true,
       syncCheckpoint: { revealed: true, revealDate: null },
     });
     assert.include(status(wrapper).text(), 'Annotations are visible');
@@ -62,21 +72,25 @@ describe('StudentToolbar', () => {
 
   it('does not render a due date when none is provided', () => {
     assert.isFalse(
-      render().exists('[data-testid="student-checkpoint-due-date"]'),
+      render({ syncComplete: true }).exists(
+        '[data-testid="student-checkpoint-due-date"]',
+      ),
     );
   });
 
   it('renders the due date when provided', () => {
     fakeConfig.studentToolbar.assignmentDueDate = '2026-07-01T10:00:00';
     assert.isTrue(
-      render().exists('[data-testid="student-checkpoint-due-date"]'),
+      render({ syncComplete: true }).exists(
+        '[data-testid="student-checkpoint-due-date"]',
+      ),
     );
   });
 
   it(
     'should pass a11y checks',
     checkAccessibility({
-      content: () => render(),
+      content: () => render({ syncComplete: true }),
     }),
   );
 });
