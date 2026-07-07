@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from urllib.parse import urlencode
 
 import oauthlib.common
@@ -83,6 +84,27 @@ class TestBasicLTILaunch:
             .count()
             == 1
         )
+
+    def test_basic_lti_launch_persists_due_date(
+        self, do_lti_launch, db_session, lti_params, sign_lti_params
+    ):
+        post_params = sign_lti_params(
+            dict(
+                lti_params,
+                url="https://due-date.com/document.pdf",
+                due_date="2026-07-01T12:00:00+00:00",
+                tool_consumer_info_product_family_code="canvas",
+            )
+        )
+
+        do_lti_launch(post_params=post_params, status=200)
+
+        assignment = (
+            db_session.query(Assignment)
+            .filter_by(document_url="https://due-date.com/document.pdf")
+            .one()
+        )
+        assert assignment.due_date == datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
 
     @pytest.fixture
     def assignment(self, db_session, application_instance, lti_params):

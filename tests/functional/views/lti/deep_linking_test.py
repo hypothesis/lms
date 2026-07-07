@@ -28,6 +28,7 @@ class TestDeepLinkingLaunch:
         js_config = get_client_config(response)
         assert js_config["mode"] == JSConfig.Mode.FILE_PICKER
         assert js_config["filePicker"] == {
+            "assignmentTypes": ["reading"],
             "autoGradingEnabled": True,
             "blackboard": {"enabled": None},
             "canvas": {
@@ -117,6 +118,24 @@ class TestDeepLinkingFieldsViews:
                 }
             ],
         }
+
+    def test_file_picker_to_form_fields_v11_with_due_date(
+        self, app, authorization_param
+    ):
+        response = app.post_json(
+            "/lti/1.1/deep_linking/form_fields",
+            params={
+                "content_item_return_url": "https://apps.imsglobal.org/lti/cert/tp/tp_return.php/basic-lti-launch-request",
+                "content": {"type": "url", "url": "https://example.com"},
+                "due_date": "2026-07-01T12:00:00+00:00",
+            },
+            headers={"Authorization": f"Bearer {authorization_param}"},
+            status=200,
+        )
+
+        content_items = json.loads(response.json["content_items"])
+        custom = content_items["@graph"][0]["custom"]
+        assert custom["due_date"] == "2026-07-01T12:00:00+00:00"
 
     @pytest.fixture
     def lti_user(self, application_instance, lti_params):

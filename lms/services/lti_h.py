@@ -1,7 +1,31 @@
 from h_api.bulk_api import CommandBuilder
 
-from lms.models import Grouping
+from lms.models import Assignment, Grouping
 from lms.services import HAPI
+
+
+def checkpoint_sync_data(assignment: Assignment | None, lti_user) -> dict | None:
+    """Build the checkpoint payload to sync to h for a Hide & Reveal assignment.
+
+    Returns None when the assignment is missing or doesn't have checkpoint
+    enabled, so callers can pass the result straight through to
+    `LTIHService.sync(..., checkpoint_data=...)`.
+
+    reveal_date is not sent — h is the source of truth for the reveal state.
+    h's upsert uses coalesce to preserve an existing reveal_date when NULL
+    is sent.
+    """
+    if not (assignment and assignment.checkpoint_enabled):
+        return None
+
+    role = "instructor" if lti_user.is_instructor else "student"
+    return {
+        "document_uri": assignment.document_url,
+        "user": {
+            "username": lti_user.h_user.username,
+            "role": role,
+        },
+    }
 
 
 class LTIHService:
@@ -25,7 +49,12 @@ class LTIHService:
         self._h_api: HAPI = request.find_service(HAPI)
         self._group_info_service = request.find_service(name="group_info")
 
-    def sync(self, groupings: list[Grouping], group_info_params: dict):
+    def sync(
+        self,
+        groupings: list[Grouping],
+        group_info_params: dict,
+        checkpoint_data: dict | None = None,
+    ) -> list[dict] | None:
         """
         Sync standard data to h for an LTI launch with the provided groups.
 
@@ -34,6 +63,9 @@ class LTIHService:
 
         :param groupings: groupings to sync to H
         :param group_info_params: params to add for each in `GroupInfo`
+        :param checkpoint_data: optional dict with document_uri and reveal_date
+            to sync a checkpoint for each grouping
+        :return: checkpoint results from h, or None
 
         :raise HTTPInternalServerError: if we can't sync to h for any reason
         :raise ApplicationInstanceNotFound: if
@@ -46,6 +78,10 @@ class LTIHService:
             self._group_info_service.upsert_group_info(
                 grouping=grouping, params=group_info_params
             )
+
+        if checkpoint_data:
+            return self._sync_checkpoints(groupings, checkpoint_data)
+        return None
 
     def _yield_commands(self, groupings):
         # Note! - Syncing a user to `h` currently has an implication for
@@ -75,6 +111,22 @@ class LTIHService:
                 ],
             },
             ref,
+        )
+
+    def _sync_checkpoints(
+        self, groupings: list[Grouping], checkpoint_data: dict
+    ) -> list[dict] | None:
+        checkpoints = [
+            {
+                "group_authority_provided_id": grouping.authority_provided_id,
+                "document_uri": checkpoint_data["document_uri"],
+            }
+            for grouping in groupings
+        ]
+
+        return self._h_api.sync_checkpoints(
+            checkpoints=checkpoints,
+            user=checkpoint_data.get("user"),
         )
 
     def _group_upsert(self, grouping, ref):

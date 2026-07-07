@@ -76,6 +76,23 @@ def deep_linking_launch(context, request):
     )
     request.find_service(name="lti_h").sync([course], request.params)
 
+    # A Canvas deep-linking "edit" launch carries no resource_link_id, but Canvas
+    # sends `custom_assignment_id`. Look up the existing assignment by the Canvas
+    # id we recorded on previous resource-link launches so the frontend treats
+    # this as an edit (skips the assignment-type workflow). None for a create or
+    # for any other LMS (they don't send this param).
+    assignment = None
+    canvas_assignment_id = request.lti_params.get("custom_assignment_id")
+    if canvas_assignment_id and not str(canvas_assignment_id).startswith("$"):
+        assignment = request.find_service(
+            name="assignment"
+        ).get_by_canvas_assignment_id(
+            tool_consumer_instance_guid=request.lti_params.get(
+                "tool_consumer_instance_guid"
+            ),
+            canvas_assignment_id=canvas_assignment_id,
+        )
+
     context.js_config.enable_file_picker_mode(
         form_action=request.parsed_params["content_item_return_url"],
         form_fields={
@@ -83,6 +100,7 @@ def deep_linking_launch(context, request):
             "lti_version": request.parsed_params["lti_version"],
         },
         course=course,
+        assignment=assignment,
         prompt_for_title=request.product.plugin.misc.deep_linking_prompt_for_title,
         prompt_for_gradable=request.product.plugin.misc.deep_linking_prompt_for_gradable(
             request.lti_user.application_instance
@@ -103,6 +121,9 @@ class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
     auto_grading_config = fields.Nested(
         AutoGradingConfigSchema, required=False, allow_none=True
     )
+    checkpoint_enabled = fields.Bool(required=False, load_default=False)
+    # ISO 8601 string, normalised to naive UTC on persist.
+    due_date = fields.Str(required=False, allow_none=True)
 
 
 class LTI11DeepLinkingFieldsRequestSchema(DeepLinkingFieldsRequestSchema):
@@ -279,6 +300,12 @@ class DeepLinkingFieldsViews:
         if auto_grading_config := request.parsed_params.get("auto_grading_config"):
             # Custom params must be str, encode these settings as JSON
             params["auto_grading_config"] = json.dumps(auto_grading_config)
+
+        if request.parsed_params.get("checkpoint_enabled"):
+            params["checkpoint_enabled"] = "true"
+
+        if due_date := request.parsed_params.get("due_date"):
+            params["due_date"] = due_date
 
         if content["type"] == "url":
             params["url"] = content["url"]

@@ -24,6 +24,39 @@ class TestAssignmentService:
     def test_get_assignment_without_match(self, svc, non_matching_params):
         assert svc.get_assignment(**non_matching_params) is None
 
+    def test_get_by_canvas_assignment_id(self, svc):
+        assignment = factories.Assignment(
+            tool_consumer_instance_guid="GUID",
+            extra={"canvas_assignment_id": "9714"},
+        )
+
+        assert (
+            svc.get_by_canvas_assignment_id(
+                tool_consumer_instance_guid="GUID", canvas_assignment_id="9714"
+            )
+            == assignment
+        )
+
+    @pytest.mark.parametrize(
+        "guid,canvas_id",
+        [
+            ("GUID", "OTHER"),  # right guid, wrong canvas id
+            ("OTHER", "9714"),  # wrong guid, right canvas id
+        ],
+    )
+    def test_get_by_canvas_assignment_id_without_match(self, svc, guid, canvas_id):
+        factories.Assignment(
+            tool_consumer_instance_guid="GUID",
+            extra={"canvas_assignment_id": "9714"},
+        )
+
+        assert (
+            svc.get_by_canvas_assignment_id(
+                tool_consumer_instance_guid=guid, canvas_assignment_id=canvas_id
+            )
+            is None
+        )
+
     def test_create_assignment(self, svc, db_session):
         assignment = svc.create_assignment(sentinel.guid, sentinel.resource_link_id)
 
@@ -138,6 +171,76 @@ class TestAssignmentService:
         assert not assignment.auto_grading_config
         assert not db_session.get(AutoGradingConfig, auto_grading_config.id)
 
+    def test_update_assignment_with_checkpoint(self, svc, pyramid_request, course):
+        assignment = factories.Assignment()
+
+        assignment = svc.update_assignment(
+            pyramid_request,
+            assignment,
+            sentinel.document_url,
+            sentinel.group_set_id,
+            course,
+            checkpoint_enabled=True,
+        )
+
+        assert assignment.checkpoint_enabled is True
+
+    def test_update_assignment_without_checkpoint(self, svc, pyramid_request, course):
+        assignment = factories.Assignment()
+
+        assignment = svc.update_assignment(
+            pyramid_request,
+            assignment,
+            sentinel.document_url,
+            sentinel.group_set_id,
+            course,
+            checkpoint_enabled=False,
+        )
+
+        assert assignment.checkpoint_enabled is False
+
+    def test_update_assignment_keeps_existing_checkpoint(
+        self, svc, pyramid_request, course
+    ):
+        assignment = factories.Assignment(checkpoint_enabled=True)
+
+        assignment = svc.update_assignment(
+            pyramid_request,
+            assignment,
+            sentinel.document_url,
+            sentinel.group_set_id,
+            course,
+            checkpoint_enabled=True,
+        )
+
+        assert assignment.checkpoint_enabled is True
+
+    @pytest.mark.parametrize(
+        "due_date,expected",
+        [
+            (None, None),
+            ("2026-07-01T12:00:00", datetime(2026, 7, 1, 12, 0, 0)),  # noqa: DTZ001
+            ("2026-07-01T12:00:00+02:00", datetime(2026, 7, 1, 10, 0, 0)),  # noqa: DTZ001
+            (
+                datetime(2026, 7, 1, 12, 0, 0),  # noqa: DTZ001
+                datetime(2026, 7, 1, 12, 0, 0),  # noqa: DTZ001
+            ),
+        ],
+    )
+    def test_update_assignment_with_due_date(
+        self, svc, pyramid_request, course, due_date, expected
+    ):
+        assignment = svc.update_assignment(
+            pyramid_request,
+            factories.Assignment(),
+            sentinel.document_url,
+            sentinel.group_set_id,
+            course,
+            due_date=due_date,
+        )
+
+        assert assignment.due_date == expected
+
     @pytest.mark.parametrize(
         "param",
         (
@@ -206,6 +309,26 @@ class TestAssignmentService:
         )
         assert assignment.is_gradable == misc_plugin.is_assignment_gradable.return_value
         assert assignment.course_id == course.id
+
+    def test_get_assignment_for_launch_sets_due_date(
+        self,
+        pyramid_request,
+        svc,
+        misc_plugin,
+        get_assignment,
+        _get_copied_from_assignment,  # noqa: PT019
+        course,
+    ):
+        misc_plugin.get_assignment_configuration.return_value = {
+            "document_url": sentinel.document_url,
+            "group_set_id": sentinel.group_set_id,
+            "due_date": "2026-07-01T12:00:00+00:00",
+        }
+        get_assignment.return_value = factories.Assignment()
+
+        assignment = svc.get_assignment_for_launch(pyramid_request, course)
+
+        assert assignment.due_date == datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
 
     def test_get_assignment_returns_None_with_when_no_document(
         self, pyramid_request, svc, misc_plugin, course

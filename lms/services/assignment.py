@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Sequence
+from datetime import UTC, datetime
 
 from sqlalchemy import Select, func, select, text
 from sqlalchemy.orm import Session
@@ -42,6 +43,30 @@ class AssignmentService:
             .one_or_none()
         )
 
+    def get_by_canvas_assignment_id(
+        self, tool_consumer_instance_guid, canvas_assignment_id
+    ):
+        """Get an assignment by the Canvas assignment id recorded in `extra`.
+
+        Canvas deep-linking "edit" launches don't carry a resource_link_id, but
+        they do send `custom_assignment_id`. We record that id in `extra` on
+        resource-link launches (see `_show_document`) so that a later edit can
+        find the existing assignment. Returns None when nothing matches (e.g. a
+        create, or an assignment not launched since this was introduced).
+        """
+        return (
+            self._db.query(Assignment)
+            .filter(
+                Assignment.tool_consumer_instance_guid == tool_consumer_instance_guid,
+                Assignment.extra["canvas_assignment_id"].astext
+                == str(canvas_assignment_id),
+            )
+            # Deterministic and crash-proof: never break the launch if, somehow,
+            # more than one row shares the id.
+            .order_by(Assignment.id.desc())
+            .first()
+        )
+
     def create_assignment(self, tool_consumer_instance_guid, resource_link_id):
         """Create a new assignment."""
 
@@ -62,6 +87,8 @@ class AssignmentService:
         group_set_id,
         course: Course,
         auto_grading_config: dict | None = None,
+        checkpoint_enabled: bool = False,  # noqa: FBT001, FBT002
+        due_date: str | datetime | None = None,
     ):
         """Update an existing assignment."""
         if self._misc_plugin.is_speed_grader_launch(request):
@@ -95,9 +122,25 @@ class AssignmentService:
         )
 
         assignment.course_id = course.id
+        assignment.due_date = self._normalize_due_date(due_date)
         self._update_auto_grading_config(assignment, auto_grading_config)
+        self._update_checkpoint(assignment, checkpoint_enabled)
 
         return assignment
+
+    @staticmethod
+    def _normalize_due_date(due_date: str | datetime | None) -> datetime | None:
+        """Parse a due date (ISO string or datetime) to naive UTC.
+
+        Matches the naive `due_date` column and lms's `utcnow()` comparisons.
+        """
+        if due_date is None:
+            return None
+        if isinstance(due_date, str):
+            due_date = datetime.fromisoformat(due_date)
+        if due_date.tzinfo is not None:
+            due_date = due_date.astimezone(UTC).replace(tzinfo=None)
+        return due_date
 
     def _get_copied_from_assignment(self, lti_params) -> Assignment | None:
         """Return the assignment that the current assignment was copied from."""
@@ -151,6 +194,8 @@ class AssignmentService:
         document_url = assignment_config.get("document_url")
         group_set_id = assignment_config.get("group_set_id")
         auto_grading_config = assignment_config.get("auto_grading_config")
+        checkpoint_enabled = assignment_config.get("checkpoint_enabled", False)
+        due_date = assignment_config.get("due_date")
 
         if not document_url:
             # We can't find a document_url, we shouldn't try to create an
@@ -181,7 +226,14 @@ class AssignmentService:
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
         return self.update_assignment(
-            request, assignment, document_url, group_set_id, course, auto_grading_config
+            request,
+            assignment,
+            document_url,
+            group_set_id,
+            course,
+            auto_grading_config,
+            checkpoint_enabled=checkpoint_enabled,
+            due_date=due_date,
         )
 
     def upsert_assignment_membership(
@@ -372,6 +424,19 @@ class AssignmentService:
             )
             .order_by(Grouping.lms_name.asc())
         ).all()
+
+    def _update_checkpoint(
+        self,
+        assignment: Assignment,
+        checkpoint_enabled: bool,  # noqa: FBT001
+    ) -> None:
+        """Mark an assignment as checkpoint_enabled.
+
+        Checkpoints can only be enabled at creation time -- once enabled
+        they are never disabled by an edit.
+        """
+        if checkpoint_enabled and not assignment.checkpoint_enabled:
+            assignment.checkpoint_enabled = True
 
     def _update_auto_grading_config(
         self, assignment: Assignment, auto_grading_config: dict | None

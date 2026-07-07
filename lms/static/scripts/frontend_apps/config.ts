@@ -2,6 +2,7 @@ import { createContext } from 'preact';
 import { useContext } from 'preact/hooks';
 
 import type { AutoGradingConfig } from './api-types';
+import type { AssignmentType } from './components/AssignmentTypeSelector';
 import type { AppLaunchServerErrorCode, OAuthServerErrorCode } from './errors';
 
 /**
@@ -48,6 +49,28 @@ export type StudentInfo = {
 };
 
 /**
+ * Configuration for a checkpoint shown in the instructor/student toolbars.
+ */
+export type CheckpointConfig = {
+  /** Whether the checkpoint has already been revealed. */
+  revealed: boolean;
+  /** ISO date string of when the checkpoint was revealed, or null. */
+  revealDate: string | null;
+  /** API path to call to reveal the checkpoint. */
+  revealUrl: string;
+};
+
+/**
+ * Data needed to render the checkpoint bar shown when a student views an
+ * assignment with Hide & Reveal enabled.
+ */
+export type StudentToolbarConfig = {
+  courseCheckpointConfig?: Pick<CheckpointConfig, 'revealed'>;
+  assignmentDueDate?: string | null;
+  assignmentCheckpointEnabled: boolean;
+};
+
+/**
  * Data needed to render the grading bar shown when an instructor views an assignment.
  */
 export type InstructorConfig = {
@@ -58,6 +81,9 @@ export type InstructorConfig = {
   acceptGradingComments: boolean;
   students: StudentInfo[] | null;
   scoreMaximum: number | null;
+  courseCheckpointConfig?: CheckpointConfig;
+  assignmentDueDate?: string | null;
+  assignmentCheckpointEnabled?: boolean;
 };
 
 /**
@@ -87,6 +113,15 @@ export type FilePickerConfig = {
   promptForTitle: boolean;
   promptForGradable: boolean;
   autoGradingEnabled: boolean;
+  /**
+   * The assignment types the instructor can choose from when configuring this
+   * assignment. The backend decides availability (e.g. via feature flags);
+   * `reading` is always present. When more than one type is offered, the file
+   * picker shows an initial "assignment type" selection step before the regular
+   * flow; with a single type that step is skipped. The backend that sets this
+   * is still pending, so it is optional for now.
+   */
+  assignmentTypes?: AssignmentType[];
   deepLinkingAPI?: APICallInfo;
   ltiLaunchUrl: string;
   blackboard: {
@@ -338,6 +373,7 @@ export type ConfigObject = {
     getConfig: APICallInfo;
   };
   instructorToolbar?: InstructorConfig;
+  studentToolbar?: StudentToolbarConfig;
   hypothesisClient?: ClientConfig;
   rpcServer?: {
     allowedOrigins: string[];

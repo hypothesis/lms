@@ -90,6 +90,58 @@ describe('InstructorToolbar', () => {
     );
   });
 
+  const courseCheckpointConfig = {
+    revealed: false,
+    revealDate: null,
+    revealUrl: '/api/assignments/1/checkpoint/reveal',
+  };
+
+  it('does not render the checkpoint bar when checkpoints are disabled', () => {
+    fakeInstructorToolbar.assignmentCheckpointEnabled = false;
+    fakeInstructorToolbar.courseCheckpointConfig = courseCheckpointConfig;
+    assert.isFalse(renderToolbar().exists('CheckpointBar'));
+  });
+
+  it('does not render the checkpoint bar without checkpoint config', () => {
+    // Without `courseCheckpointConfig` there is no reveal URL, so the bar (and
+    // its reveal button) must not render.
+    fakeInstructorToolbar.assignmentCheckpointEnabled = true;
+    assert.isFalse(renderToolbar().exists('CheckpointBar'));
+  });
+
+  it('does not render the checkpoint bar while waiting for sync', () => {
+    fakeInstructorToolbar.assignmentCheckpointEnabled = true;
+    fakeInstructorToolbar.courseCheckpointConfig = courseCheckpointConfig;
+    assert.isFalse(
+      renderToolbar({ waitingForSync: true }).exists('CheckpointBar'),
+    );
+  });
+
+  it('renders the checkpoint bar with the course config', () => {
+    fakeInstructorToolbar.assignmentCheckpointEnabled = true;
+    fakeInstructorToolbar.courseCheckpointConfig = courseCheckpointConfig;
+    fakeInstructorToolbar.assignmentDueDate = '2026-07-01T10:00:00';
+
+    const bar = renderToolbar().find('CheckpointBar');
+    assert.isTrue(bar.exists());
+    assert.deepEqual(bar.prop('checkpoint'), courseCheckpointConfig);
+    assert.equal(bar.prop('dueDate'), '2026-07-01T10:00:00');
+  });
+
+  it('prefers the sync checkpoint state over the course config', () => {
+    fakeInstructorToolbar.assignmentCheckpointEnabled = true;
+    fakeInstructorToolbar.courseCheckpointConfig = courseCheckpointConfig;
+
+    const bar = renderToolbar({
+      syncCheckpoint: { revealed: true, revealDate: '2026-07-05T10:00:00' },
+    }).find('CheckpointBar');
+    assert.deepEqual(bar.prop('checkpoint'), {
+      revealed: true,
+      revealDate: '2026-07-05T10:00:00',
+      revealUrl: courseCheckpointConfig.revealUrl,
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({

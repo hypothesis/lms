@@ -31,7 +31,9 @@ class TestSync:
             grading_student_id=sentinel.grading_student_id,
         )
         lti_h_service.sync.assert_called_once_with(
-            grouping_service.get_sections.return_value, sentinel.group_info
+            grouping_service.get_sections.return_value,
+            sentinel.group_info,
+            checkpoint_data=None,
         )
         assignment_service.get_assignment.assert_called_once_with(
             course.application_instance.tool_consumer_instance_guid,
@@ -42,7 +44,7 @@ class TestSync:
             groupings=grouping_service.get_groups.return_value,
         )
 
-        assert returned_ids == [
+        assert returned_ids["groups"] == [
             group.groupid(TEST_SETTINGS["h_authority"])
             for group in grouping_service.get_sections.return_value
         ]
@@ -73,7 +75,9 @@ class TestSync:
             group_set_id=course.get_mapped_group_set_id.return_value,
         )
         lti_h_service.sync.assert_called_once_with(
-            grouping_service.get_groups.return_value, sentinel.group_info
+            grouping_service.get_groups.return_value,
+            sentinel.group_info,
+            checkpoint_data=None,
         )
         assignment_service.get_assignment.assert_called_once_with(
             course.application_instance.tool_consumer_instance_guid,
@@ -84,7 +88,7 @@ class TestSync:
             groupings=grouping_service.get_groups.return_value,
         )
 
-        assert returned_ids == [
+        assert returned_ids["groups"] == [
             group.groupid(TEST_SETTINGS["h_authority"])
             for group in grouping_service.get_groups.return_value
         ]
@@ -137,7 +141,9 @@ class TestSync:
         )
 
         lti_h_service.sync.assert_called_once_with(
-            grouping_service.get_groups.return_value, sentinel.group_info
+            grouping_service.get_groups.return_value,
+            sentinel.group_info,
+            checkpoint_data=None,
         )
         assignment_service.get_assignment.assert_called_once_with(
             course.application_instance.tool_consumer_instance_guid,
@@ -148,7 +154,7 @@ class TestSync:
             groupings=grouping_service.get_groups.return_value,
         )
 
-        assert returned_ids == [
+        assert returned_ids["groups"] == [
             group.groupid(TEST_SETTINGS["h_authority"])
             for group in grouping_service.get_groups.return_value
         ]
@@ -179,6 +185,127 @@ class TestSync:
             grading_student_id=sentinel.grading_student_id,
             group_set_id=course.get_mapped_group_set_id.return_value,
         )
+
+    @pytest.mark.usefixtures("course_service")
+    def test_it_syncs_checkpoint_data_with_sections(
+        self,
+        pyramid_request,
+        grouping_service,
+        assignment_service,
+        lti_h_service,
+    ):
+        assignment = assignment_service.get_assignment.return_value
+        assignment.checkpoint_enabled = True
+        assignment.document_url = "https://example.com/doc"
+
+        sync(pyramid_request)
+
+        lti_h_service.sync.assert_called_once_with(
+            grouping_service.get_sections.return_value,
+            sentinel.group_info,
+            checkpoint_data={
+                "document_uri": "https://example.com/doc",
+                "user": {
+                    "username": pyramid_request.lti_user.h_user.username,
+                    "role": "student",
+                },
+            },
+        )
+
+    @pytest.mark.usefixtures("course_service", "user_is_instructor")
+    def test_it_syncs_checkpoint_data_with_instructor(
+        self,
+        pyramid_request,
+        grouping_service,
+        assignment_service,
+        lti_h_service,
+    ):
+        assignment = assignment_service.get_assignment.return_value
+        assignment.checkpoint_enabled = True
+        assignment.document_url = "https://example.com/doc"
+
+        sync(pyramid_request)
+
+        lti_h_service.sync.assert_called_once_with(
+            grouping_service.get_sections.return_value,
+            sentinel.group_info,
+            checkpoint_data={
+                "document_uri": "https://example.com/doc",
+                "user": {
+                    "username": pyramid_request.lti_user.h_user.username,
+                    "role": "instructor",
+                },
+            },
+        )
+
+    @pytest.mark.usefixtures("course_copy_plugin", "course_service")
+    def test_it_syncs_checkpoint_data_with_groups(
+        self,
+        pyramid_request,
+        grouping_service,
+        assignment_service,
+        lti_h_service,
+    ):
+        pyramid_request.parsed_params["group_set_id"] = sentinel.group_set_id
+        assignment = assignment_service.get_assignment.return_value
+        assignment.checkpoint_enabled = True
+        assignment.document_url = "https://example.com/doc"
+
+        sync(pyramid_request)
+
+        lti_h_service.sync.assert_called_once_with(
+            grouping_service.get_groups.return_value,
+            sentinel.group_info,
+            checkpoint_data={
+                "document_uri": "https://example.com/doc",
+                "user": {
+                    "username": pyramid_request.lti_user.h_user.username,
+                    "role": "student",
+                },
+            },
+        )
+
+    @pytest.mark.usefixtures("grouping_service", "course_service")
+    def test_it_returns_checkpoint_state_from_h(
+        self,
+        pyramid_request,
+        assignment_service,
+        lti_h_service,
+    ):
+        assignment = assignment_service.get_assignment.return_value
+        assignment.checkpoint_enabled = True
+        assignment.document_url = "https://example.com/doc"
+        lti_h_service.sync.return_value = [
+            {"revealed": True, "reveal_date": "2026-07-01T12:00:00"}
+        ]
+
+        result = sync(pyramid_request)
+
+        assert result["checkpoint"] == {
+            "revealed": True,
+            "revealDate": "2026-07-01T12:00:00",
+        }
+
+    @pytest.mark.usefixtures("grouping_service", "course_service")
+    def test_it_omits_checkpoint_state_when_h_returns_no_results(
+        self,
+        pyramid_request,
+        assignment_service,
+        lti_h_service,
+    ):
+        assignment = assignment_service.get_assignment.return_value
+        assignment.checkpoint_enabled = True
+        assignment.document_url = "https://example.com/doc"
+        lti_h_service.sync.return_value = None
+
+        result = sync(pyramid_request)
+
+        assert "checkpoint" not in result
+
+    @pytest.fixture
+    def assignment_service(self, assignment_service):
+        assignment_service.get_assignment.return_value.checkpoint_enabled = False
+        return assignment_service
 
     @pytest.fixture
     def grouping_service(self, grouping_service):

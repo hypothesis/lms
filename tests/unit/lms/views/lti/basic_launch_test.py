@@ -3,7 +3,7 @@ from unittest.mock import patch, sentinel
 
 import pytest
 
-from lms.models import LTIParams
+from lms.models import Grouping, LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.security import Permissions
@@ -80,6 +80,8 @@ class TestBasicLaunchViews:
             group_set_id=sentinel.group_set,
             course=course_service.get_from_launch.return_value,
             auto_grading_config=sentinel.auto_grading_config,
+            checkpoint_enabled=False,
+            due_date=None,
         )
         _show_document.assert_called_once_with(
             assignment_service.create_assignment.return_value,
@@ -283,7 +285,9 @@ class TestBasicLaunchViews:
         result = svc._show_document(assignment)  # noqa: SLF001
 
         lti_h_service.sync.assert_called_once_with(
-            [course_service.get_from_launch.return_value], pyramid_request.lti_params
+            [course_service.get_from_launch.return_value],
+            pyramid_request.lti_params,
+            checkpoint_data=None,
         )
 
         assignment_service.upsert_assignment_membership.assert_called_once_with(
@@ -395,6 +399,92 @@ class TestBasicLaunchViews:
                 )
 
         assert result == {}
+
+    @pytest.mark.usefixtures("pyramid_request")
+    def test__show_document_enables_checkpoint_toolbar_for_instructor(
+        self, svc, request, context
+    ):
+        request.getfixturevalue("user_is_instructor")
+        assignment = factories.Assignment(checkpoint_enabled=True)
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        context.js_config.enable_toolbar_checkpoint.assert_called_once()
+        context.js_config.enable_student_checkpoint.assert_not_called()
+
+    @pytest.mark.usefixtures("pyramid_request")
+    def test__show_document_passes_h_revealed_for_course_grouping(
+        self, svc, request, context, lti_h_service, grouping_service
+    ):
+        request.getfixturevalue("user_is_instructor")
+        grouping_service.get_launch_grouping_type.return_value = Grouping.Type.COURSE
+        lti_h_service.sync.return_value = [
+            {"revealed": True, "reveal_date": "2026-07-01T12:00:00"}
+        ]
+        assignment = factories.Assignment(checkpoint_enabled=True)
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        context.js_config.enable_toolbar_checkpoint.assert_called_once_with(
+            assignment, h_revealed=True, h_reveal_date="2026-07-01T12:00:00"
+        )
+
+    @pytest.mark.usefixtures("pyramid_request")
+    def test__show_document_passes_h_revealed_false_when_no_result_revealed(
+        self, svc, request, context, lti_h_service, grouping_service
+    ):
+        request.getfixturevalue("user_is_instructor")
+        grouping_service.get_launch_grouping_type.return_value = Grouping.Type.COURSE
+        lti_h_service.sync.return_value = [{"revealed": False}]
+        assignment = factories.Assignment(checkpoint_enabled=True)
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        context.js_config.enable_toolbar_checkpoint.assert_called_once_with(
+            assignment, h_revealed=False, h_reveal_date=None
+        )
+
+    @pytest.mark.usefixtures("pyramid_request")
+    def test__show_document_enables_student_checkpoint_for_student(self, svc, context):
+        assignment = factories.Assignment(checkpoint_enabled=True)
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        context.js_config.enable_student_checkpoint.assert_called_once()
+        context.js_config.enable_toolbar_checkpoint.assert_not_called()
+
+    @pytest.mark.usefixtures("pyramid_request")
+    def test__show_document_no_checkpoint_config_without_checkpoint(self, svc, context):
+        assignment = factories.Assignment(checkpoint_enabled=False)
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        context.js_config.enable_toolbar_checkpoint.assert_not_called()
+        context.js_config.enable_student_checkpoint.assert_not_called()
+
+    @pytest.mark.usefixtures("lti_h_service", "assignment_service", "course_service")
+    def test__show_document_records_canvas_assignment_id(
+        self, svc, pyramid_request, assignment
+    ):
+        pyramid_request.lti_params["custom_assignment_id"] = "9714"
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        assert assignment.extra["canvas_assignment_id"] == "9714"
+
+    @pytest.mark.usefixtures("lti_h_service", "assignment_service", "course_service")
+    @pytest.mark.parametrize("value", [None, "$Canvas.assignment.id"])
+    def test__show_document_ignores_invalid_canvas_assignment_id(
+        self, svc, pyramid_request, assignment, value
+    ):
+        # None = non-Canvas LMS (no such param); "$..." = Canvas didn't substitute
+        # the variable. Neither should be recorded.
+        if value is not None:
+            pyramid_request.lti_params["custom_assignment_id"] = value
+
+        svc._show_document(assignment)  # noqa: SLF001
+
+        assert "canvas_assignment_id" not in assignment.extra
 
     @pytest.fixture
     def assignment(self):

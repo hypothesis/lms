@@ -131,11 +131,41 @@ describe('BasicLTILaunchApp', () => {
     });
 
     it('passes the groups array from api call to rpcServer.setGroups', async () => {
-      const groups = await fakeApiCall.resolves(['group1', 'group2']);
+      const groups = await fakeApiCall.resolves({
+        groups: ['group1', 'group2'],
+      });
       renderLTILaunchApp();
       await groups;
       assert.calledWith(fakeRpcServer.setGroups, ['group1', 'group2']);
     });
+
+    it('passes checkpoint state from the sync response to the toolbars', async () => {
+      const checkpoint = { revealed: true, revealDate: '2026-07-01T00:00:00' };
+      fakeApiCall.resolves({ groups: ['group1'], checkpoint });
+
+      const wrapper = renderLTILaunchApp();
+      await waitFor(() => {
+        wrapper.update();
+        return (
+          wrapper.find('InstructorToolbar').prop('syncCheckpoint') !== null
+        );
+      });
+
+      assert.deepEqual(
+        wrapper.find('InstructorToolbar').prop('syncCheckpoint'),
+        checkpoint,
+      );
+      assert.deepEqual(
+        wrapper.find('StudentToolbar').prop('syncCheckpoint'),
+        checkpoint,
+      );
+    });
+  });
+
+  it('renders the instructor and student toolbars', () => {
+    const wrapper = renderLTILaunchApp();
+    assert.isTrue(wrapper.exists('InstructorToolbar'));
+    assert.isTrue(wrapper.exists('StudentToolbar'));
   });
 
   context('when a content URL callback is provided in the config', () => {
