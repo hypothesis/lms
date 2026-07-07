@@ -77,13 +77,19 @@ def deep_linking_launch(context, request):
     request.find_service(name="lti_h").sync([course], request.params)
 
     # A Canvas deep-linking "edit" launch carries no resource_link_id, but Canvas
-    # sends `custom_assignment_id`. Look up the existing assignment by the Canvas
+    # sends an assignment identifier: `custom_assignment_id` on LTI 1.3 and
+    # `ext_lti_assignment_id` on LTI 1.1. Look up the existing assignment by the
     # id we recorded on previous resource-link launches so the frontend treats
     # this as an edit (skips the assignment-type workflow). None for a create or
-    # for any other LMS (they don't send this param).
-    assignment = None
+    # for any other LMS (they don't send these).
     canvas_assignment_id = request.lti_params.get("custom_assignment_id")
-    if canvas_assignment_id and not str(canvas_assignment_id).startswith("$"):
+    if canvas_assignment_id and str(canvas_assignment_id).startswith("$"):
+        # Unsubstituted placeholder like "$Canvas.assignment.id".
+        canvas_assignment_id = None
+    ext_lti_assignment_id = request.lti_params.get("ext_lti_assignment_id")
+
+    assignment = None
+    if canvas_assignment_id or ext_lti_assignment_id:
         assignment = request.find_service(
             name="assignment"
         ).get_by_canvas_assignment_id(
@@ -91,6 +97,7 @@ def deep_linking_launch(context, request):
                 "tool_consumer_instance_guid"
             ),
             canvas_assignment_id=canvas_assignment_id,
+            ext_lti_assignment_id=ext_lti_assignment_id,
         )
 
     context.js_config.enable_file_picker_mode(

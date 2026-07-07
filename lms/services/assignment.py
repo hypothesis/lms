@@ -2,7 +2,7 @@ import logging
 from collections.abc import Sequence
 from datetime import UTC, datetime
 
-from sqlalchemy import Select, func, select, text
+from sqlalchemy import Select, func, or_, select, text
 from sqlalchemy.orm import Session
 
 from lms.models import (
@@ -44,22 +44,45 @@ class AssignmentService:
         )
 
     def get_by_canvas_assignment_id(
-        self, tool_consumer_instance_guid, canvas_assignment_id
+        self,
+        tool_consumer_instance_guid,
+        canvas_assignment_id=None,
+        ext_lti_assignment_id=None,
     ):
-        """Get an assignment by the Canvas assignment id recorded in `extra`.
+        """Get an assignment by a Canvas assignment identifier recorded in `extra`.
 
-        Canvas deep-linking "edit" launches don't carry a resource_link_id, but
-        they do send `custom_assignment_id`. We record that id in `extra` on
-        resource-link launches (see `_show_document`) so that a later edit can
-        find the existing assignment. Returns None when nothing matches (e.g. a
-        create, or an assignment not launched since this was introduced).
+        Canvas deep-linking "edit" launches don't carry a resource_link_id, so we
+        can't find the assignment the usual way. Instead we match on a Canvas
+        assignment identifier we recorded in `extra` on earlier resource-link
+        launches (see `_show_document`):
+
+        - LTI 1.3 sends ``custom_assignment_id`` (a numeric id).
+        - LTI 1.1 sends ``ext_lti_assignment_id`` (a UUID); Canvas does *not*
+          send ``custom_assignment_id`` there.
+
+        We match whichever identifier(s) the edit launch provides. Returns None
+        when nothing matches (e.g. a create, or an assignment not launched since
+        this was introduced).
         """
+        conditions = []
+        if canvas_assignment_id:
+            conditions.append(
+                Assignment.extra["canvas_assignment_id"].astext
+                == str(canvas_assignment_id)
+            )
+        if ext_lti_assignment_id:
+            conditions.append(
+                Assignment.extra["ext_lti_assignment_id"].astext
+                == str(ext_lti_assignment_id)
+            )
+        if not conditions:
+            return None
+
         return (
             self._db.query(Assignment)
             .filter(
                 Assignment.tool_consumer_instance_guid == tool_consumer_instance_guid,
-                Assignment.extra["canvas_assignment_id"].astext
-                == str(canvas_assignment_id),
+                or_(*conditions),
             )
             # Deterministic and crash-proof: never break the launch if, somehow,
             # more than one row shares the id.
