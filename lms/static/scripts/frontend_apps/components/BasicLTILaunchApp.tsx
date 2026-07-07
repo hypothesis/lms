@@ -110,14 +110,15 @@ export default function BasicLTILaunchApp() {
   // the app's access to the user's files in the LMS.
   const authWindow = useRef<AuthWindow | null>(null);
 
+  // Whether the client-side sync (sections/groups) has completed.
+  const [syncComplete, setSyncComplete] = useState(!syncAPICallInfo);
+
   // Checkpoint state from h, updated after the client-side sync resolves
   // the actual groupings (sections/canvas groups).
   const [syncCheckpoint, setSyncCheckpoint] = useState<
     SyncResponse['checkpoint'] | null
   >(null);
 
-  // Whether a client-side sync is pending (sections/groups assignments).
-  const waitingForSync = syncAPICallInfo && syncCheckpoint === null;
 
   const contentReady = !!contentURL;
 
@@ -183,9 +184,8 @@ export default function BasicLTILaunchApp() {
           data: syncAPICallInfo.data,
         });
         clientRPC.setGroups(groups);
-        if (checkpoint) {
-          setSyncCheckpoint(checkpoint);
-        }
+        setSyncCheckpoint(checkpoint ?? null);
+        setSyncComplete(true);
         success = true;
       } catch (e) {
         handleError(
@@ -368,11 +368,11 @@ export default function BasicLTILaunchApp() {
       >
         <InstructorToolbar
           syncCheckpoint={syncCheckpoint}
-          waitingForSync={waitingForSync}
+          syncComplete={syncComplete}
         />
         <StudentToolbar
           syncCheckpoint={syncCheckpoint}
-          waitingForSync={waitingForSync}
+          syncComplete={syncComplete}
         />
         <ContentFrame url={contentURL ?? ''} />
       </div>

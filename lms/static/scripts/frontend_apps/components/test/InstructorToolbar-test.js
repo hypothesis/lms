@@ -113,7 +113,7 @@ describe('InstructorToolbar', () => {
     fakeInstructorToolbar.assignmentCheckpointEnabled = true;
     fakeInstructorToolbar.courseCheckpointConfig = courseCheckpointConfig;
     assert.isFalse(
-      renderToolbar({ waitingForSync: true }).exists('CheckpointBar'),
+      renderToolbar({ syncComplete: false }).exists('CheckpointBar'),
     );
   });
 

@@ -17,10 +17,10 @@ type SyncCheckpoint = {
  */
 export default function InstructorToolbar({
   syncCheckpoint,
-  waitingForSync,
+  syncComplete,
 }: {
   syncCheckpoint?: SyncCheckpoint | null;
-  waitingForSync?: boolean;
+  syncComplete?: boolean;
 }) {
   const { instructorToolbar } = useConfig();
   if (!instructorToolbar) {
@@ -45,7 +45,7 @@ export default function InstructorToolbar({
   // `revealUrl` is required to reveal and only arrives with that config, so
   // without it we must not render a reveal button that would POST to an empty
   // URL.
-  const showCheckpoint = assignmentCheckpointEnabled && !waitingForSync;
+  const showCheckpoint = assignmentCheckpointEnabled && syncComplete;
 
   const withGradingControls = gradingEnabled && !!students;
 

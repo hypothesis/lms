@@ -36,7 +36,7 @@ describe('StudentToolbar', () => {
   });
 
   it('renders nothing while waiting for sync', () => {
-    assert.isFalse(status(render({ waitingForSync: true })).exists());
+    assert.isFalse(status(render({ syncComplete: false })).exists());
   });
 
   it('shows annotations as hidden when not revealed', () => {
