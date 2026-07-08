@@ -2,7 +2,9 @@
 
 import itertools
 import json
+import random
 import re
+import time
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -13,6 +15,9 @@ from h_api.bulk_api import BulkAPI, CommandBuilder
 from lms.models import HUser
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
+
+RETRYABLE_STATUSES = {429, 503}
+MAX_ATTEMPTS = 3
 
 
 class AnnotationCounts(TypedDict):
@@ -287,6 +292,9 @@ class HAPI:
         :param body: the body to send as a string (without modification)
         :param headers: extra headers to pass with the request
 
+        Requests that fail with a retryable status (429 or 503) are retried
+        with a short backoff, up to MAX_ATTEMPTS attempts in total.
+
         :raise HAPIError: if the request fails for any other reason
         :return: the response from the h API
         :rtype: requests.Response
@@ -298,20 +306,37 @@ class HAPI:
         if body is not None:
             request_args["data"] = body
 
-        try:
-            response = self._http_service.request(
-                method=method,
-                url=self._base_url + path.lstrip("/"),
-                auth=self._http_auth,
-                headers=headers,
-                stream=stream,
-                timeout=(60, 60),
-                **request_args,
-            )
-        except ExternalRequestError as err:
-            raise HAPIError("Connecting to Hypothesis failed", err.response) from err  # noqa: EM101, TRY003
+        attempt = 0
+        while True:
+            attempt += 1
+            try:
+                response = self._http_service.request(
+                    method=method,
+                    url=self._base_url + path.lstrip("/"),
+                    auth=self._http_auth,
+                    headers=headers,
+                    stream=stream,
+                    timeout=(60, 60),
+                    **request_args,
+                )
+            except ExternalRequestError as err:
+                status = err.response.status_code if err.response is not None else None
 
-        return response
+                if status not in RETRYABLE_STATUSES or attempt >= MAX_ATTEMPTS:
+                    raise HAPIError(  # noqa: TRY003
+                        "Connecting to Hypothesis failed",  # noqa: EM101
+                        err.response,
+                    ) from err
+
+                retry_after = (err.response.headers or {}).get("Retry-After")
+                delay = (
+                    float(retry_after)
+                    if retry_after
+                    else 0.5 * 2 ** (attempt - 1) + random.uniform(0, 0.2)  # noqa: S311
+                )
+                time.sleep(min(delay, 2.0))
+            else:
+                return response
 
     def get_userid(self, username):
         """Return the h userid for the given username and authority."""

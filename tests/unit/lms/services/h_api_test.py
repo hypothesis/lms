@@ -382,6 +382,81 @@ class TestHAPI:
         # It records the requests exception that caused the HAPIError.
         assert exc_info.value.__cause__ == exception
 
+    @pytest.mark.parametrize("status_code", [429, 503])
+    def test__api_request_retries_retryable_statuses_then_succeeds(
+        self, h_api, http_service, time, status_code
+    ):
+        response = factories.requests.Response(status_code=200)
+        http_service.request.side_effect = [
+            ExternalRequestError(
+                response=factories.requests.Response(status_code=status_code)
+            ),
+            response,
+        ]
+
+        result = h_api._api_request(sentinel.method, "dummy-path")  # noqa: SLF001
+
+        assert result == response
+        assert http_service.request.call_count == 2
+        # The first retry backs off 0.5s plus jitter (random.uniform => 0.1).
+        time.sleep.assert_called_once_with(0.6)
+
+    @pytest.mark.parametrize("status_code", [429, 503])
+    def test__api_request_raises_HAPIError_when_retries_are_exhausted(
+        self, h_api, http_service, time, status_code
+    ):
+        http_service.request.side_effect = [
+            ExternalRequestError(
+                response=factories.requests.Response(status_code=status_code)
+            )
+            for _ in range(3)
+        ]
+
+        with pytest.raises(HAPIError):
+            h_api._api_request(sentinel.method, "dummy-path")  # noqa: SLF001
+
+        assert http_service.request.call_count == 3
+        # Exponential backoff: 0.5s then 1s, plus jitter (random.uniform => 0.1).
+        assert time.sleep.call_args_list == [call(0.6), call(1.1)]
+
+    @pytest.mark.parametrize(
+        "retry_after,expected_delay",
+        [
+            # It sleeps for the number of seconds given by the Retry-After
+            # header, capped at 2s.
+            ("1.5", 1.5),
+            ("30", 2.0),
+        ],
+    )
+    def test__api_request_honors_the_Retry_After_header(
+        self, h_api, http_service, time, retry_after, expected_delay
+    ):
+        http_service.request.side_effect = [
+            ExternalRequestError(
+                response=factories.requests.Response(
+                    status_code=429, headers={"Retry-After": retry_after}
+                )
+            ),
+            factories.requests.Response(status_code=200),
+        ]
+
+        h_api._api_request(sentinel.method, "dummy-path")  # noqa: SLF001
+
+        time.sleep.assert_called_once_with(expected_delay)
+
+    def test__api_request_does_not_retry_non_retryable_statuses(
+        self, h_api, http_service, time
+    ):
+        http_service.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(status_code=400)
+        )
+
+        with pytest.raises(HAPIError):
+            h_api._api_request(sentinel.method, "dummy-path")  # noqa: SLF001
+
+        assert http_service.request.call_count == 1
+        time.sleep.assert_not_called()
+
     def test__api_request_raises_other_exceptions_normally(self, h_api, http_service):
         http_service.request.side_effect = OSError()
 
@@ -401,6 +476,16 @@ class TestHAPI:
     @pytest.fixture
     def BulkAPI(self, patch):
         return patch("lms.services.h_api.BulkAPI")
+
+    @pytest.fixture
+    def random(self, patch):
+        random = patch("lms.services.h_api.random")
+        random.uniform.return_value = 0.1
+        return random
+
+    @pytest.fixture
+    def time(self, patch, random):  # noqa: ARG002
+        return patch("lms.services.h_api.time")
 
     @pytest.fixture
     def h_api(self, http_service):
