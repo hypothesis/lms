@@ -37,6 +37,48 @@ class TestAssignmentService:
             == assignment
         )
 
+    def test_get_by_canvas_assignment_id_via_ext_lti_assignment_id(self, svc):
+        # LTI 1.1 launches identify the assignment with `ext_lti_assignment_id`
+        # rather than `custom_assignment_id`.
+        assignment = factories.Assignment(
+            tool_consumer_instance_guid="GUID",
+            extra={"ext_lti_assignment_id": "a4c7af3a-uuid"},
+        )
+
+        assert (
+            svc.get_by_canvas_assignment_id(
+                tool_consumer_instance_guid="GUID",
+                ext_lti_assignment_id="a4c7af3a-uuid",
+            )
+            == assignment
+        )
+
+    def test_get_by_canvas_assignment_id_matches_either_id(self, svc):
+        # Passing both ids matches an assignment that has either one recorded.
+        assignment = factories.Assignment(
+            tool_consumer_instance_guid="GUID",
+            extra={"ext_lti_assignment_id": "a4c7af3a-uuid"},
+        )
+
+        assert (
+            svc.get_by_canvas_assignment_id(
+                tool_consumer_instance_guid="GUID",
+                canvas_assignment_id="9714",
+                ext_lti_assignment_id="a4c7af3a-uuid",
+            )
+            == assignment
+        )
+
+    def test_get_by_canvas_assignment_id_without_any_id(self, svc):
+        factories.Assignment(
+            tool_consumer_instance_guid="GUID",
+            extra={"canvas_assignment_id": "9714"},
+        )
+
+        assert (
+            svc.get_by_canvas_assignment_id(tool_consumer_instance_guid="GUID") is None
+        )
+
     @pytest.mark.parametrize(
         "guid,canvas_id",
         [

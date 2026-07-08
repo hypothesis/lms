@@ -113,7 +113,7 @@ describe('InstructorToolbar', () => {
     fakeInstructorToolbar.assignmentCheckpointEnabled = true;
     fakeInstructorToolbar.courseCheckpointConfig = courseCheckpointConfig;
     assert.isFalse(
-      renderToolbar({ waitingForSync: true }).exists('CheckpointBar'),
+      renderToolbar({ syncComplete: false }).exists('CheckpointBar'),
     );
   });
 
@@ -122,7 +122,7 @@ describe('InstructorToolbar', () => {
     fakeInstructorToolbar.courseCheckpointConfig = courseCheckpointConfig;
     fakeInstructorToolbar.assignmentDueDate = '2026-07-01T10:00:00';
 
-    const bar = renderToolbar().find('CheckpointBar');
+    const bar = renderToolbar({ syncComplete: true }).find('CheckpointBar');
     assert.isTrue(bar.exists());
     assert.deepEqual(bar.prop('checkpoint'), courseCheckpointConfig);
     assert.equal(bar.prop('dueDate'), '2026-07-01T10:00:00');
@@ -133,6 +133,7 @@ describe('InstructorToolbar', () => {
     fakeInstructorToolbar.courseCheckpointConfig = courseCheckpointConfig;
 
     const bar = renderToolbar({
+      syncComplete: true,
       syncCheckpoint: { revealed: true, revealDate: '2026-07-05T10:00:00' },
     }).find('CheckpointBar');
     assert.deepEqual(bar.prop('checkpoint'), {

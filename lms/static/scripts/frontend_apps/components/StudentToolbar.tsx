@@ -9,17 +9,17 @@ type SyncCheckpoint = {
 
 export default function StudentToolbar({
   syncCheckpoint,
-  waitingForSync,
+  syncComplete,
 }: {
   syncCheckpoint?: SyncCheckpoint | null;
-  waitingForSync?: boolean;
+  syncComplete?: boolean;
 }) {
   const { studentToolbar } = useConfig();
   if (!studentToolbar?.assignmentCheckpointEnabled) {
     return null;
   }
 
-  if (waitingForSync) {
+  if (!syncComplete) {
     return null;
   }
 
