@@ -331,7 +331,8 @@ class HAPI:
                 retry_after = (err.response.headers or {}).get("Retry-After")
                 delay = (
                     float(retry_after)
-                    if retry_after
+                    # Retry-After can also be an HTTP-date, which we ignore.
+                    if retry_after and retry_after.replace(".", "", 1).isdigit()
                     else 0.5 * 2 ** (attempt - 1) + random.uniform(0, 0.2)  # noqa: S311
                 )
                 time.sleep(min(delay, 2.0))

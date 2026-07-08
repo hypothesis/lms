@@ -426,6 +426,9 @@ class TestHAPI:
             # header, capped at 2s.
             ("1.5", 1.5),
             ("30", 2.0),
+            # Retry-After can also be an HTTP-date, which we ignore and fall
+            # back on the default backoff (0.5s plus jitter).
+            ("Wed, 08 Jul 2026 12:00:00 GMT", 0.6),
         ],
     )
     def test__api_request_honors_the_Retry_After_header(
