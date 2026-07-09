@@ -12,8 +12,8 @@ export type AssignmentType = 'reading' | 'hide_and_reveal';
 
 /** Human-readable label shown in the selector for each assignment type. */
 const ASSIGNMENT_TYPE_LABELS: Record<AssignmentType, string> = {
-  reading: 'Social annotation',
-  hide_and_reveal: 'Guided Social annotation',
+  reading: 'Social Annotation',
+  hide_and_reveal: 'Paced Social Annotation',
 };
 
 /** Short description shown under each option's label. */
