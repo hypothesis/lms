@@ -19,7 +19,10 @@ describe('RevealAnnotationsButton', () => {
   };
 
   beforeEach(() => {
-    fakeApiCall = sinon.stub().resolves({ reveal_date: '2026-07-02T10:00:00' });
+    fakeApiCall = sinon.stub().resolves({
+      // h returns timezone-aware datetimes with an explicit offset.
+      reveal_date: '2026-07-02T10:00:00.622705+00:00',
+    });
     fakeConfig = { api: { authToken: 'dummyAuthToken' } };
 
     // Keep `Button`/`ModalDialog` real so the click-through works; only mock
@@ -57,6 +60,23 @@ describe('RevealAnnotationsButton', () => {
     });
     assert.isTrue(wrapper.exists('[data-testid="checkpoint-revealed"]'));
     assert.isFalse(wrapper.exists('[data-testid="reveal-annotations-button"]'));
+  });
+
+  it('formats reveal dates that have an explicit timezone offset', () => {
+    // Regression test: h returns timezone-aware datetimes
+    // ("2026-07-01T10:00:00+00:00"). Blindly appending "Z" produced an
+    // invalid date and `formatDateTime` threw, freezing the whole app.
+    const wrapper = render({
+      ...checkpoint,
+      revealed: true,
+      revealDate: '2026-07-01T10:00:00.622705+00:00',
+    });
+
+    const banner = wrapper.find('[data-testid="checkpoint-revealed"]');
+    assert.isTrue(banner.exists());
+    assert.notInclude(banner.text(), 'Invalid');
+    // The formatted date should include the year.
+    assert.include(banner.text(), '2026');
   });
 
   it('shows the revealed state without a reveal date', () => {

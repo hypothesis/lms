@@ -8,6 +8,7 @@ import { useCallback, useRef, useState } from 'preact/hooks';
 import type { CheckpointConfig } from '../config';
 import { useConfig } from '../config';
 import { apiCall } from '../utils/api';
+import { assumeUTC } from '../utils/date';
 import ErrorDisplay from './ErrorDisplay';
 
 export type RevealAnnotationsButtonProps = {
@@ -63,11 +64,7 @@ export default function RevealAnnotationsButton({
       >
         Annotations revealed on
         <br className="md:hidden" />{' '}
-        {revealDate
-          ? formatDateTime(
-              revealDate.endsWith('Z') ? revealDate : revealDate + 'Z',
-            )
-          : ''}
+        {revealDate ? formatDateTime(assumeUTC(revealDate)) : ''}
       </span>
     );
   }
