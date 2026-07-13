@@ -41,12 +41,18 @@ export default function RevealAnnotationsButton({
     setBusy(true);
     setError(null);
     try {
-      const result = await apiCall<{ reveal_date: string }>({
+      // h is the source of truth for reveal state, so take it from the
+      // response rather than assuming the request succeeding means the
+      // annotations were revealed.
+      const result = await apiCall<{
+        revealed: boolean;
+        reveal_date: string | null;
+      }>({
         authToken,
         path: checkpoint.revealUrl,
         data: {},
       });
-      setRevealed(true);
+      setRevealed(result.revealed);
       setRevealDate(result.reveal_date);
       setShowModal(false);
     } catch (err) {

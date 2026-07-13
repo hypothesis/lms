@@ -140,9 +140,11 @@ class TestRevealCheckpoint:
         )
 
     @pytest.mark.usefixtures("user_is_instructor")
-    def test_it_returns_null_reveal_date_when_no_result_revealed(
+    def test_it_reports_not_revealed_when_h_revealed_nothing(
         self, pyramid_request, assignment_service, h_api
     ):
+        # h is the source of truth for reveal state: if it reveals nothing, we
+        # must not tell the toolbar the annotations were revealed.
         assignment = self._assignment_with_checkpoint(
             pyramid_request.lti_user.application_instance_id
         )
@@ -152,11 +154,11 @@ class TestRevealCheckpoint:
 
         result = reveal_checkpoint(pyramid_request)
 
-        assert result["revealed"] is True
+        assert result["revealed"] is False
         assert result["reveal_date"] is None
 
     @pytest.mark.usefixtures("user_is_instructor")
-    def test_it_returns_null_reveal_date_when_h_returns_no_results(
+    def test_it_reports_not_revealed_when_h_returns_no_results(
         self, pyramid_request, assignment_service, h_api
     ):
         # reveal_checkpoints is typed list | None; guard against the None case.
@@ -169,7 +171,7 @@ class TestRevealCheckpoint:
 
         result = reveal_checkpoint(pyramid_request)
 
-        assert result == {"revealed": True, "reveal_date": None}
+        assert result == {"revealed": False, "reveal_date": None}
 
     @pytest.mark.usefixtures("user_is_instructor")
     def test_it_returns_404_when_no_groupings(

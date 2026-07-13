@@ -20,6 +20,7 @@ describe('RevealAnnotationsButton', () => {
 
   beforeEach(() => {
     fakeApiCall = sinon.stub().resolves({
+      revealed: true,
       // h returns timezone-aware datetimes with an explicit offset.
       reveal_date: '2026-07-02T10:00:00.622705+00:00',
     });
@@ -118,6 +119,23 @@ describe('RevealAnnotationsButton', () => {
       path: checkpoint.revealUrl,
       data: {},
     });
+  });
+
+  it('stays unrevealed when the backend reports nothing was revealed', async () => {
+    // h is the source of truth. A 200 response doesn't mean a checkpoint was
+    // revealed -- if h revealed nothing, the toolbar must not claim otherwise.
+    fakeApiCall.resolves({ revealed: false, reveal_date: null });
+    const wrapper = render();
+    clickButton(wrapper, 'reveal-annotations-button');
+    clickButton(wrapper, 'confirm-reveal-button');
+
+    await waitFor(() => {
+      wrapper.update();
+      return !wrapper.exists('[data-testid="confirm-reveal-button"]');
+    });
+
+    assert.isFalse(wrapper.exists('[data-testid="checkpoint-revealed"]'));
+    assert.isTrue(wrapper.exists('[data-testid="reveal-annotations-button"]'));
   });
 
   it('shows an error and keeps the modal open if revealing fails', async () => {
