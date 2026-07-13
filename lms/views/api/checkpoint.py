@@ -69,12 +69,14 @@ def reveal_checkpoint(request):
         checkpoints=checkpoints,
     )
 
-    # Return the reveal date from h's response
+    # Report h's answer
     reveal_date = None
+    revealed = False
     if results:
         for result in results:
             if result.get("revealed"):
+                revealed = True
                 reveal_date = result.get("reveal_date")
                 break
 
-    return {"revealed": True, "reveal_date": reveal_date}
+    return {"revealed": revealed, "reveal_date": reveal_date}
