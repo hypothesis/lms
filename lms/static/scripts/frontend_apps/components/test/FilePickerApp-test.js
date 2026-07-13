@@ -147,6 +147,20 @@ describe('FilePickerApp', () => {
     }
 
     /**
+     * Stand in for the browser's constraint validation on the due-date input.
+     *
+     * `DueDateSelector` is mocked here, so the real `<input>` — and with it the
+     * `validity` the browser maintains — never exists. The mock still receives
+     * the ref, so populating it simulates an input the browser considers
+     * invalid (e.g. `badInput`, set when a `datetime-local` is only partly
+     * filled in).
+     */
+    function setInputValidity(wrapper, valid) {
+      const { inputRef } = wrapper.find('DueDateSelector').first().props();
+      inputRef.current = { reportValidity: () => valid };
+    }
+
+    /**
      * Local `datetime-local` string (`YYYY-MM-DDTHH:MM`) `days` from now
      * (negative for the past).
      */
@@ -240,6 +254,40 @@ describe('FilePickerApp', () => {
       clickNext(wrapper);
       assert.isTrue(wrapper.exists('DueDateSelector'));
       assert.isFalse(wrapper.exists('ContentSelector'));
+    });
+
+    it('blocks the due-date step when the date is incomplete', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
+      clickNext(wrapper); // -> due-date
+      assert.isTrue(wrapper.exists('DueDateSelector'));
+
+      // A partly-filled `datetime-local` (say, no AM/PM) reads back as the
+      // empty string, so the component is handed `null` — which is otherwise
+      // the legal "left blank". Only the input knows it is in a bad state.
+      setInputValidity(wrapper, false);
+      setDueDate(wrapper, null);
+
+      clickNext(wrapper);
+      assert.isTrue(wrapper.exists('DueDateSelector'));
+      assert.isFalse(wrapper.exists('ContentSelector'));
+    });
+
+    it('leaves the due-date step when no date is entered', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
+      clickNext(wrapper); // -> due-date
+
+      // The due date is optional, so an empty (and valid) input advances.
+      setInputValidity(wrapper, true);
+
+      clickNext(wrapper);
+      assert.isFalse(wrapper.exists('DueDateSelector'));
+      assert.isTrue(wrapper.exists('ContentSelector'));
     });
 
     it('leaves the due-date step when the date is in the future', () => {

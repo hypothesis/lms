@@ -128,6 +128,14 @@ function contentFromURL(url: string): Content {
   return { type: 'url', url };
 }
 
+function localDateTime(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  );
+}
+
 /**
  * Fetch additional configuration needed by the file picker app.
  *
@@ -289,15 +297,9 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   // local `datetime-local` string (`YYYY-MM-DDTHH:MM`); it's converted to UTC
   // on submit.
   const dueDateInputRef = useRef<HTMLInputElement | null>(null);
-  const minDueDate = useMemo(() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  }, []);
+  // Recomputed on each render rather than memoized on mount, so "now" cannot go
+  // stale while the picker sits open.
+  const minDueDate = localDateTime(new Date());
 
   // A checkpoint ("Hide & Reveal") assignment is being created when the
   // instructor picked that type in the workflow. This drives the
@@ -313,14 +315,27 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   // further steps (checkpoint, due-date); other types go straight to the
   // regular flow.
   const goToNextWorkflowStep = () => {
-    // Block leaving the due-date step while a date has been entered but isn't in
-    // the future. An empty value is allowed since the due date is optional.
-    // `datetime-local` strings (`YYYY-MM-DDTHH:MM`) compare lexicographically,
-    // so a plain string comparison against the minimum (now) is correct.
-    if (workflowStep === 'due-date' && dueDate && dueDate < minDueDate) {
-      // Surface the input's native validation message (driven by its `min`).
-      dueDateInputRef.current?.reportValidity();
-      return;
+    if (workflowStep === 'due-date') {
+      const input = dueDateInputRef.current;
+
+      // A partly-filled `datetime-local` (say, one missing its AM/PM) reads
+      // back as the empty string, so `dueDate` is null here — indistinguishable
+      // from the legal "left blank". Only the input itself can tell them apart,
+      // via the `badInput` its validity carries.
+      if (input && !input.reportValidity()) {
+        return;
+      }
+
+      // Block leaving the step while a date has been entered but isn't in the
+      // future. An empty value is allowed since the due date is optional.
+      // `datetime-local` strings (`YYYY-MM-DDTHH:MM`) compare
+      // lexicographically, so a plain string comparison against the minimum
+      // (now) is correct.
+      if (dueDate && dueDate < minDueDate) {
+        // Surface the input's native validation message (driven by its `min`).
+        input?.reportValidity();
+        return;
+      }
     }
     // From 'checkpoint' the next step is 'due-date'; from 'due-date' (the last
     // step) the workflow is done. The 'assignment-type' step has no "Next" — it
