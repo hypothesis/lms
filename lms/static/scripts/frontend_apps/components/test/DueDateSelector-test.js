@@ -28,10 +28,17 @@ describe('DueDateSelector', () => {
       .find('option')
       .map(option => option.prop('value'));
 
-  const changeDate = (wrapper, value) =>
+  // Each helper re-renders before returning. The change handlers close over
+  // the current date and time, so acting twice against a stale wrapper would
+  // run the second change with the values from before the first one.
+  const changeDate = (wrapper, value) => {
     act(() => dateInput(wrapper).props().onChange({ target: { value } }));
-  const changeTime = (wrapper, value) =>
+    wrapper.update();
+  };
+  const changeTime = (wrapper, value) => {
     act(() => timeInput(wrapper).props().onChange({ target: { value } }));
+    wrapper.update();
+  };
 
   it('splits the selected due date across the date and time fields', () => {
     const wrapper = createComponent('2026-06-11T14:30');
