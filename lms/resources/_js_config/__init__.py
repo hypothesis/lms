@@ -450,7 +450,7 @@ class JSConfig:
     def _get_assignment_types(self) -> list[str]:
         """Return the assignment types the instructor can choose from.
 
-        `reading` is always available. The "Hide & Reveal" (Guided Social
+        `reading` is always available. The "Hide & Reveal" (Paced Social
         annotation) type is gated by the per-install `hypothesis.hide_and_reveal`
         feature flag.
         """
