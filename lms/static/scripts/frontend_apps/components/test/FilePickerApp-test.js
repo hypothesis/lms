@@ -147,17 +147,30 @@ describe('FilePickerApp', () => {
     }
 
     /**
-     * Stand in for the browser's constraint validation on the due-date input.
+     * Stand in for the browser's constraint validation on the due-date inputs.
      *
-     * `DueDateSelector` is mocked here, so the real `<input>` — and with it the
-     * `validity` the browser maintains — never exists. The mock still receives
-     * the ref, so populating it simulates an input the browser considers
-     * invalid (e.g. `badInput`, set when a `datetime-local` is only partly
-     * filled in).
+     * `DueDateSelector` is mocked here, so the real `<input>`s — and with them
+     * the `validity` the browser maintains — never exist. The mock still
+     * receives the refs, so populating them simulates inputs the browser
+     * considers invalid (e.g. `valueMissing`, set on either field when only
+     * the other one has been filled in).
+     *
+     * `time` defaults to `date` so the common "both fields agree" case reads
+     * as a single argument.
      */
-    function setInputValidity(wrapper, valid) {
-      const { inputRef } = wrapper.find('DueDateSelector').first().props();
-      inputRef.current = { reportValidity: () => valid };
+    function setInputValidity(wrapper, date, time = date) {
+      const { inputRef, timeInputRef } = wrapper
+        .find('DueDateSelector')
+        .first()
+        .props();
+      inputRef.current = {
+        reportValidity: () => date,
+        checkValidity: () => date,
+      };
+      timeInputRef.current = {
+        reportValidity: () => time,
+        checkValidity: () => time,
+      };
     }
 
     /**
@@ -264,10 +277,27 @@ describe('FilePickerApp', () => {
       clickNext(wrapper); // -> due-date
       assert.isTrue(wrapper.exists('DueDateSelector'));
 
-      // A partly-filled `datetime-local` (say, no AM/PM) reads back as the
-      // empty string, so the component is handed `null` — which is otherwise
-      // the legal "left blank". Only the input knows it is in a bad state.
+      // A partly-typed date reads back as the empty string, so the component
+      // is handed `null` — which is otherwise the legal "left blank". Only the
+      // input knows it is in a bad state.
       setInputValidity(wrapper, false);
+      setDueDate(wrapper, null);
+
+      clickNext(wrapper);
+      assert.isTrue(wrapper.exists('DueDateSelector'));
+      assert.isFalse(wrapper.exists('ContentSelector'));
+    });
+
+    it('blocks the due-date step when a date is picked but no time', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
+      clickNext(wrapper); // -> due-date
+
+      // The date is valid on its own, but the time it requires is missing, so
+      // the combined value is `null` and only the time input is invalid.
+      setInputValidity(wrapper, true, false);
       setDueDate(wrapper, null);
 
       clickNext(wrapper);
@@ -340,10 +370,10 @@ describe('FilePickerApp', () => {
       assert.equal(cardTitle(), 'Assignment mode');
 
       selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
-      assert.equal(cardTitle(), 'Guided Social Annotation');
+      assert.equal(cardTitle(), 'Paced Social Annotation');
 
       clickNext(wrapper); // -> due-date
-      assert.equal(cardTitle(), 'Guided Social Annotation');
+      assert.equal(cardTitle(), 'Paced Social Annotation');
 
       clickNext(wrapper); // -> regular flow
       assert.equal(cardTitle(), 'Assignment details');
@@ -360,7 +390,7 @@ describe('FilePickerApp', () => {
       clickNext(wrapper); // -> due-date
       assert.isTrue(wrapper.exists('DueDateSelector'));
 
-      // The header exposes a close handler during the Guided sub-steps.
+      // The header exposes a close handler during the Paced sub-steps.
       const onClose = wrapper.find('CardHeader').prop('onClose');
       assert.isFunction(onClose);
       interact(wrapper, () => onClose());
