@@ -165,12 +165,13 @@ describe('FilePickerApp', () => {
         .props();
       inputRef.current = {
         reportValidity: () => date,
-        checkValidity: () => date,
+        setCustomValidity: sinon.stub(),
       };
       timeInputRef.current = {
         reportValidity: () => time,
-        checkValidity: () => time,
+        setCustomValidity: sinon.stub(),
       };
+      return { dateInput: inputRef.current, timeInput: timeInputRef.current };
     }
 
     /**
@@ -267,6 +268,30 @@ describe('FilePickerApp', () => {
       clickNext(wrapper);
       assert.isTrue(wrapper.exists('DueDateSelector'));
       assert.isFalse(wrapper.exists('ContentSelector'));
+    });
+
+    it('explains a due date that is no longer in the future', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
+      clickNext(wrapper); // -> due-date
+
+      // Both fields are natively valid — the date is a real date and the time
+      // dropdown has a selection — but the value they add up to has fallen
+      // into the past, which only the combined comparison can see. Blocking
+      // without a message would leave the instructor stuck.
+      const { timeInput } = setInputValidity(wrapper, true);
+      setDueDate(wrapper, dueDateFromNow(-1));
+
+      clickNext(wrapper);
+      assert.isTrue(wrapper.exists('DueDateSelector'));
+      assert.calledWith(
+        timeInput.setCustomValidity,
+        'The due date must be in the future.',
+      );
+      // The message is cleared so it cannot outlive the value that caused it.
+      assert.calledWith(timeInput.setCustomValidity, '');
     });
 
     it('blocks the due-date step when the date is incomplete', () => {

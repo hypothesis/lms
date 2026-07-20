@@ -341,14 +341,16 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       // lexicographically, so a plain string comparison against the minimum
       // (now) is correct.
       if (dueDate && dueDate < minDueDate) {
-        // Surface the native validation message. A past time on today's date
-        // makes the *time* input invalid (via its `min`), so report there
-        // first; otherwise the message would be attached to a valid date
-        // field and nothing would be shown.
-        if (timeInput && !timeInput.checkValidity()) {
+        // The date field's `min` rejects past dates and the dropdown disables
+        // past times, so this is only reached when the clock passes a time
+        // that was still in the future when it was picked. Neither field is
+        // natively invalid then, so state the problem rather than blocking
+        // with no explanation. The message is cleared immediately so it does
+        // not outlive the value that caused it.
+        if (timeInput) {
+          timeInput.setCustomValidity('The due date must be in the future.');
           timeInput.reportValidity();
-        } else {
-          dateInput?.reportValidity();
+          timeInput.setCustomValidity('');
         }
         return;
       }
