@@ -1,9 +1,46 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
 import virtual from '@rollup/plugin-virtual';
+
+const FRONTEND_SHARED = 'node_modules/@hypothesis/frontend-shared';
+const FRONTEND_SHARED_DEEP_IMPORT = '@hypothesis/frontend-shared/lib/';
+
+/**
+ * Resolve `@hypothesis/frontend-shared/lib/...` imports to the files on disk.
+ *
+ * The UI playground reaches into the package for `pattern-library` and its
+ * `Library` component, but the package's `exports` map only publishes
+ * `.` and `./pattern-library`. Node (and so `@rollup/plugin-node-resolve`)
+ * refuses the deeper paths, and Rollup then leaves them as bare imports the
+ * browser cannot load, breaking the playground bundle at runtime.
+ *
+ * Only the playground uses these paths, so the app bundles are unaffected.
+ */
+function resolveFrontendSharedDeepImports() {
+  return {
+    name: 'resolve-frontend-shared-deep-imports',
+    resolveId(source) {
+      if (!source.startsWith(FRONTEND_SHARED_DEEP_IMPORT)) {
+        return null;
+      }
+
+      const subPath = source.slice('@hypothesis/frontend-shared/'.length);
+      const base = path.resolve(FRONTEND_SHARED, subPath);
+
+      const candidate = [base, `${base}.js`, path.join(base, 'index.js')].find(
+        file => fs.existsSync(file) && fs.statSync(file).isFile(),
+      );
+
+      return candidate ?? null;
+    },
+  };
+}
 
 const isProd = process.env.NODE_ENV === 'production';
 const prodPlugins = [];
@@ -46,6 +83,7 @@ function bundleConfig(name, entryFile) {
         exclude: 'node_modules/**',
         extensions: ['.js', '.ts', '.tsx'],
       }),
+      resolveFrontendSharedDeepImports(),
       nodeResolve({
         extensions: ['.js', '.ts', '.tsx'],
       }),
