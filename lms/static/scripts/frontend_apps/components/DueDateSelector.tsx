@@ -2,7 +2,11 @@ import { IconButton, InfoIcon, Popover } from '@hypothesis/frontend-shared';
 import type { Ref } from 'preact';
 import { useId, useRef, useState } from 'preact/hooks';
 
-/** Split a `YYYY-MM-DDTHH:MM` string into its date and time halves. */
+const TIME_STEP_MINUTES = 30;
+const MINUTES_PER_DAY = 24 * 60;
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
 function splitDateTime(value: string | null): [string, string] {
   if (!value) {
     return ['', ''];
@@ -11,18 +15,11 @@ function splitDateTime(value: string | null): [string, string] {
   return [date, time];
 }
 
-/** Interval between the times offered in the dropdown, in minutes. */
-const TIME_STEP_MINUTES = 30;
-
-const MINUTES_PER_DAY = 24 * 60;
-
-const pad = (n: number) => String(n).padStart(2, '0');
-
 /** Format a 24-hour `HH:MM` time for display, e.g. `13:30` -> `1:30 PM`. */
 function formatTime(time: string): string {
   const [hours, minutes] = time.split(':').map(Number);
   const period = hours < 12 ? 'AM' : 'PM';
-  // Both midnight (0) and noon (12) display as 12.
+  // Midnight (0) and noon (12) both display as 12.
   const hour12 = hours % 12 || 12;
   return `${hour12}:${pad(minutes)} ${period}`;
 }
@@ -30,10 +27,9 @@ function formatTime(time: string): string {
 /**
  * The `HH:MM` times offered in the dropdown, every `TIME_STEP_MINUTES`.
  *
- * `include` adds a time that isn't on that grid, keeping an already-saved due
- * date selectable: assignments created before this dropdown existed (or
- * through another tool) can hold any minute, and dropping it would silently
- * change the assignment's due date.
+ * `include` adds a time that isn't on that grid. A due date saved before this
+ * dropdown existed can hold any minute, and dropping it from the options would
+ * silently change the assignment's due date.
  */
 function timeOptions(include?: string): string[] {
   const times = [];
@@ -62,19 +58,15 @@ export type DueDateSelectorProps = {
   dueDate: string | null;
   onChange: (dueDate: string | null) => void;
 
-  /**
-   * Earliest selectable value as a `datetime-local` string
-   * (`YYYY-MM-DDTHH:MM`). Used to enforce that the due date, when set, is in
-   * the future.
-   */
+  /** Earliest selectable value, as a `YYYY-MM-DDTHH:MM` string. */
   min?: string;
 
   /** Ref to the date input, used by the parent to validate it. */
   inputRef?: Ref<HTMLInputElement>;
 
   /**
-   * Ref to the time dropdown. The date and time are separately constrained, so
-   * the parent has to check both to catch a half-entered or past due date.
+   * Ref to the time dropdown. Each field carries its own constraints, so the
+   * parent checks both.
    */
   timeInputRef?: Ref<HTMLSelectElement>;
 };
@@ -84,8 +76,8 @@ export type DueDateSelectorProps = {
  * date, the point at which annotations are no longer tallied in auto grading.
  *
  * The date and time are picked in separate fields (as in Canvas), but the
- * component still reports a single combined `YYYY-MM-DDTHH:MM` value, so the
- * parent keeps working with one string.
+ * component reports a single combined `YYYY-MM-DDTHH:MM` value, so the parent
+ * keeps working with one string.
  */
 export default function DueDateSelector({
   dueDate,
@@ -98,10 +90,9 @@ export default function DueDateSelector({
   const dateLabelId = useId();
   const timeLabelId = useId();
 
-  // The two fields can be filled in either order, so a time may be entered
-  // before a date. The parent only stores the *combined* value (null until
-  // both halves exist), so the half-entered state has to live here or the
-  // typed time would vanish on re-render.
+  // The fields can be filled in either order, and the parent only stores the
+  // combined value (null until both halves exist), so the half-entered state
+  // has to live here or a lone time would vanish on re-render.
   const [dateValue, setDateValue] = useState(() => splitDateTime(dueDate)[0]);
   const [timeValue, setTimeValue] = useState(() => splitDateTime(dueDate)[1]);
 
@@ -112,14 +103,12 @@ export default function DueDateSelector({
   const infoIconRef = useRef<HTMLButtonElement | null>(null);
   const [infoPopoverOpen, setInfoPopoverOpen] = useState(false);
 
-  // A due date needs both halves. Reporting null while only one is filled
-  // keeps the value the parent submits well-formed.
   const emit = (date: string, time: string) =>
     onChange(date && time ? `${date}T${time}` : null);
 
   const onDateChange = (date: string) => {
     // Clearing the date unsets the due date as a whole, so the time goes with
-    // it rather than lingering as an orphaned value.
+    // it rather than lingering on its own.
     const time = date ? timeValue : '';
 
     setDateValue(date);
@@ -133,7 +122,7 @@ export default function DueDateSelector({
   };
 
   // Mirrors the shared `Input` component's base classes (`inputStyles`), which
-  // does not support `type="date"`/`type="time"`. `touch:text-at-least-16px`
+  // does not support `type="date"` or `select`. `touch:text-at-least-16px`
   // prevents iOS zoom-on-focus.
   const inputClasses =
     'focus-visible:ring focus-visible:outline-none ring-inset border rounded p-2 bg-grey-0 focus:bg-white disabled:bg-grey-1 placeholder:text-grey-6 disabled:placeholder:text-grey-7 touch:text-at-least-16px';
@@ -164,8 +153,11 @@ export default function DueDateSelector({
           Optional — if set, it must be a future date and time.
         </Popover>
       </div>
-      {/* Stacks on very narrow screens, side by side (as in Canvas) otherwise. */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-x-4">
+      <div
+        role="group"
+        aria-labelledby={headingId}
+        className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-x-4"
+      >
         <div className="flex items-center gap-x-2">
           <label id={dateLabelId} htmlFor={`${dateLabelId}-input`}>
             Due date
@@ -176,9 +168,9 @@ export default function DueDateSelector({
             data-testid="due-date-input"
             ref={inputRef}
             min={minDate || undefined}
-            // A time on its own is not a due date. Marking the date required
-            // in that case lets the parent's `reportValidity()` catch it,
-            // rather than silently dropping the time the instructor entered.
+            // Each field is required once the other is filled, so a
+            // half-entered due date fails validation instead of being read as
+            // the legal "left blank".
             required={!!timeValue}
             className={inputClasses}
             value={dateValue}
@@ -193,9 +185,6 @@ export default function DueDateSelector({
             id={`${timeLabelId}-input`}
             data-testid="due-date-time-input"
             ref={timeInputRef}
-            // A date with no time is incomplete rather than "no due date", so
-            // the instructor is warned instead of the time being guessed for
-            // them.
             required={!!dateValue}
             className={inputClasses}
             value={timeValue}
@@ -206,9 +195,8 @@ export default function DueDateSelector({
               <option
                 key={time}
                 value={time}
-                // On the earliest selectable date, times before the minimum are
-                // in the past. On any later date every time of day is still in
-                // the future, so nothing is disabled.
+                // Only the earliest selectable date can hold past times; on any
+                // later date every time of day is still in the future.
                 disabled={dateValue === minDate && time < minTime}
               >
                 {formatTime(time)}

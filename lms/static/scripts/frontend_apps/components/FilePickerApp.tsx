@@ -291,13 +291,10 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   const [checkpointType, setCheckpointType] =
     useState<CheckpointType>('manual');
   const [dueDate, setDueDate] = useState<string | null>(null);
-  // The due date is optional, but when set it must be in the future. We enforce
-  // this with the input's native `min` (the current local date-time) plus a
-  // `reportValidity()` check before leaving the due-date step. The value is a
-  // local `datetime-local` string (`YYYY-MM-DDTHH:MM`); it's converted to UTC
-  // on submit.
-  // The date and time are picked in separate fields, each with its own native
-  // constraints, so both are checked before leaving the step.
+  // The due date is optional, but when set it must be in the future. The date
+  // and time are picked in separate fields, each carrying its own native
+  // constraints, so both are checked before leaving the due-date step. The
+  // value is a local `YYYY-MM-DDTHH:MM` string, converted to UTC on submit.
   const dueDateInputRef = useRef<HTMLInputElement | null>(null);
   const dueTimeInputRef = useRef<HTMLSelectElement | null>(null);
   // Recomputed on each render rather than memoized on mount, so "now" cannot go
@@ -322,12 +319,9 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       const dateInput = dueDateInputRef.current;
       const timeInput = dueTimeInputRef.current;
 
-      // A half-entered due date (one field filled and not the other, or a
-      // partly-typed value) leaves `dueDate` null here — indistinguishable
-      // from the legal "left blank". Only the inputs themselves can tell them
-      // apart, via the `valueMissing`/`badInput` their validity carries. Each
-      // field is `required` once the other is filled, so checking both is what
-      // makes a date without a time a warning rather than a silent skip.
+      // A half-entered due date leaves `dueDate` null here, indistinguishable
+      // from the legal "left blank". Only the fields themselves know, via the
+      // `required` each carries once the other is filled.
       if (dateInput && !dateInput.reportValidity()) {
         return;
       }
@@ -341,12 +335,11 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       // lexicographically, so a plain string comparison against the minimum
       // (now) is correct.
       if (dueDate && dueDate < minDueDate) {
-        // The date field's `min` rejects past dates and the dropdown disables
-        // past times, so this is only reached when the clock passes a time
-        // that was still in the future when it was picked. Neither field is
-        // natively invalid then, so state the problem rather than blocking
-        // with no explanation. The message is cleared immediately so it does
-        // not outlive the value that caused it.
+        // Reached only when the clock passes a time that was still in the
+        // future when it was picked, since the date's `min` and the dropdown's
+        // disabled options rule out the rest. Neither field is natively
+        // invalid then, so say why rather than blocking with no explanation.
+        // The message is cleared so it cannot outlive the value behind it.
         if (timeInput) {
           timeInput.setCustomValidity('The due date must be in the future.');
           timeInput.reportValidity();
