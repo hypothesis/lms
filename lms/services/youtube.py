@@ -1,8 +1,31 @@
+import re
+from urllib.parse import urlparse
+
 from lms.services.exceptions import SerializableError
 from lms.services.http import HTTPService
 
 YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3"
 """YouTube's API base URL"""
+
+# Regex to extract YouTube video ID (same URL patterns as frontend utils/youtube.ts)
+_YOUTUBE_VIDEO_ID_RE = re.compile(
+    r"(?:youtu\.be/|v/|u/\w/|embed/|shorts/|live/|watch\?v=|&v=)([^#&?]*)",
+    re.IGNORECASE,
+)
+
+
+def video_id_from_url(url: str) -> str | None:
+    """Return the YouTube video ID if url is a YouTube URL, else None."""
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            return None
+        if parsed.netloc.lower() not in ("www.youtube.com", "youtube.com", "youtu.be"):
+            return None
+        match = _YOUTUBE_VIDEO_ID_RE.search(url)
+        return match.group(1) if match and match.group(1) else None
+    except (ValueError, AttributeError):
+        return None
 
 
 class VideoNotFound(SerializableError):  # noqa: N818

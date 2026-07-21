@@ -19,6 +19,7 @@ from lms.models import (
     User,
 )
 from lms.services.course import CourseService
+from lms.services.document_uri import initial_document_uri
 from lms.services.upsert import bulk_upsert
 
 LOG = logging.getLogger(__name__)
@@ -121,7 +122,15 @@ class AssignmentService:
             #   https://github.com/instructure/canvas-lms/issues/1952
             return assignment
 
+        document_url_changed = assignment.document_url != document_url
         assignment.document_url = document_url
+        if document_url_changed or not assignment.document_uri:
+            # The h document identity follows the document. File content gets
+            # None here: its PDF fingerprint is computed at launch (see
+            # `ensure_checkpoint_fingerprint`).
+            assignment.document_uri = initial_document_uri(
+                request, document_url, course.application_instance
+            )
         assignment.extra["group_set_id"] = group_set_id
 
         # Metadata based on the launch

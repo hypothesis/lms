@@ -41,6 +41,14 @@ def reveal_checkpoint(request):
         message = "Assignment or checkpoint not found"
         raise HTTPNotFound(message)
 
+    # The checkpoint in h is keyed by the document's identity there
+    # (assignment.document_uri), not by our internal document_url. If we
+    # haven't resolved one, no checkpoint can have been synced, so there's
+    # nothing to reveal.
+    if not assignment.document_uri:
+        message = "Assignment or checkpoint not found"
+        raise HTTPNotFound(message)
+
     # Reveal directly in h — h is the source of truth for reveal state.
     h_api = request.find_service(HAPI)
     # If the assignment has section/group groupings, only reveal those —
@@ -56,7 +64,7 @@ def reveal_checkpoint(request):
     checkpoints = [
         {
             "group_authority_provided_id": grouping.authority_provided_id,
-            "document_uri": assignment.document_url,
+            "document_uri": assignment.document_uri,
         }
         for grouping in reveal_groupings
     ]

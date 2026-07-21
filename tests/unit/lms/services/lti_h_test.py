@@ -5,7 +5,7 @@ from h_api.bulk_api import CommandBuilder
 
 from lms.models import Grouping
 from lms.services import HAPIError
-from lms.services.lti_h import LTIHService
+from lms.services.lti_h import LTIHService, checkpoint_sync_data
 from tests import factories
 
 
@@ -100,3 +100,46 @@ class TestSync:
     @pytest.fixture
     def grouping(self):
         return create_autospec(Grouping, instance=True, spec_set=True)
+
+
+class TestCheckpointSyncData:
+    def test_it(self, lti_user):
+        assignment = factories.Assignment(
+            checkpoint_enabled=True, document_uri="https://example.com/doc"
+        )
+
+        assert checkpoint_sync_data(assignment, lti_user) == {
+            "document_uri": "https://example.com/doc",
+            "user": {
+                "username": lti_user.h_user.username,
+                "role": "student",
+            },
+        }
+
+    @pytest.mark.usefixtures("user_is_instructor")
+    def test_it_with_instructor(self, lti_user):
+        assignment = factories.Assignment(
+            checkpoint_enabled=True, document_uri="https://example.com/doc"
+        )
+
+        assert checkpoint_sync_data(assignment, lti_user)["user"]["role"] == (
+            "instructor"
+        )
+
+    def test_it_returns_None_without_an_assignment(self, lti_user):
+        assert checkpoint_sync_data(None, lti_user) is None
+
+    def test_it_returns_None_when_checkpoint_is_not_enabled(self, lti_user):
+        assignment = factories.Assignment(
+            checkpoint_enabled=False, document_uri="https://example.com/doc"
+        )
+
+        assert checkpoint_sync_data(assignment, lti_user) is None
+
+    def test_it_returns_None_when_the_document_uri_is_not_known(self, lti_user):
+        # E.g. a file assignment whose PDF fingerprint hasn't been computed
+        # yet: syncing our internal document_url instead would create an h
+        # document no annotation ever matches.
+        assignment = factories.Assignment(checkpoint_enabled=True, document_uri=None)
+
+        assert checkpoint_sync_data(assignment, lti_user) is None
