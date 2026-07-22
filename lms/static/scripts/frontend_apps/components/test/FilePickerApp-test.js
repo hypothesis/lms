@@ -260,6 +260,21 @@ describe('FilePickerApp', () => {
       assert.called(handle.validate);
     });
 
+    it('anchors the earliest selectable due date to the present', () => {
+      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+      const wrapper = renderFilePicker();
+
+      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
+      clickNext(wrapper); // -> due-date
+
+      // The selector rejects anything below `min` (past dates, past times on
+      // the current day); pinning `min` to "now" is the parent's half of the
+      // "no due dates in the past" rule.
+      const { min } = wrapper.find('DueDateSelector').first().props();
+      assert.isTrue(min <= dueDateFromNow(0));
+      assert.isTrue(min > dueDateFromNow(-1));
+    });
+
     it('leaves the due-date step when the selector reports a valid value', () => {
       fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
       const wrapper = renderFilePicker();
