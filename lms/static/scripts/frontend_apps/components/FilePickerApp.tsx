@@ -291,12 +291,12 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   const [checkpointType, setCheckpointType] =
     useState<CheckpointType>('manual');
   const [dueDate, setDueDate] = useState<string | null>(null);
-  // The due date is optional, but when set it must be in the future. We enforce
-  // this with the input's native `min` (the current local date-time) plus a
-  // `reportValidity()` check before leaving the due-date step. The value is a
-  // local `datetime-local` string (`YYYY-MM-DDTHH:MM`); it's converted to UTC
-  // on submit.
+  // The due date is optional, but when set it must be in the future. The date
+  // and time are picked in separate fields, each carrying its own native
+  // constraints, so both are checked before leaving the due-date step. The
+  // value is a local `YYYY-MM-DDTHH:MM` string, converted to UTC on submit.
   const dueDateInputRef = useRef<HTMLInputElement | null>(null);
+  const dueTimeInputRef = useRef<HTMLSelectElement | null>(null);
   // Recomputed on each render rather than memoized on mount, so "now" cannot go
   // stale while the picker sits open.
   const minDueDate = localDateTime(new Date());
@@ -316,13 +316,16 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   // regular flow.
   const goToNextWorkflowStep = () => {
     if (workflowStep === 'due-date') {
-      const input = dueDateInputRef.current;
+      const dateInput = dueDateInputRef.current;
+      const timeInput = dueTimeInputRef.current;
 
-      // A partly-filled `datetime-local` (say, one missing its AM/PM) reads
-      // back as the empty string, so `dueDate` is null here — indistinguishable
-      // from the legal "left blank". Only the input itself can tell them apart,
-      // via the `badInput` its validity carries.
-      if (input && !input.reportValidity()) {
+      // A half-entered due date leaves `dueDate` null here, indistinguishable
+      // from the legal "left blank". Only the fields themselves know, via the
+      // `required` each carries once the other is filled.
+      if (dateInput && !dateInput.reportValidity()) {
+        return;
+      }
+      if (timeInput && !timeInput.reportValidity()) {
         return;
       }
 
@@ -332,8 +335,16 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       // lexicographically, so a plain string comparison against the minimum
       // (now) is correct.
       if (dueDate && dueDate < minDueDate) {
-        // Surface the input's native validation message (driven by its `min`).
-        input?.reportValidity();
+        // Reached only when the clock passes a time that was still in the
+        // future when it was picked, since the date's `min` and the dropdown's
+        // disabled options rule out the rest. Neither field is natively
+        // invalid then, so say why rather than blocking with no explanation.
+        // The message is cleared so it cannot outlive the value behind it.
+        if (timeInput) {
+          timeInput.setCustomValidity('The due date must be in the future.');
+          timeInput.reportValidity();
+          timeInput.setCustomValidity('');
+        }
         return;
       }
     }
@@ -363,7 +374,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   };
 
   // Jump straight back to the assignment-mode selection from anywhere in the
-  // Guided ("Hide & Reveal") sub-steps, via the close button in the card header.
+  // Paced ("Hide & Reveal") sub-steps, via the close button in the card header.
   // Selections made so far are kept in state.
   const returnToModeSelection = () => setWorkflowStep('assignment-type');
 
@@ -404,8 +415,8 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   // Title shown in the card header, which changes depending on the current step.
   const stepTitles: Record<PickerStep, string> = {
     'assignment-type': 'Assignment mode',
-    checkpoint: 'Guided Social Annotation',
-    'due-date': 'Guided Social Annotation',
+    checkpoint: 'Paced Social Annotation',
+    'due-date': 'Paced Social Annotation',
     'content-selection': 'Assignment details',
     details: 'Assignment details',
   };
@@ -594,7 +605,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
             variant="secondary"
             title={cardTitle}
             // Offer a close ("x") button to return to mode selection from the
-            // Guided sub-steps (checkpoint / due-date), but not from the mode
+            // Paced sub-steps (checkpoint / due-date), but not from the mode
             // selection step itself or the regular flow.
             onClose={canGoBackInWorkflow ? returnToModeSelection : undefined}
           />
@@ -620,6 +631,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                       onChange={setDueDate}
                       min={minDueDate}
                       inputRef={dueDateInputRef}
+                      timeInputRef={dueTimeInputRef}
                     />
                   )}
                 </div>

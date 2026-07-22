@@ -4,7 +4,7 @@ import { OptionButton } from '@hypothesis/frontend-shared';
  * The kind of assignment being created.
  *
  * - `reading`: a standard "Social annotation" reading assignment.
- * - `hide_and_reveal`: "Guided Social annotation" — students' annotations are
+ * - `hide_and_reveal`: "Paced Social annotation" — students' annotations are
  *   hidden from each other until an instructor reveals them (internally also
  *   referred to as "Hide & Reveal" / checkpoints).
  */
