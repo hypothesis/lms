@@ -228,6 +228,18 @@ describe('TimeInput', () => {
     assert.isFalse(input(wrapper).prop('aria-expanded'));
   });
 
+  it('keeps focus on the input while pressing on the dropdown', () => {
+    const wrapper = createComponent();
+    clickInput(wrapper);
+
+    const event = new MouseEvent('mousedown', { cancelable: true });
+    act(() => wrapper.find('ul').props().onMouseDown(event));
+
+    // A default-allowed mousedown would move focus off the input and fire
+    // its blur-commit before the option's click could land.
+    assert.isTrue(event.defaultPrevented);
+  });
+
   it('does not commit when focus moves into the dropdown', () => {
     const wrapper = createComponent();
     clickInput(wrapper);

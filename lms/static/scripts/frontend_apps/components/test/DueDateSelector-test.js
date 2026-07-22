@@ -126,12 +126,19 @@ describe('DueDateSelector', () => {
     assert.equal(timeInput(wrapper).prop('value'), '3:90 AM');
   });
 
-  it('reports no due date while the typed time is not valid', () => {
-    const wrapper = createComponent('2026-06-11T14:30');
+  [
+    '3:90 AM', // Minutes beyond 59.
+    '0:30 PM', // Hour outside 1-12 while a period makes the clock 12-hour.
+    '13:00 PM',
+    '25:00', // Hour beyond 23 on the 24-hour clock.
+  ].forEach(time => {
+    it(`reports no due date while the typed time is not valid ("${time}")`, () => {
+      const wrapper = createComponent('2026-06-11T14:30');
 
-    changeTime(wrapper, '3:90 AM');
+      changeTime(wrapper, time);
 
-    assert.calledWith(fakeOnChange, null);
+      assert.calledWith(fakeOnChange, null);
+    });
   });
 
   it('reports no due date when the time is cleared', () => {
