@@ -1,4 +1,6 @@
+import { Select } from '@hypothesis/frontend-shared';
 import { checkAccessibility, mount } from '@hypothesis/frontend-testing';
+import { createRef } from 'preact';
 import { act } from 'preact/test-utils';
 
 import DueDateSelector from '../DueDateSelector';
@@ -10,23 +12,34 @@ describe('DueDateSelector', () => {
     fakeOnChange = sinon.stub();
   });
 
-  function createComponent(dueDate = null, min = undefined) {
+  function createComponent(dueDate = null, min = undefined, selectorRef) {
     return mount(
-      <DueDateSelector dueDate={dueDate} onChange={fakeOnChange} min={min} />,
-      // Connect to the DOM so the info `Popover` (which uses the native popover
-      // API) can toggle.
+      <DueDateSelector
+        dueDate={dueDate}
+        onChange={fakeOnChange}
+        min={min}
+        selectorRef={selectorRef}
+      />,
+      // Connect to the DOM so the popovers (which use the native popover API)
+      // can toggle.
       { connected: true },
     );
   }
 
   const dateInput = wrapper =>
     wrapper.find('input[data-testid="due-date-input"]');
-  const timeInput = wrapper =>
-    wrapper.find('select[data-testid="due-date-time-input"]');
-  const timeOptionValues = wrapper =>
-    timeInput(wrapper)
-      .find('option')
-      .map(option => option.prop('value'));
+  const timeSelect = wrapper => wrapper.find(Select);
+  const errorMessage = wrapper =>
+    wrapper.find('div[data-testid="due-date-error"]');
+
+  // Open the time dropdown. Its options are only rendered while it is open.
+  const openTimeSelect = wrapper => {
+    timeSelect(wrapper)
+      .find('button[data-testid="select-toggle-button"]')
+      .simulate('click');
+    wrapper.update();
+  };
+  const timeSelectOptions = wrapper => timeSelect(wrapper).find(Select.Option);
 
   // Each helper re-renders before returning. The change handlers close over
   // the current date and time, so acting twice against a stale wrapper would
@@ -36,7 +49,7 @@ describe('DueDateSelector', () => {
     wrapper.update();
   };
   const changeTime = (wrapper, value) => {
-    act(() => timeInput(wrapper).props().onChange({ target: { value } }));
+    act(() => timeSelect(wrapper).props().onChange(value));
     wrapper.update();
   };
 
@@ -44,14 +57,16 @@ describe('DueDateSelector', () => {
     const wrapper = createComponent('2026-06-11T14:30');
 
     assert.equal(dateInput(wrapper).prop('value'), '2026-06-11');
-    assert.equal(timeInput(wrapper).prop('value'), '14:30');
+    assert.equal(timeSelect(wrapper).prop('value'), '14:30');
+    assert.include(timeSelect(wrapper).text(), '2:30 PM');
   });
 
   it('renders empty fields when no due date is set', () => {
     const wrapper = createComponent(null);
 
     assert.equal(dateInput(wrapper).prop('value'), '');
-    assert.equal(timeInput(wrapper).prop('value'), '');
+    assert.equal(timeSelect(wrapper).prop('value'), '');
+    assert.include(timeSelect(wrapper).text(), 'Select a time');
   });
 
   it('reports no due date while only a date has been picked', () => {
@@ -63,18 +78,7 @@ describe('DueDateSelector', () => {
     // until they pick one.
     assert.calledWith(fakeOnChange, null);
     wrapper.update();
-    assert.equal(timeInput(wrapper).prop('value'), '');
-  });
-
-  it('requires the time once a date has been picked', () => {
-    const wrapper = createComponent();
-
-    assert.isNotTrue(timeInput(wrapper).prop('required'));
-
-    changeDate(wrapper, '2026-06-11');
-    wrapper.update();
-
-    assert.isTrue(timeInput(wrapper).prop('required'));
+    assert.equal(timeSelect(wrapper).prop('value'), '');
   });
 
   it('keeps an already-entered time when a date is picked', () => {
@@ -118,8 +122,8 @@ describe('DueDateSelector', () => {
     changeTime(wrapper, '09:00');
     wrapper.update();
 
-    // Lets the parent's `reportValidity()` catch the half-entered value rather
-    // than silently dropping the time.
+    // Lets `validate` catch the half-entered value via the input's own
+    // constraints rather than silently dropping the time.
     assert.isTrue(dateInput(wrapper).prop('required'));
   });
 
@@ -131,7 +135,7 @@ describe('DueDateSelector', () => {
     assert.calledWith(fakeOnChange, null);
     wrapper.update();
     assert.equal(dateInput(wrapper).prop('value'), '');
-    assert.equal(timeInput(wrapper).prop('value'), '');
+    assert.equal(timeSelect(wrapper).prop('value'), '');
   });
 
   it('constrains the date to the minimum', () => {
@@ -142,7 +146,8 @@ describe('DueDateSelector', () => {
 
   it('offers times at half-hour steps, labelled for a 12-hour clock', () => {
     const wrapper = createComponent();
-    const options = timeInput(wrapper).find('option');
+    openTimeSelect(wrapper);
+    const options = timeSelectOptions(wrapper);
 
     // A placeholder plus one option per half hour.
     assert.equal(options.length, 1 + 48);
@@ -161,34 +166,111 @@ describe('DueDateSelector', () => {
     // An assignment saved before this dropdown existed can hold any minute;
     // dropping it would silently change the due date.
     const wrapper = createComponent('2026-06-11T14:45');
+    openTimeSelect(wrapper);
 
-    assert.include(timeOptionValues(wrapper), '14:45');
-    assert.equal(timeInput(wrapper).prop('value'), '14:45');
+    const values = timeSelectOptions(wrapper).map(o => o.prop('value'));
+    assert.include(values, '14:45');
+    assert.equal(timeSelect(wrapper).prop('value'), '14:45');
   });
 
   it('disables past times only on the earliest selectable date', () => {
     const wrapper = createComponent(null, '2026-06-11T14:30');
     const disabled = value =>
-      timeInput(wrapper)
-        .find('option')
+      timeSelectOptions(wrapper)
         .filterWhere(o => o.prop('value') === value)
         .prop('disabled');
 
     // On the earliest date, times before the minimum are in the past.
     changeDate(wrapper, '2026-06-11');
-    wrapper.update();
+    openTimeSelect(wrapper);
     assert.isTrue(disabled('14:00'));
     assert.isFalse(disabled('15:00'));
 
     // On any later date, every time of day is still in the future.
     changeDate(wrapper, '2026-06-12');
-    wrapper.update();
     assert.isFalse(disabled('14:00'));
+  });
+
+  describe('validate', () => {
+    let selectorRef;
+
+    const createWithHandle = (dueDate = null, min = undefined) => {
+      selectorRef = createRef();
+      return createComponent(dueDate, min, selectorRef);
+    };
+
+    const validate = wrapper => {
+      let valid;
+      act(() => {
+        valid = selectorRef.current.validate();
+      });
+      wrapper.update();
+      return valid;
+    };
+
+    it('accepts an empty due date', () => {
+      const wrapper = createWithHandle();
+
+      assert.isTrue(validate(wrapper));
+      assert.isFalse(errorMessage(wrapper).exists());
+    });
+
+    it('accepts a complete future due date', () => {
+      const wrapper = createWithHandle('2026-06-11T14:30', '2026-06-11T10:00');
+
+      assert.isTrue(validate(wrapper));
+      assert.isFalse(errorMessage(wrapper).exists());
+    });
+
+    it('rejects a date without a time', () => {
+      const wrapper = createWithHandle();
+
+      changeDate(wrapper, '2026-06-11');
+
+      assert.isFalse(validate(wrapper));
+      assert.equal(errorMessage(wrapper).text(), 'Select a time.');
+    });
+
+    it('rejects a time without a date', () => {
+      const wrapper = createWithHandle();
+
+      changeTime(wrapper, '09:00');
+
+      // The date field is a native input carrying `required`, so the browser
+      // reports this one rather than the inline message.
+      assert.isFalse(validate(wrapper));
+      assert.isFalse(errorMessage(wrapper).exists());
+    });
+
+    it('rejects a due date that is no longer in the future', () => {
+      // Each field holds a value that was valid when picked; only the combined
+      // comparison can see that the clock has since passed it.
+      const wrapper = createWithHandle('2026-06-11T10:00', '2026-06-11T14:30');
+
+      assert.isFalse(validate(wrapper));
+      assert.equal(
+        errorMessage(wrapper).text(),
+        'The due date must be in the future.',
+      );
+    });
+
+    it('clears the error as soon as the value changes', () => {
+      const wrapper = createWithHandle();
+
+      changeDate(wrapper, '2026-06-11');
+      assert.isFalse(validate(wrapper));
+      assert.isTrue(errorMessage(wrapper).exists());
+
+      changeTime(wrapper, '09:00');
+      assert.isFalse(errorMessage(wrapper).exists());
+    });
   });
 
   it('shows the due date explanation in a popover instead of inline', () => {
     const wrapper = createComponent();
-    const popover = () => wrapper.find('Popover');
+    // The time dropdown renders its own (second) popover; the explanation
+    // lives in the first one, anchored to the info icon.
+    const popover = () => wrapper.find('Popover').first();
     const explanation =
       'The point where annotations are no longer tallied in auto grading.';
 
