@@ -1,6 +1,13 @@
-import { IconButton, InfoIcon, Popover } from '@hypothesis/frontend-shared';
+import {
+  IconButton,
+  InfoIcon,
+  Popover,
+  Select,
+} from '@hypothesis/frontend-shared';
 import type { Ref } from 'preact';
-import { useId, useRef, useState } from 'preact/hooks';
+import { useId, useImperativeHandle, useRef, useState } from 'preact/hooks';
+
+import UIMessage from './UIMessage';
 
 const TIME_STEP_MINUTES = 30;
 const MINUTES_PER_DAY = 24 * 60;
@@ -49,6 +56,15 @@ function timeOptions(include?: string): string[] {
   return times;
 }
 
+export type DueDateSelectorHandle = {
+  /**
+   * Check the entered due date, showing an error for any violation, and
+   * return whether it is valid. An empty value is valid — the due date is
+   * optional.
+   */
+  validate(): boolean;
+};
+
 export type DueDateSelectorProps = {
   /**
    * Currently selected due date as a local `datetime-local` string
@@ -61,14 +77,12 @@ export type DueDateSelectorProps = {
   /** Earliest selectable value, as a `YYYY-MM-DDTHH:MM` string. */
   min?: string;
 
-  /** Ref to the date input, used by the parent to validate it. */
-  inputRef?: Ref<HTMLInputElement>;
-
   /**
-   * Ref to the time dropdown. Each field carries its own constraints, so the
-   * parent checks both.
+   * Ref through which the parent validates the fields before leaving the
+   * due-date step. The time dropdown is not a native form control, so the
+   * check cannot be run from outside via `reportValidity`.
    */
-  timeInputRef?: Ref<HTMLSelectElement>;
+  selectorRef?: Ref<DueDateSelectorHandle>;
 };
 
 /**
@@ -83,8 +97,7 @@ export default function DueDateSelector({
   dueDate,
   onChange,
   min,
-  inputRef,
-  timeInputRef,
+  selectorRef,
 }: DueDateSelectorProps) {
   const headingId = useId();
   const dateLabelId = useId();
@@ -95,6 +108,14 @@ export default function DueDateSelector({
   // has to live here or a lone time would vanish on re-render.
   const [dateValue, setDateValue] = useState(() => splitDateTime(dueDate)[0]);
   const [timeValue, setTimeValue] = useState(() => splitDateTime(dueDate)[1]);
+
+  // Error shown under the fields when `validate` rejects the value. The time
+  // dropdown is a custom listbox rather than a native form control, so its
+  // constraint violations surface inline instead of through the browser's
+  // validation bubbles.
+  const [error, setError] = useState<string | null>(null);
+
+  const dateInputRef = useRef<HTMLInputElement | null>(null);
 
   const [minDate, minTime] = splitDateTime(min ?? null);
 
@@ -113,17 +134,56 @@ export default function DueDateSelector({
 
     setDateValue(date);
     setTimeValue(time);
+    setError(null);
     emit(date, time);
   };
 
   const onTimeChange = (time: string) => {
     setTimeValue(time);
+    setError(null);
     emit(dateValue, time);
   };
 
+  useImperativeHandle(
+    selectorRef ?? null,
+    () => ({
+      validate: () => {
+        // The date field is a native input, so the browser reports its own
+        // constraints: `required` once a time is set, `min`, malformed input.
+        const dateInput = dateInputRef.current;
+        if (dateInput && !dateInput.reportValidity()) {
+          return false;
+        }
+        // A date without a time is a half-entered due date. The parent cannot
+        // tell: the combined value it holds is null, the same as "left blank".
+        if (dateValue && !timeValue) {
+          setError('Select a time.');
+          return false;
+        }
+        // Reached only when the clock passes a time that was still in the
+        // future when it was picked, since the date's `min` and the dropdown's
+        // disabled options rule out the rest. `YYYY-MM-DDTHH:MM` strings
+        // compare lexicographically, so a plain string comparison against the
+        // minimum (now) is correct.
+        if (
+          dateValue &&
+          timeValue &&
+          min &&
+          `${dateValue}T${timeValue}` < min
+        ) {
+          setError('The due date must be in the future.');
+          return false;
+        }
+        setError(null);
+        return true;
+      },
+    }),
+    [dateValue, timeValue, min],
+  );
+
   // Mirrors the shared `Input` component's base classes (`inputStyles`), which
-  // does not support `type="date"` or `select`. `touch:text-at-least-16px`
-  // prevents iOS zoom-on-focus.
+  // does not support `type="date"`. `touch:text-at-least-16px` prevents iOS
+  // zoom-on-focus.
   const inputClasses =
     'focus-visible:ring focus-visible:outline-none ring-inset border rounded p-2 bg-grey-0 focus:bg-white disabled:bg-grey-1 placeholder:text-grey-6 disabled:placeholder:text-grey-7 touch:text-at-least-16px';
 
@@ -166,11 +226,10 @@ export default function DueDateSelector({
             type="date"
             id={`${dateLabelId}-input`}
             data-testid="due-date-input"
-            ref={inputRef}
+            ref={dateInputRef}
             min={minDate || undefined}
-            // Each field is required once the other is filled, so a
-            // half-entered due date fails validation instead of being read as
-            // the legal "left blank".
+            // Required once a time is set, so a lone time fails validation
+            // instead of being read as the legal "left blank".
             required={!!timeValue}
             className={inputClasses}
             value={dateValue}
@@ -181,30 +240,39 @@ export default function DueDateSelector({
           <label id={timeLabelId} htmlFor={`${timeLabelId}-input`}>
             Time
           </label>
-          <select
-            id={`${timeLabelId}-input`}
-            data-testid="due-date-time-input"
-            ref={timeInputRef}
-            required={!!dateValue}
-            className={inputClasses}
-            value={timeValue}
-            onChange={e => onTimeChange((e.target as HTMLSelectElement).value)}
-          >
-            <option value="">Select a time</option>
-            {timeOptions(timeValue || undefined).map(time => (
-              <option
-                key={time}
-                value={time}
-                // Only the earliest selectable date can hold past times; on any
-                // later date every time of day is still in the future.
-                disabled={dateValue === minDate && time < minTime}
-              >
-                {formatTime(time)}
-              </option>
-            ))}
-          </select>
+          {/* A custom listbox rather than a native `<select>`: it is rendered
+              as page DOM, so its appearance does not depend on the browser or
+              OS theme. */}
+          <div className="w-40">
+            <Select
+              value={timeValue}
+              onChange={onTimeChange}
+              buttonId={`${timeLabelId}-input`}
+              buttonContent={
+                timeValue ? formatTime(timeValue) : 'Select a time'
+              }
+            >
+              <Select.Option value="">Select a time</Select.Option>
+              {timeOptions(timeValue || undefined).map(time => (
+                <Select.Option
+                  key={time}
+                  value={time}
+                  // Only the earliest selectable date can hold past times; on
+                  // any later date every time of day is still in the future.
+                  disabled={dateValue === minDate && time < minTime}
+                >
+                  {formatTime(time)}
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
         </div>
       </div>
+      {error && (
+        <UIMessage status="error" role="alert" data-testid="due-date-error">
+          {error}
+        </UIMessage>
+      )}
     </div>
   );
 }

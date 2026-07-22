@@ -39,6 +39,7 @@ import AutoGradingConfigurator from './AutoGradingConfigurator';
 import type { CheckpointType } from './CheckpointSelector';
 import CheckpointSelector from './CheckpointSelector';
 import ContentSelector from './ContentSelector';
+import type { DueDateSelectorHandle } from './DueDateSelector';
 import DueDateSelector from './DueDateSelector';
 import ErrorModal from './ErrorModal';
 import FilePickerFormFields from './FilePickerFormFields';
@@ -291,12 +292,12 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   const [checkpointType, setCheckpointType] =
     useState<CheckpointType>('manual');
   const [dueDate, setDueDate] = useState<string | null>(null);
-  // The due date is optional, but when set it must be in the future. The date
-  // and time are picked in separate fields, each carrying its own native
-  // constraints, so both are checked before leaving the due-date step. The
-  // value is a local `YYYY-MM-DDTHH:MM` string, converted to UTC on submit.
-  const dueDateInputRef = useRef<HTMLInputElement | null>(null);
-  const dueTimeInputRef = useRef<HTMLSelectElement | null>(null);
+  // The due date is optional, but when set it must be complete and in the
+  // future. The fields — and the checks over them — live in `DueDateSelector`;
+  // this handle triggers them before leaving the due-date step, and the
+  // selector presents any error itself. The value is a local
+  // `YYYY-MM-DDTHH:MM` string, converted to UTC on submit.
+  const dueDateSelectorRef = useRef<DueDateSelectorHandle | null>(null);
   // Recomputed on each render rather than memoized on mount, so "now" cannot go
   // stale while the picker sits open.
   const minDueDate = localDateTime(new Date());
@@ -315,38 +316,16 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   // further steps (checkpoint, due-date); other types go straight to the
   // regular flow.
   const goToNextWorkflowStep = () => {
-    if (workflowStep === 'due-date') {
-      const dateInput = dueDateInputRef.current;
-      const timeInput = dueTimeInputRef.current;
-
-      // A half-entered due date leaves `dueDate` null here, indistinguishable
-      // from the legal "left blank". Only the fields themselves know, via the
-      // `required` each carries once the other is filled.
-      if (dateInput && !dateInput.reportValidity()) {
-        return;
-      }
-      if (timeInput && !timeInput.reportValidity()) {
-        return;
-      }
-
-      // Block leaving the step while a date has been entered but isn't in the
-      // future. An empty value is allowed since the due date is optional.
-      // `datetime-local` strings (`YYYY-MM-DDTHH:MM`) compare
-      // lexicographically, so a plain string comparison against the minimum
-      // (now) is correct.
-      if (dueDate && dueDate < minDueDate) {
-        // Reached only when the clock passes a time that was still in the
-        // future when it was picked, since the date's `min` and the dropdown's
-        // disabled options rule out the rest. Neither field is natively
-        // invalid then, so say why rather than blocking with no explanation.
-        // The message is cleared so it cannot outlive the value behind it.
-        if (timeInput) {
-          timeInput.setCustomValidity('The due date must be in the future.');
-          timeInput.reportValidity();
-          timeInput.setCustomValidity('');
-        }
-        return;
-      }
+    // A half-entered due date leaves `dueDate` null here, indistinguishable
+    // from the legal "left blank", and a complete one can have fallen into
+    // the past. Only the selector can tell; it shows the reason for any
+    // rejection itself.
+    if (
+      workflowStep === 'due-date' &&
+      dueDateSelectorRef.current &&
+      !dueDateSelectorRef.current.validate()
+    ) {
+      return;
     }
     // From 'checkpoint' the next step is 'due-date'; from 'due-date' (the last
     // step) the workflow is done. The 'assignment-type' step has no "Next" — it
@@ -630,8 +609,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                       dueDate={dueDate}
                       onChange={setDueDate}
                       min={minDueDate}
-                      inputRef={dueDateInputRef}
-                      timeInputRef={dueTimeInputRef}
+                      selectorRef={dueDateSelectorRef}
                     />
                   )}
                 </div>

@@ -147,31 +147,17 @@ describe('FilePickerApp', () => {
     }
 
     /**
-     * Stand in for the browser's constraint validation on the due-date inputs.
+     * Stand in for `DueDateSelector`'s `validate`.
      *
-     * `DueDateSelector` is mocked here, so the real `<input>`s — and with them
-     * the `validity` the browser maintains — never exist. The mock still
-     * receives the refs, so populating them simulates inputs the browser
-     * considers invalid (e.g. `valueMissing`, set on either field when only
-     * the other one has been filled in).
-     *
-     * `time` defaults to `date` so the common "both fields agree" case reads
-     * as a single argument.
+     * `DueDateSelector` is mocked here, so the real fields — and the checks
+     * the real component runs over them — never exist. The mock still
+     * receives `selectorRef`, so populating the handle decides what the
+     * parent hears when it validates the step.
      */
-    function setInputValidity(wrapper, date, time = date) {
-      const { inputRef, timeInputRef } = wrapper
-        .find('DueDateSelector')
-        .first()
-        .props();
-      inputRef.current = {
-        reportValidity: () => date,
-        setCustomValidity: sinon.stub(),
-      };
-      timeInputRef.current = {
-        reportValidity: () => time,
-        setCustomValidity: sinon.stub(),
-      };
-      return { dateInput: inputRef.current, timeInput: timeInputRef.current };
+    function setDueDateValidity(wrapper, valid) {
+      const { selectorRef } = wrapper.find('DueDateSelector').first().props();
+      selectorRef.current = { validate: sinon.stub().returns(valid) };
+      return selectorRef.current;
     }
 
     /**
@@ -255,7 +241,7 @@ describe('FilePickerApp', () => {
       assert.isTrue(wrapper.exists('ContentSelector'));
     });
 
-    it('blocks the due-date step when the date is not in the future', () => {
+    it('blocks the due-date step while the selector reports an invalid value', () => {
       fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
       const wrapper = renderFilePicker();
 
@@ -263,97 +249,27 @@ describe('FilePickerApp', () => {
       clickNext(wrapper); // -> due-date
       assert.isTrue(wrapper.exists('DueDateSelector'));
 
-      // A past date is rejected: navigation is blocked.
-      setDueDate(wrapper, dueDateFromNow(-1));
-      clickNext(wrapper);
-      assert.isTrue(wrapper.exists('DueDateSelector'));
-      assert.isFalse(wrapper.exists('ContentSelector'));
-    });
-
-    it('explains a due date that is no longer in the future', () => {
-      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
-      const wrapper = renderFilePicker();
-
-      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
-      clickNext(wrapper); // -> due-date
-
-      // Both fields are natively valid — the date is a real date and the time
-      // dropdown has a selection — but the value they add up to has fallen
-      // into the past, which only the combined comparison can see. Blocking
-      // without a message would leave the instructor stuck.
-      const { timeInput } = setInputValidity(wrapper, true);
-      setDueDate(wrapper, dueDateFromNow(-1));
-
-      clickNext(wrapper);
-      assert.isTrue(wrapper.exists('DueDateSelector'));
-      assert.calledWith(
-        timeInput.setCustomValidity,
-        'The due date must be in the future.',
-      );
-      // The message is cleared so it cannot outlive the value that caused it.
-      assert.calledWith(timeInput.setCustomValidity, '');
-    });
-
-    it('blocks the due-date step when the date is incomplete', () => {
-      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
-      const wrapper = renderFilePicker();
-
-      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
-      clickNext(wrapper); // -> due-date
-      assert.isTrue(wrapper.exists('DueDateSelector'));
-
-      // A partly-typed date reads back as the empty string, so the component
-      // is handed `null` — which is otherwise the legal "left blank". Only the
-      // input knows it is in a bad state.
-      setInputValidity(wrapper, false);
-      setDueDate(wrapper, null);
+      // Whatever the reason — a half-entered value, or a complete one that is
+      // no longer in the future — the selector shows it inline; the parent
+      // only acts on the verdict.
+      const handle = setDueDateValidity(wrapper, false);
 
       clickNext(wrapper);
       assert.isTrue(wrapper.exists('DueDateSelector'));
       assert.isFalse(wrapper.exists('ContentSelector'));
+      assert.called(handle.validate);
     });
 
-    it('blocks the due-date step when a date is picked but no time', () => {
+    it('leaves the due-date step when the selector reports a valid value', () => {
       fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
       const wrapper = renderFilePicker();
 
       selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
       clickNext(wrapper); // -> due-date
 
-      // The date is valid on its own, but the time it requires is missing, so
-      // the combined value is `null` and only the time input is invalid.
-      setInputValidity(wrapper, true, false);
-      setDueDate(wrapper, null);
-
-      clickNext(wrapper);
-      assert.isTrue(wrapper.exists('DueDateSelector'));
-      assert.isFalse(wrapper.exists('ContentSelector'));
-    });
-
-    it('leaves the due-date step when no date is entered', () => {
-      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
-      const wrapper = renderFilePicker();
-
-      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
-      clickNext(wrapper); // -> due-date
-
-      // The due date is optional, so an empty (and valid) input advances.
-      setInputValidity(wrapper, true);
-
-      clickNext(wrapper);
-      assert.isFalse(wrapper.exists('DueDateSelector'));
-      assert.isTrue(wrapper.exists('ContentSelector'));
-    });
-
-    it('leaves the due-date step when the date is in the future', () => {
-      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
-      const wrapper = renderFilePicker();
-
-      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
-      clickNext(wrapper); // -> due-date
-
-      // A future date is accepted: the regular flow takes over.
+      setDueDateValidity(wrapper, true);
       setDueDate(wrapper, dueDateFromNow(7));
+
       clickNext(wrapper);
       assert.isFalse(wrapper.exists('DueDateSelector'));
       assert.isTrue(wrapper.exists('ContentSelector'));
