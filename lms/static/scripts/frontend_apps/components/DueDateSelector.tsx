@@ -1,12 +1,8 @@
-import {
-  IconButton,
-  InfoIcon,
-  Popover,
-  Select,
-} from '@hypothesis/frontend-shared';
+import { IconButton, InfoIcon, Popover } from '@hypothesis/frontend-shared';
 import type { Ref } from 'preact';
 import { useId, useImperativeHandle, useRef, useState } from 'preact/hooks';
 
+import TimeInput from './TimeInput';
 import UIMessage from './UIMessage';
 
 const TIME_STEP_MINUTES = 30;
@@ -29,6 +25,39 @@ function formatTime(time: string): string {
   // Midnight (0) and noon (12) both display as 12.
   const hour12 = hours % 12 || 12;
   return `${hour12}:${pad(minutes)} ${period}`;
+}
+
+/**
+ * Parse a typed time into canonical 24-hour `HH:MM`.
+ *
+ * Accepts 12-hour ("3:30 PM", "3pm") and 24-hour ("15:30") forms. Returns
+ * null when the text is not a time (e.g. "3:90 AM").
+ */
+function parseTime(text: string): string | null {
+  const match = text.trim().match(/^(\d{1,2})(?::(\d{1,2}))?\s*(am|pm)?$/i);
+  if (!match) {
+    return null;
+  }
+  let hours = Number(match[1]);
+  const minutes = match[2] ? Number(match[2]) : 0;
+  // Typed as `string`, but the group is undefined when no period was typed.
+  const period = (match[3] as string | undefined)?.toLowerCase();
+  if (minutes > 59) {
+    return null;
+  }
+  if (period) {
+    if (hours < 1 || hours > 12) {
+      return null;
+    }
+    // Midnight and noon are hour 12 on a 12-hour clock but 0 and 12 here.
+    hours = hours % 12;
+    if (period === 'pm') {
+      hours += 12;
+    }
+  } else if (hours > 23) {
+    return null;
+  }
+  return `${pad(hours)}:${pad(minutes)}`;
 }
 
 /**
@@ -107,7 +136,13 @@ export default function DueDateSelector({
   // combined value (null until both halves exist), so the half-entered state
   // has to live here or a lone time would vanish on re-render.
   const [dateValue, setDateValue] = useState(() => splitDateTime(dueDate)[0]);
-  const [timeValue, setTimeValue] = useState(() => splitDateTime(dueDate)[1]);
+  // The time field allows typing, so what it holds is free-form text; the
+  // canonical `HH:MM` half of the value is parsed back out of it on the fly.
+  const [timeText, setTimeText] = useState(() => {
+    const time = splitDateTime(dueDate)[1];
+    return time ? formatTime(time) : '';
+  });
+  const timeValue = parseTime(timeText) ?? '';
 
   // Error shown under the fields when `validate` rejects the value. The time
   // dropdown is a custom listbox rather than a native form control, so its
@@ -130,33 +165,51 @@ export default function DueDateSelector({
   const onDateChange = (date: string) => {
     // Clearing the date unsets the due date as a whole, so the time goes with
     // it rather than lingering on its own.
-    const time = date ? timeValue : '';
+    const text = date ? timeText : '';
 
     setDateValue(date);
-    setTimeValue(time);
+    setTimeText(text);
     setError(null);
-    emit(date, time);
+    emit(date, parseTime(text) ?? '');
   };
 
-  const onTimeChange = (time: string) => {
-    setTimeValue(time);
+  const onTimeTextChange = (text: string) => {
+    setTimeText(text);
     setError(null);
-    emit(dateValue, time);
+    emit(dateValue, parseTime(text) ?? '');
+  };
+
+  // Once editing ends, rewrite parseable text in the canonical display form,
+  // e.g. "15:30" -> "3:30 PM". The functional update matters: picking a
+  // suggestion reports the new text and commits in the same batch.
+  const onTimeCommit = () => {
+    setTimeText(text => {
+      const parsed = parseTime(text);
+      return parsed ? formatTime(parsed) : text;
+    });
   };
 
   useImperativeHandle(
     selectorRef ?? null,
     () => ({
       validate: () => {
+        // Typed text that isn't a time is neither "blank" nor a value. This
+        // is checked first: it is the most specific problem, and the date
+        // input's `required` (hit next when the date is also missing) would
+        // otherwise talk about the wrong field.
+        if (timeText && !timeValue) {
+          setError('Invalid time.');
+          return false;
+        }
         // The date field is a native input, so the browser reports its own
         // constraints: `required` once a time is set, `min`, malformed input.
         const dateInput = dateInputRef.current;
         if (dateInput && !dateInput.reportValidity()) {
           return false;
         }
-        // A date without a time is a half-entered due date. The parent cannot
-        // tell: the combined value it holds is null, the same as "left blank".
-        if (dateValue && !timeValue) {
+        // A date without a time is a half-entered due date, null to the
+        // parent as well — the same as the legal "left blank".
+        if (dateValue && !timeText) {
           setError('Select a time.');
           return false;
         }
@@ -178,7 +231,7 @@ export default function DueDateSelector({
         return true;
       },
     }),
-    [dateValue, timeValue, min],
+    [dateValue, timeText, timeValue, min],
   );
 
   // Mirrors the shared `Input` component's base classes (`inputStyles`), which
@@ -228,9 +281,9 @@ export default function DueDateSelector({
             data-testid="due-date-input"
             ref={dateInputRef}
             min={minDate || undefined}
-            // Required once a time is set, so a lone time fails validation
+            // Required once a time is entered, so a lone time fails validation
             // instead of being read as the legal "left blank".
-            required={!!timeValue}
+            required={!!timeText}
             className={inputClasses}
             value={dateValue}
             onChange={e => onDateChange((e.target as HTMLInputElement).value)}
@@ -240,31 +293,23 @@ export default function DueDateSelector({
           <label id={timeLabelId} htmlFor={`${timeLabelId}-input`}>
             Time
           </label>
-          {/* A custom listbox rather than a native `<select>`: it is rendered
-              as page DOM, so its appearance does not depend on the browser or
-              OS theme. */}
+          {/* A combobox (as in Canvas): the instructor can pick a suggestion
+              or type a time by hand. */}
           <div className="w-40">
-            <Select
-              value={timeValue}
-              onChange={onTimeChange}
-              buttonId={`${timeLabelId}-input`}
-              buttonContent={
-                timeValue ? formatTime(timeValue) : 'Select a time'
-              }
-            >
-              <Select.Option value="">Select a time</Select.Option>
-              {timeOptions(timeValue || undefined).map(time => (
-                <Select.Option
-                  key={time}
-                  value={time}
-                  // Only the earliest selectable date can hold past times; on
-                  // any later date every time of day is still in the future.
-                  disabled={dateValue === minDate && time < minTime}
-                >
-                  {formatTime(time)}
-                </Select.Option>
-              ))}
-            </Select>
+            <TimeInput
+              value={timeText}
+              onChange={onTimeTextChange}
+              onCommit={onTimeCommit}
+              inputId={`${timeLabelId}-input`}
+              placeholder="Select a time"
+              classes={inputClasses}
+              options={timeOptions(timeValue || undefined).map(time => ({
+                label: formatTime(time),
+                // Only the earliest selectable date can hold past times; on
+                // any later date every time of day is still in the future.
+                disabled: dateValue === minDate && time < minTime,
+              }))}
+            />
           </div>
         </div>
       </div>
