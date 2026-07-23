@@ -271,7 +271,10 @@ def _pdf_original_id(pdf: bytes) -> bytes | None:
             hex_str += "0"
         try:
             original_id = bytes.fromhex(hex_str)
-        except ValueError:
+        except ValueError:  # pragma: no cover
+            # Unreachable: the /ID hex group is [0-9A-Fa-f\s]* and we've
+            # stripped whitespace and padded to even length, so fromhex can't
+            # fail. Kept as a defensive guard on the low-level decode.
             return None
     else:
         original_id = _decode_pdf_literal(match["literal"])

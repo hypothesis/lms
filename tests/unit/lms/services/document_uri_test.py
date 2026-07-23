@@ -3,6 +3,7 @@ import hashlib
 import pytest
 
 from lms.services.document_uri import (
+    _decode_pdf_literal,
     ensure_checkpoint_fingerprint,
     initial_document_uri,
     pdf_fingerprint,
@@ -369,3 +370,18 @@ class TestPDFFingerprint:
         assert (
             pdf_fingerprint(pdf) == hashlib.md5(pdf[:1024]).hexdigest()  # noqa: S324
         )
+
+    def test_it_ignores_the_backslash_of_an_unknown_literal_escape(self):
+        # An unrecognized escape (not in the escape table and not octal) drops
+        # the backslash and keeps the following character, matching PDF.js.
+        pdf = rb"/ID [(A\qB) (other)]"
+
+        assert pdf_fingerprint(pdf) == b"AqB".hex()
+
+
+class TestDecodePDFLiteral:
+    def test_a_trailing_backslash_is_dropped(self):
+        # A lone backslash at the very end of a literal has nothing to escape,
+        # so it's ignored. (The /ID regex never yields this, but the decoder
+        # guards against it anyway.)
+        assert _decode_pdf_literal(b"AB\\") == b"AB"
