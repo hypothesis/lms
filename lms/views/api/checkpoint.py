@@ -27,9 +27,12 @@ def reveal_checkpoint(request):
     #   application instance (guards cross-institution reveal).
     # - Membership scope: the caller must be a member of the assignment (guards
     #   an instructor of a different course within the same institution).
+    # - Identity scope: without a client-reported `document_uri` no checkpoint
+    #   can have been synced to h, so there is nothing to reveal.
     if (
         not assignment
         or not assignment.checkpoint_enabled
+        or not assignment.document_uri
         or not assignment.course
         or assignment.course.application_instance_id
         != request.lti_user.application_instance_id
@@ -38,13 +41,6 @@ def reveal_checkpoint(request):
             request.lti_user.h_user.userid(request.registry.settings["h_authority"]),
         )
     ):
-        message = "Assignment or checkpoint not found"
-        raise HTTPNotFound(message)
-
-    # The checkpoint in h is keyed by the document's identity there — the URI
-    # the client reports (`assignment.document_uri`). If the client hasn't reported
-    # one, no checkpoint can have been synced, so there's nothing to reveal.
-    if not assignment.document_uri:
         message = "Assignment or checkpoint not found"
         raise HTTPNotFound(message)
 
