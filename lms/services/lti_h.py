@@ -7,7 +7,7 @@ from lms.services import HAPI
 def checkpoint_sync_data(assignment: Assignment | None, lti_user) -> dict | None:
     """Build the checkpoint payload to sync to h for a Hide & Reveal assignment.
 
-    Syncs against `assignment.document_uri` — the h document identity. 
+    Syncs against `assignment.document_uri` — the h document identity.
     Returns None when the assignment is missing, doesn't have
     checkpoint enabled, or the client hasn't reported an identity yet
     (`assignment.document_uri` is None), so callers can pass the result straight

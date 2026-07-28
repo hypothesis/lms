@@ -42,7 +42,7 @@ def reveal_checkpoint(request):
         raise HTTPNotFound(message)
 
     # The checkpoint in h is keyed by the document's identity there — the URI
-    # the client reports (`assignment.document_uri`). If the client hasn't reported 
+    # the client reports (`assignment.document_uri`). If the client hasn't reported
     # one, no checkpoint can have been synced, so there's nothing to reveal.
     if not assignment.document_uri:
         message = "Assignment or checkpoint not found"

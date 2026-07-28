@@ -47,7 +47,7 @@ def sync(request):
     grouping_type = grouping_service.get_launch_grouping_type(
         request, course, assignment
     )
-    
+
     if grouping_type == Grouping.Type.COURSE:
         # Course-grouping assignments have no dynamic groupings to fetch. The
         # client only calls /api/sync here to report the document identity and
