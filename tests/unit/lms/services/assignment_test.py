@@ -154,17 +154,6 @@ class TestAssignmentService:
             assert assignment.lis_outcome_service_url == "GRADING URL"
             assert assignment.lti_v13_resource_link_id == v13_resource_link_id
 
-    def test_update_assignment_sets_document_uri(self, svc, pyramid_request, course):
-        assignment = svc.update_assignment(
-            pyramid_request,
-            factories.Assignment(),
-            "https://example.com/document",
-            sentinel.group_set_id,
-            course,
-        )
-
-        assert assignment.document_uri == "https://example.com/document"
-
     def test_update_assignment_resets_document_uri_when_the_document_changes(
         self, svc, pyramid_request, course
     ):
@@ -181,8 +170,8 @@ class TestAssignmentService:
             course,
         )
 
-        # The new file's fingerprint isn't known yet: it gets computed on
-        # launch (see ensure_checkpoint_fingerprint).
+        # The new document's identity isn't known yet: the client re-reports it
+        # on the next launch (via /api/sync).
         assert assignment.document_uri is None
 
     def test_update_assignment_keeps_document_uri_when_the_document_is_unchanged(
