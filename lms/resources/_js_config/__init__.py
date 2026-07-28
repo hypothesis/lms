@@ -506,6 +506,7 @@ class JSConfig:
         toolbar_config["assignmentDueDate"] = due_date_iso
         toolbar_config["assignmentCheckpointEnabled"] = True
         self._config["instructorToolbar"] = toolbar_config
+        self._enable_document_info_reporting()
 
     def enable_student_checkpoint(self, assignment, *, h_revealed=False):
         due_date_iso = (
@@ -521,6 +522,10 @@ class JSConfig:
             "assignmentDueDate": due_date_iso,
             "assignmentCheckpointEnabled": True,
         }
+        self._enable_document_info_reporting()
+
+    def _enable_document_info_reporting(self):
+        self._hypothesis_client["reportDocumentInfo"] = True
 
     def enable_toolbar_editing(self):
         toolbar_config = self._get_toolbar_config()
@@ -761,7 +766,10 @@ class JSConfig:
             self._config["hypothesisClient"]["services"][0]["groups"] = [
                 course.groupid(self._authority)
             ]
-            self._config["api"]["sync"] = None
+            if assignment and assignment.checkpoint_enabled:
+                self._config["api"]["sync"] = self._sync_api_config(course, assignment)
+            else:
+                self._config["api"]["sync"] = None
 
         else:
             # If not using the default COURSE grouping point the FE
@@ -769,53 +777,56 @@ class JSConfig:
             self._config["hypothesisClient"]["services"][0]["groups"] = (
                 "$rpc:requestGroups"
             )
+            self._config["api"]["sync"] = self._sync_api_config(course, assignment)
 
-            req = self._request
-            self._config["api"]["sync"] = {
-                "authUrl": (
-                    req.route_url(req.product.route.oauth2_authorize)
-                    if req.product.route.oauth2_authorize
-                    else None
+    def _sync_api_config(self, course, assignment):  # noqa: ARG002
+        """Build the `api.sync` config the frontend uses to POST to /api/sync."""
+        req = self._request
+        return {
+            "authUrl": (
+                req.route_url(req.product.route.oauth2_authorize)
+                if req.product.route.oauth2_authorize
+                else None
+            ),
+            "path": req.route_path("api.sync"),
+            # This data is consumed by the view in `lms.views.api.sync` which
+            # defines the arguments it expects. We need to match that
+            # description. Anything we add here should be echoed back by the
+            # frontend.
+            "data": {
+                "resource_link_id": assignment.resource_link_id,
+                "context_id": self._request.lti_params["context_id"],
+                "group_set_id": self._request.product.plugin.grouping.get_group_set_id(
+                    self._request, assignment, historical_assignment=None
                 ),
-                "path": req.route_path("api.sync"),
-                # This data is consumed by the view in `lms.views.api.sync` which
-                # defines the arguments it expects. We need to match that
-                # description. Anything we add here should be echoed back by the
-                # frontend.
-                "data": {
-                    "resource_link_id": assignment.resource_link_id,
-                    "context_id": self._request.lti_params["context_id"],
-                    "group_set_id": self._request.product.plugin.grouping.get_group_set_id(
-                        self._request, assignment, historical_assignment=None
-                    ),
-                    "group_info": {
-                        key: value
-                        for key, value in self._request.lti_params.items()
-                        if key
-                        in {
-                            # Most (all) of these are duplicated elsewhere, we'll keep updating for now
-                            # because external analytics query rely on this table.
-                            "context_id",
-                            "context_title",
-                            "context_label",
-                            "tool_consumer_info_product_family_code",
-                            "tool_consumer_info_version",
-                            "tool_consumer_instance_name",
-                            "tool_consumer_instance_description",
-                            "tool_consumer_instance_url",
-                            "tool_consumer_instance_contact_email",
-                            "tool_consumer_instance_guid",
-                            "custom_canvas_api_domain",
-                            "custom_canvas_course_id",
-                        }
-                    },
-                    # The student we are currently grading. In the case of Canvas
-                    # this will be present in the SpeedGrader launch URL and
-                    # available at launch time. When using our own grading bar this
-                    # will be passed by the frontend
-                    "gradingStudentId": req.params.get("learner_canvas_user_id"),
+                "group_info": {
+                    key: value
+                    for key, value in self._request.lti_params.items()
+                    if key
+                    in {
+                        # Most (all) of these are duplicated elsewhere, we'll keep updating for now
+                        # because external analytics query rely on this table.
+                        "context_id",
+                        "context_title",
+                        "context_label",
+                        "tool_consumer_info_product_family_code",
+                        "tool_consumer_info_version",
+                        "tool_consumer_instance_name",
+                        "tool_consumer_instance_description",
+                        "tool_consumer_instance_url",
+                        "tool_consumer_instance_contact_email",
+                        "tool_consumer_instance_guid",
+                        "custom_canvas_api_domain",
+                        "custom_canvas_course_id",
+                    }
                 },
-            }
+                # The student we are currently grading. In the case of Canvas
+                # this will be present in the SpeedGrader launch URL and
+                # available at launch time. When using our own grading bar this
+                # will be passed by the frontend
+                "gradingStudentId": req.params.get("learner_canvas_user_id"),
+            },
+        }
 
     def _get_user_info(self) -> User:
         if self._request.has_permission(Permissions.STAFF):

@@ -78,9 +78,18 @@ export default function BasicLTILaunchApp() {
     // Content URL to show in the iframe.
     viaUrl: viaURL,
     canvas,
+    instructorToolbar,
+    studentToolbar,
   } = useConfig(['api', 'hypothesisClient']);
 
   const clientRPC = useService(ClientRPC);
+
+  // Whether this is a Hide & Reveal assignment. Only then do we need to wait
+  // for the client to report the document's h identity and sync a checkpoint.
+  const checkpointEnabled = !!(
+    instructorToolbar?.assignmentCheckpointEnabled ??
+    studentToolbar?.assignmentCheckpointEnabled
+  );
 
   // Canvas only: The presence of a value for this configuration property
   // indicates that an empty grading submission should be made only after this
@@ -244,6 +253,32 @@ export default function BasicLTILaunchApp() {
     fetchContentURL();
     fetchGroups();
   }, [fetchContentURL, fetchGroups]);
+
+  /**
+   * For Hide & Reveal assignments, report the document's h identity to the
+   * backend once the Hypothesis client computes it.
+   */
+  useEffect(() => {
+    if (!syncAPICallInfo || !checkpointEnabled) {
+      return;
+    }
+
+    clientRPC.getDocumentUri().then(async documentUri => {
+      if (!documentUri) {
+        return;
+      }
+      try {
+        const { checkpoint } = await apiCall<SyncResponse>({
+          authToken,
+          path: syncAPICallInfo.path,
+          data: { ...syncAPICallInfo.data, document_uri: documentUri },
+        });
+        setSyncCheckpoint(checkpoint ?? null);
+      } catch {
+        // The group sync surfaces sync failures already.
+      }
+    });
+  }, [clientRPC, syncAPICallInfo, authToken, checkpointEnabled]);
 
   /**
    * Report a submission to the LMS, with the LMS-provided metadata needed for

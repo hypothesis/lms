@@ -102,8 +102,15 @@ export type ClientRPCOptions = {
  *  - Updating the Hypothesis client configuration in response to input
  *    in the LMS frontend, such as changing the focused user in grading mode.
  */
+/** Argument for the `reportDocumentInfo` message from the client. */
+type DocumentInfo = {
+  uri: string;
+};
+
 export class ClientRPC extends TinyEmitter {
   private _resolveGroups: (groups: string[]) => void;
+  private _documentUri: Promise<string>;
+  private _resolveDocumentUri: (uri: string) => void;
   private _server: Server;
 
   /**
@@ -173,6 +180,14 @@ export class ClientRPC extends TinyEmitter {
     // Expose current auth token via RPC
     this._server.register('requestAuthToken', () => authToken);
 
+    this._resolveDocumentUri = () => {};
+    this._documentUri = new Promise<string>(resolve => {
+      this._resolveDocumentUri = resolve;
+    });
+    this._server.register('reportDocumentInfo', (info: DocumentInfo) => {
+      this._resolveDocumentUri(info.uri);
+    });
+
     this._resolveGroups = () => {};
     const groups = new Promise(resolve => {
       this._resolveGroups = resolve;
@@ -198,6 +213,16 @@ export class ClientRPC extends TinyEmitter {
    */
   setGroups(groups: string[]) {
     this._resolveGroups(groups);
+  }
+
+  /**
+   * Resolve with the loaded document's h identity, once the client reports it.
+   *
+   * The client reports this asynchronously after the document loads
+   * — the URI is only required for Hide & Reveal assignments.
+   */
+  getDocumentUri(): Promise<string> {
+    return this._documentUri;
   }
 
   /**

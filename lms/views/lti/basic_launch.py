@@ -22,7 +22,6 @@ from lms.product.plugin.misc import MiscPlugin  # noqa: TC001
 from lms.security import Permissions
 from lms.services import LTIGradingService, UserService, VitalSourceService
 from lms.services.assignment import AssignmentService  # noqa: TC001
-from lms.services.document_uri import ensure_checkpoint_fingerprint
 from lms.services.lti_h import checkpoint_sync_data
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 
@@ -197,12 +196,6 @@ class BasicLaunchViews:
             and assignment.extra.get("ext_lti_assignment_id") != ext_lti_assignment_id
         ):
             assignment.extra["ext_lti_assignment_id"] = ext_lti_assignment_id
-
-        # For file-based Hide & Reveal assignments the h document identity is
-        # the file's PDF fingerprint: make sure it's computed and stored
-        # before we build the checkpoint sync data below.
-        if assignment.checkpoint_enabled:
-            ensure_checkpoint_fingerprint(self.request, assignment, self.course)
 
         # Determine the grouping type to decide whether to sync checkpoint
         # data for the course group. When the assignment uses sections/groups,

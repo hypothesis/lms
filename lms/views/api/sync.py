@@ -1,6 +1,7 @@
 from pyramid.view import view_config
 from webargs import fields
 
+from lms.models import Grouping
 from lms.product.plugin.grouping import GroupError
 from lms.security import Permissions
 from lms.services.lti_h import checkpoint_sync_data
@@ -13,6 +14,7 @@ class APISyncSchema(PyramidRequestSchema):
     group_set_id = fields.Str(required=False, allow_none=True)
     group_info = fields.Dict(required=True)
     gradingStudentId = fields.Str(required=False, allow_none=True)  # noqa: N815
+    document_uri = fields.Str(required=False, allow_none=True)
 
 
 @view_config(
@@ -30,7 +32,28 @@ def sync(request):
     )
     grading_student_id = request.parsed_params.get("gradingStudentId")
 
-    if group_set_id := request.parsed_params.get("group_set_id"):
+    assignment = assignment_service.get_assignment(
+        course.application_instance.tool_consumer_instance_guid,
+        request.parsed_params["resource_link_id"],
+    )
+
+    if (
+        (reported_document_uri := request.parsed_params.get("document_uri"))
+        and assignment
+        and assignment.checkpoint_enabled
+    ):
+        assignment.document_uri = reported_document_uri
+
+    grouping_type = grouping_service.get_launch_grouping_type(
+        request, course, assignment
+    )
+    
+    if grouping_type == Grouping.Type.COURSE:
+        # Course-grouping assignments have no dynamic groupings to fetch. The
+        # client only calls /api/sync here to report the document identity and
+        # have us sync the checkpoint against the course group.
+        groupings = [course]
+    elif group_set_id := request.parsed_params.get("group_set_id"):
         course_copy_plugin = request.product.plugin.course_copy
         # For course copy we might have stored a mapping for this `group_set_id`
         group_set_id = course.get_mapped_group_set_id(group_set_id)
@@ -67,13 +90,6 @@ def sync(request):
             course=course,
             grading_student_id=grading_student_id,
         )
-
-    # Look up the assignment so we can sync checkpoint data for the actual
-    # groupings (sections or canvas groups), not just the course group.
-    assignment = assignment_service.get_assignment(
-        course.application_instance.tool_consumer_instance_guid,
-        request.parsed_params["resource_link_id"],
-    )
 
     # Sync the groups over to H so they are ready to be annotated against.
     # Also sync checkpoint data if the assignment has checkpoint enabled.
