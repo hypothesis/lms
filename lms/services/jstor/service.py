@@ -46,25 +46,6 @@ class JSTORService:
 
         return bool(self._enabled and self._api_url and self._site_code)
 
-    def public_url(self, document_url) -> str:
-        """
-        Get a signed S3 URL for the PDF of a jstor:// document.
-
-        :param document_url: The jstor:// URL of the document
-        :raises ExternalRequestError: If we get a value which doesn't look like
-            a public URL from JSTOR
-        """
-        s3_url = self._api_request(
-            "/pdf/{doi}", doi=document_url.replace("jstor://", "")
-        ).text
-
-        if not s3_url.startswith("https://"):
-            raise ExternalRequestError(  # noqa: TRY003
-                f"Expected to get an S3 URL but got: '{s3_url}' instead"  # noqa: EM102
-            )
-
-        return s3_url
-
     def via_url(self, request, document_url):
         """
         Get a VIA url for a document.
@@ -75,9 +56,20 @@ class JSTORService:
         :raises ExternalRequestError: If we get a value which doesn't look like
             a public URL from JSTOR
         """
+
+        # Get a signed S3 URL for the given JSTOR URL.
+        s3_url = self._api_request(
+            "/pdf/{doi}", doi=document_url.replace("jstor://", "")
+        ).text
+
+        if not s3_url.startswith("https://"):
+            raise ExternalRequestError(  # noqa: TRY003
+                f"Expected to get an S3 URL but got: '{s3_url}' instead"  # noqa: EM102
+            )
+
         return via_url(
             request,
-            document_url=self.public_url(document_url),
+            document_url=s3_url,
             content_type="pdf",
             # Show content partner banner in client for JSTOR.
             options={"via.client.contentPartner": "jstor"},
