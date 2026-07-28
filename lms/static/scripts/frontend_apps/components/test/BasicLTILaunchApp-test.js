@@ -67,6 +67,7 @@ describe('BasicLTILaunchApp', () => {
       on: sinon.stub(),
       off: sinon.stub(),
       setGroups: sinon.stub(),
+      getDocumentUri: sinon.stub().resolves(''),
     };
 
     $imports.$mock(mockImportedComponents());
@@ -158,6 +159,69 @@ describe('BasicLTILaunchApp', () => {
       assert.deepEqual(
         wrapper.find('StudentToolbar').prop('syncCheckpoint'),
         checkpoint,
+      );
+    });
+  });
+
+  context('when the assignment has Hide & Reveal checkpoints enabled', () => {
+    beforeEach(() => {
+      fakeConfig.api.sync = {
+        data: { course: { context_id: '12345' } },
+        path: '/api/sync',
+      };
+      fakeConfig.instructorToolbar = { assignmentCheckpointEnabled: true };
+    });
+
+    it('reports the document identity and syncs the checkpoint', async () => {
+      fakeRpcServer.getDocumentUri.resolves('urn:x-pdf:FINGERPRINT');
+      const checkpoint = { revealed: false, revealDate: null };
+      fakeApiCall.callsFake(async ({ data }) =>
+        data.document_uri ? { checkpoint } : { groups: ['group1'] },
+      );
+
+      const wrapper = renderLTILaunchApp();
+
+      await waitFor(() =>
+        fakeApiCall
+          .getCalls()
+          .some(
+            call => call.args[0].data.document_uri === 'urn:x-pdf:FINGERPRINT',
+          ),
+      );
+      assert.calledWith(fakeApiCall, {
+        authToken: 'dummyAuthToken',
+        path: '/api/sync',
+        data: {
+          course: { context_id: '12345' },
+          document_uri: 'urn:x-pdf:FINGERPRINT',
+        },
+      });
+
+      await waitFor(() => {
+        wrapper.update();
+        return (
+          wrapper.find('InstructorToolbar').prop('syncCheckpoint') !== null
+        );
+      });
+      assert.deepEqual(
+        wrapper.find('InstructorToolbar').prop('syncCheckpoint'),
+        checkpoint,
+      );
+    });
+
+    it('does not sync a checkpoint when the client reports no document identity', async () => {
+      fakeRpcServer.getDocumentUri.resolves('');
+      fakeApiCall.resolves({ groups: ['group1'] });
+
+      renderLTILaunchApp();
+      await waitFor(() => fakeApiCall.called);
+      // Let the getDocumentUri promise settle before asserting.
+      await delay(0);
+
+      assert.isFalse(
+        fakeApiCall
+          .getCalls()
+          .some(call => 'document_uri' in call.args[0].data),
       );
     });
   });

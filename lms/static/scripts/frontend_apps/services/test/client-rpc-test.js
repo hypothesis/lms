@@ -227,6 +227,19 @@ describe('ClientRPC', () => {
     });
   });
 
+  describe('getDocumentUri', () => {
+    it('resolves with the URI reported via the "reportDocumentInfo" RPC handler', async () => {
+      const clientRPC = createClientRPC();
+
+      const [, callback] = fakeServerInstance.register.args.find(
+        ([method]) => method === 'reportDocumentInfo',
+      );
+      callback({ uri: 'https://example.com/doc' });
+
+      assert.equal(await clientRPC.getDocumentUri(), 'https://example.com/doc');
+    });
+  });
+
   describe('setFocusedUser', () => {
     it('sets focused user in client when user is passed', async () => {
       const clientRPC = createClientRPC();
