@@ -7,10 +7,9 @@ from h_matchers import Any
 from lms.models import Grouping, LTIParams
 from lms.product.product import Routes
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
-from lms.resources._js_config import JSConfig
+from lms.resources._js_config import JSConfig, _youtube_video_id_from_url
 from lms.security import Identity, Permissions
 from lms.services import HAPIError
-from lms.services.youtube import video_id_from_url
 from lms.views.api.sync import APISyncSchema
 from tests import factories
 from tests.conftest import TEST_SETTINGS
@@ -576,13 +575,13 @@ class TestAddDocumentURL:
 
     def test_youtube_video_id_from_url_returns_none_on_parse_error(self):
         """Cover the except (ValueError, AttributeError) branch."""
-        with patch("lms.services.youtube.urlparse", side_effect=ValueError):
-            assert video_id_from_url("https://www.youtube.com/watch?v=abc") is None
+        with patch("lms.resources._js_config.urlparse", side_effect=ValueError):
+            assert _youtube_video_id_from_url("https://youtube.com/watch?v=abc") is None
 
     def test_youtube_video_id_from_url_is_case_insensitive_for_host(self):
         """Host is normalized so YouTube.com / YOUTUBE.COM work like the frontend."""
-        assert video_id_from_url("https://YouTube.com/watch?v=xyz") == "xyz"
-        assert video_id_from_url("https://YOUTU.BE/xyz") == "xyz"
+        assert _youtube_video_id_from_url("https://YouTube.com/watch?v=xyz") == "xyz"
+        assert _youtube_video_id_from_url("https://YOUTU.BE/xyz") == "xyz"
 
 
 class TestAddCanvasSpeedgraderSettings:
