@@ -273,6 +273,22 @@ class TestEnableLTILaunchMode:
         ]
         assert not config["api"]["sync"]
 
+    def test_configures_the_client_with_course_group_and_checkpoints(
+        self, js_config, grouping_service, course, assignment
+    ):
+        grouping_service.get_launch_grouping_type.return_value = Grouping.Type.COURSE
+        assignment.checkpoint_enabled = True
+
+        js_config.enable_lti_launch_mode(course, assignment)
+        config = js_config.asdict()
+
+        assert config["hypothesisClient"]["services"][0]["groups"] == [
+            Any.string.matching("^group:.*@lms.hypothes.is")
+        ]
+        # Hide & Reveal assignments still need the sync API so the client can
+        # report the document identity and receive the checkpoint state.
+        assert config["api"]["sync"]["path"] == "/api/sync"
+
     @pytest.mark.usefixtures("grouping_plugin")
     @pytest.mark.parametrize(
         "grouping_type", [Grouping.Type.SECTION, Grouping.Type.GROUP]

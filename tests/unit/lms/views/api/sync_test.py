@@ -2,6 +2,7 @@ from unittest.mock import sentinel
 
 import pytest
 
+from lms.models import Grouping
 from lms.product.plugin.grouping import GroupError
 from lms.views.api.sync import sync
 from tests import factories
@@ -301,6 +302,38 @@ class TestSync:
         result = sync(pyramid_request)
 
         assert "checkpoint" not in result
+
+    @pytest.mark.usefixtures("grouping_service", "course_service", "lti_h_service")
+    def test_it_stores_the_client_reported_document_uri(
+        self, pyramid_request, assignment_service
+    ):
+        assignment = assignment_service.get_assignment.return_value
+        assignment.checkpoint_enabled = True
+        pyramid_request.parsed_params["document_uri"] = "https://example.com/reported"
+
+        sync(pyramid_request)
+
+        assert assignment.document_uri == "https://example.com/reported"
+
+    def test_it_with_course_grouping(
+        self,
+        pyramid_request,
+        grouping_service,
+        course_service,
+        assignment_service,  # noqa: ARG002
+        lti_h_service,
+    ):
+        grouping_service.get_launch_grouping_type.return_value = Grouping.Type.COURSE
+        course = course_service.get_by_context_id.return_value
+
+        returned_ids = sync(pyramid_request)
+
+        lti_h_service.sync.assert_called_once_with(
+            [course],
+            sentinel.group_info,
+            checkpoint_data=None,
+        )
+        assert returned_ids["groups"] == [course.groupid.return_value]
 
     @pytest.fixture
     def assignment_service(self, assignment_service):
