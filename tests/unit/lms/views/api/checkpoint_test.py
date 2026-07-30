@@ -174,6 +174,25 @@ class TestRevealCheckpoint:
         assert result == {"revealed": False, "reveal_date": None}
 
     @pytest.mark.usefixtures("user_is_instructor")
+    def test_it_returns_404_when_the_document_uri_is_not_known(
+        self, pyramid_request, assignment_service, h_api
+    ):
+        # If we never resolved an h document identity (e.g. a file assignment
+        # whose PDF fingerprint hasn't been computed), no checkpoint can have
+        # been synced, so there's nothing to reveal.
+        assignment = self._assignment_with_checkpoint(
+            pyramid_request.lti_user.application_instance_id
+        )
+        assignment.document_uri = None
+        assignment_service.get_by_id.return_value = assignment
+        pyramid_request.matchdict = {"assignment_id": "1"}
+
+        with pytest.raises(HTTPNotFound):
+            reveal_checkpoint(pyramid_request)
+
+        h_api.reveal_checkpoints.assert_not_called()
+
+    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_returns_404_when_no_groupings(
         self, pyramid_request, assignment_service
     ):
@@ -190,7 +209,7 @@ class TestRevealCheckpoint:
     def _assignment_with_checkpoint(self, application_instance_id=None):
         assignment = MagicMock()
         assignment.checkpoint_enabled = True
-        assignment.document_url = "https://example.com/doc"
+        assignment.document_uri = "https://example.com/doc"
         if application_instance_id is not None:
             assignment.course.application_instance_id = application_instance_id
         grouping = MagicMock()

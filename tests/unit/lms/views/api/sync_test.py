@@ -196,7 +196,7 @@ class TestSync:
     ):
         assignment = assignment_service.get_assignment.return_value
         assignment.checkpoint_enabled = True
-        assignment.document_url = "https://example.com/doc"
+        assignment.document_uri = "https://example.com/doc"
 
         sync(pyramid_request)
 
@@ -222,7 +222,7 @@ class TestSync:
     ):
         assignment = assignment_service.get_assignment.return_value
         assignment.checkpoint_enabled = True
-        assignment.document_url = "https://example.com/doc"
+        assignment.document_uri = "https://example.com/doc"
 
         sync(pyramid_request)
 
@@ -249,7 +249,7 @@ class TestSync:
         pyramid_request.parsed_params["group_set_id"] = sentinel.group_set_id
         assignment = assignment_service.get_assignment.return_value
         assignment.checkpoint_enabled = True
-        assignment.document_url = "https://example.com/doc"
+        assignment.document_uri = "https://example.com/doc"
 
         sync(pyramid_request)
 
@@ -274,7 +274,7 @@ class TestSync:
     ):
         assignment = assignment_service.get_assignment.return_value
         assignment.checkpoint_enabled = True
-        assignment.document_url = "https://example.com/doc"
+        assignment.document_uri = "https://example.com/doc"
         lti_h_service.sync.return_value = [
             {"revealed": True, "reveal_date": "2026-07-01T12:00:00"}
         ]
@@ -295,7 +295,7 @@ class TestSync:
     ):
         assignment = assignment_service.get_assignment.return_value
         assignment.checkpoint_enabled = True
-        assignment.document_url = "https://example.com/doc"
+        assignment.document_uri = "https://example.com/doc"
         lti_h_service.sync.return_value = None
 
         result = sync(pyramid_request)

@@ -7,20 +7,21 @@ from lms.services import HAPI
 def checkpoint_sync_data(assignment: Assignment | None, lti_user) -> dict | None:
     """Build the checkpoint payload to sync to h for a Hide & Reveal assignment.
 
-    Returns None when the assignment is missing or doesn't have checkpoint
-    enabled, so callers can pass the result straight through to
-    `LTIHService.sync(..., checkpoint_data=...)`.
+    Returns None when the assignment is missing, doesn't have checkpoint
+    enabled, or its h document identity isn't known yet
+    (assignment.document_uri is None), so callers can pass the result straight
+    through to `LTIHService.sync(..., checkpoint_data=...)`.
 
     reveal_date is not sent — h is the source of truth for the reveal state.
     h's upsert uses coalesce to preserve an existing reveal_date when NULL
     is sent.
     """
-    if not (assignment and assignment.checkpoint_enabled):
+    if not (assignment and assignment.checkpoint_enabled and assignment.document_uri):
         return None
 
     role = "instructor" if lti_user.is_instructor else "student"
     return {
-        "document_uri": assignment.document_url,
+        "document_uri": assignment.document_uri,
         "user": {
             "username": lti_user.h_user.username,
             "role": role,

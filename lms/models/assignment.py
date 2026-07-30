@@ -95,6 +95,9 @@ class Assignment(CreatedUpdatedMixin, Base):
     document_url: Mapped[str] = mapped_column(sa.Unicode, nullable=False)
     """The URL of the document to be annotated for this assignment."""
 
+    document_uri: Mapped[str | None] = mapped_column(sa.Unicode, nullable=True)
+    """The URI that identifies this assignment's document in h."""
+
     extra: Mapped[MutableDict] = mapped_column(
         MutableDict.as_mutable(JSONB()),
         server_default=sa.text("'{}'::jsonb"),
