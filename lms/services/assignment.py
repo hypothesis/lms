@@ -124,13 +124,23 @@ class AssignmentService:
 
         document_url_changed = assignment.document_url != document_url
         assignment.document_url = document_url
-        if document_url_changed or not assignment.document_uri:
-            # The h document identity follows the document. File content gets
-            # None here: its PDF fingerprint is computed at launch (see
-            # `ensure_checkpoint_fingerprint`).
-            assignment.document_uri = initial_document_uri(
-                request, document_url, course.application_instance
-            )
+        if document_url_changed:
+            # The h document identity follows the document, so a new document
+            # invalidates whatever we resolved for the old one.
+            assignment.document_uri = None
+
+        # Re-derived on every launch, not just when it's missing: the page cases
+        # resolve their ids through `course`, so a copied course only derives the
+        # right identity once the course-copy mapping exists (see
+        # `initial_document_uri`).
+        #
+        # Only assign when we got something. None means the identity isn't
+        # derivable from the URL — file content, whose fingerprint is computed
+        # separately by `ensure_checkpoint_fingerprint` — and overwriting with
+        # None here would wipe that fingerprint on the next launch.
+        if (derived := initial_document_uri(request, document_url, course)) is not None:
+            assignment.document_uri = derived
+
         assignment.extra["group_set_id"] = group_set_id
 
         # Metadata based on the launch

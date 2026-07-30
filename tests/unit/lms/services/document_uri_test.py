@@ -20,12 +20,9 @@ class TestInitialDocumentURI:
             "HTTPS://EXAMPLE.COM/ARTICLE",
         ],
     )
-    def test_http_urls_are_returned_as_is(
-        self, pyramid_request, application_instance, document_url
-    ):
+    def test_http_urls_are_returned_as_is(self, pyramid_request, course, document_url):
         assert (
-            initial_document_uri(pyramid_request, document_url, application_instance)
-            == document_url
+            initial_document_uri(pyramid_request, document_url, course) == document_url
         )
 
     @pytest.mark.parametrize(
@@ -37,90 +34,101 @@ class TestInitialDocumentURI:
         ],
     )
     def test_youtube_urls_return_the_canonical_video_url(
-        self, pyramid_request, application_instance, document_url
+        self, pyramid_request, course, document_url
     ):
         # Via's YouTube player canonicalizes the URL before the client
         # annotates it, whatever form the instructor pasted.
-        document_uri = initial_document_uri(
-            pyramid_request, document_url, application_instance
-        )
+        document_uri = initial_document_uri(pyramid_request, document_url, course)
 
         assert document_uri == "https://www.youtube.com/watch?v=VIDEO_ID"
 
     def test_youtube_urls_are_returned_as_is_when_youtube_is_disabled(
-        self, pyramid_request, application_instance
+        self, pyramid_request, course
     ):
-        application_instance.settings.set("youtube", "enabled", False)  # noqa: FBT003
+        course.application_instance.settings.set("youtube", "enabled", False)  # noqa: FBT003
 
         document_uri = initial_document_uri(
-            pyramid_request, "https://youtu.be/VIDEO_ID", application_instance
+            pyramid_request, "https://youtu.be/VIDEO_ID", course
         )
 
         assert document_uri == "https://youtu.be/VIDEO_ID"
 
-    def test_canvas_pages_return_the_canonical_url(
-        self, pyramid_request, application_instance
-    ):
+    def test_canvas_pages_return_the_canonical_url(self, pyramid_request, course):
         document_uri = initial_document_uri(
-            pyramid_request, "canvas://page/course/42/page_id/314", application_instance
+            pyramid_request, "canvas://page/course/42/page_id/314", course
         )
 
         assert document_uri == "https://uni.instructure.com/courses/42/pages/314"
 
-    def test_vitalsource_returns_the_bookshelf_url(
-        self, pyramid_request, application_instance
+    def test_canvas_pages_use_the_current_course_and_mapped_page(
+        self, pyramid_request, course
     ):
+        # After a course copy the proxy is given the current course's Canvas id
+        # and the mapped page id, so the canonical URL the client sees uses
+        # those — not the ids in document_url.
+        course.extra["canvas"]["custom_canvas_course_id"] = "77"
+        course.set_mapped_page_id("314", "999")
+
+        document_uri = initial_document_uri(
+            pyramid_request, "canvas://page/course/42/page_id/314", course
+        )
+
+        assert document_uri == "https://uni.instructure.com/courses/77/pages/999"
+
+    def test_vitalsource_returns_the_bookshelf_url(self, pyramid_request, course):
         document_uri = initial_document_uri(
             pyramid_request,
             "vitalsource://book/bookID/BOOK-ID/cfi//6/8",
-            application_instance,
+            course,
         )
 
         assert document_uri == "https://bookshelf.vitalsource.com/reader/books/BOOK-ID"
 
-    def test_invalid_vitalsource_urls_return_None(
-        self, pyramid_request, application_instance
-    ):
+    def test_invalid_vitalsource_urls_return_None(self, pyramid_request, course):
         assert (
-            initial_document_uri(
-                pyramid_request, "vitalsource://nonsense", application_instance
-            )
+            initial_document_uri(pyramid_request, "vitalsource://nonsense", course)
             is None
         )
 
     def test_canvas_studio_returns_the_canonical_video_url(
-        self, pyramid_request, application_instance
+        self, pyramid_request, course
     ):
-        application_instance.settings.set(
+        course.application_instance.settings.set(
             "canvas_studio", "domain", "uni.instructuremedia.com"
         )
 
         document_uri = initial_document_uri(
-            pyramid_request, "canvas-studio://media/55", application_instance
+            pyramid_request, "canvas-studio://media/55", course
         )
 
         assert document_uri == "https://uni.instructuremedia.com/api/public/v1/media/55"
 
-    def test_canvas_studio_without_a_domain_returns_None(
-        self, pyramid_request, application_instance
-    ):
+    def test_canvas_studio_without_a_domain_returns_None(self, pyramid_request, course):
         assert (
-            initial_document_uri(
-                pyramid_request, "canvas-studio://media/55", application_instance
-            )
+            initial_document_uri(pyramid_request, "canvas-studio://media/55", course)
             is None
         )
 
-    def test_moodle_pages_return_the_proxy_resolved_url(
-        self, pyramid_request, application_instance
-    ):
+    def test_moodle_pages_return_the_proxy_resolved_url(self, pyramid_request, course):
         document_uri = initial_document_uri(
-            pyramid_request, "moodle://page/course/42/page_id/860", application_instance
+            pyramid_request, "moodle://page/course/42/page_id/860", course
         )
 
         proxy_url = pyramid_request.route_url("moodle_api.pages.proxy")
         assert document_uri == proxy_url.replace(
             "/proxy", "/uni.instructure.com/mod/page/view.php?id=860"
+        )
+
+    def test_moodle_pages_use_the_mapped_page(self, pyramid_request, course):
+        course.set_mapped_page_id("860", "999")
+
+        document_uri = initial_document_uri(
+            pyramid_request, "moodle://page/course/42/page_id/860", course
+        )
+
+        proxy_url = pyramid_request.route_url("moodle_api.pages.proxy")
+        assert document_uri == proxy_url.replace(
+            "/proxy", "/uni.instructure.com/mod/page/view.php?id=999"
         )
 
     @pytest.mark.parametrize(
@@ -136,16 +144,20 @@ class TestInitialDocumentURI:
         ],
     )
     def test_urls_with_no_derivable_identity_return_None(
-        self, pyramid_request, application_instance, document_url
+        self, pyramid_request, course, document_url
     ):
-        assert (
-            initial_document_uri(pyramid_request, document_url, application_instance)
-            is None
-        )
+        assert initial_document_uri(pyramid_request, document_url, course) is None
 
     @pytest.fixture
-    def application_instance(self):
-        return factories.ApplicationInstance(lms_url="https://uni.instructure.com")
+    def course(self):
+        return factories.Course(
+            application_instance=factories.ApplicationInstance(
+                lms_url="https://uni.instructure.com"
+            ),
+            # The Canvas page case reads the current course's Canvas id from
+            # here, the same way `canvas_api.pages.via_url` does.
+            extra={"canvas": {"custom_canvas_course_id": "42"}},
+        )
 
 
 @pytest.mark.usefixtures("canvas_service", "http_service")

@@ -28,8 +28,9 @@ internal ``document_url``. That identity depends on the content type:
   the href resolved against the page proxy's URL
 
 `initial_document_uri` covers the cases derivable from ``document_url`` alone
-and is applied when an assignment is (re)configured; the PDF fingerprint needs
-the file's bytes and is filled in lazily by `ensure_checkpoint_fingerprint`.
+and is re-applied on every launch, because the page cases resolve their ids
+through the launch's course (see below); the PDF fingerprint needs the file's
+bytes and is filled in lazily by `ensure_checkpoint_fingerprint`.
 """
 
 import hashlib
@@ -37,7 +38,7 @@ import logging
 import re
 from urllib.parse import quote_plus, urljoin
 
-from lms.models import ApplicationInstance, Assignment, Course
+from lms.models import Assignment, Course
 from lms.services.canvas import CanvasService
 from lms.services.d2l_api import D2LAPIClient
 from lms.services.jstor.service import JSTORService
@@ -80,7 +81,7 @@ _MOODLE_PAGE_REGEX = re.compile(
 
 
 def initial_document_uri(  # noqa: PLR0911
-    request, document_url: str, application_instance: ApplicationInstance
+    request, document_url: str, course: Course
 ) -> str | None:
     """
     Return the h document URI derivable from `document_url`, or None.
@@ -89,7 +90,13 @@ def initial_document_uri(  # noqa: PLR0911
     needs its PDF fingerprint computed from the file's bytes (see
     `ensure_checkpoint_fingerprint`), and some content types aren't supported
     yet.
+
+    `course` is the course of the *current* launch, not necessarily the one the
+    assignment was configured in: the page cases below resolve their ids
+    through it so a copied course derives the identity the client will use.
     """
+    application_instance = course.application_instance
+
     if _HTTP_URL_REGEX.match(document_url):
         settings = application_instance.settings
         if (video_id := video_id_from_url(document_url)) and settings.get_setting(
@@ -105,14 +112,19 @@ def initial_document_uri(  # noqa: PLR0911
         # The same URL as CanvasPage.canonical_url(), which our page proxy
         # injects as <link rel="canonical"> and the client uses as the URI.
         #
-        # NB: the ids come from document_url, i.e. the course the assignment
-        # was configured in. In a copied course the canonical URL uses the new
-        # course's ids, so this won't match there until the assignment is
-        # reconfigured.
+        # Both ids are resolved the way `canvas_api.pages.via_url` resolves the
+        # ones it passes to the proxy: the *current* course's Canvas id, and the
+        # page id mapped for course copy (`get_mapped_page_id` returns the
+        # original when there's no mapping).
+        #
+        # NB: the mapping is stored by that view, which the frontend calls after
+        # the launch response — so on the very first launch in a copied course
+        # there is no mapping yet and this derives the source course's URL. The
+        # next launch corrects it.
         lms_host = application_instance.lms_host()
-        return (
-            f"https://{lms_host}/courses/{match['course_id']}/pages/{match['page_id']}"
-        )
+        course_id = course.extra["canvas"]["custom_canvas_course_id"]
+        page_id = course.get_mapped_page_id(match["page_id"])
+        return f"https://{lms_host}/courses/{course_id}/pages/{page_id}"
 
     if document_url.startswith("vitalsource://"):
         try:
@@ -131,8 +143,11 @@ def initial_document_uri(  # noqa: PLR0911
         return f"https://{domain}/api/public/v1/media/{match['media_id']}"
 
     if match := _MOODLE_PAGE_REGEX.search(document_url):
+        # Same course-copy resolution as the Canvas page case above, and the
+        # same first-launch caveat.
+        page_id = course.get_mapped_page_id(match["page_id"])
         canonical_href = (
-            f"{application_instance.lms_host()}/mod/page/view.php?id={match['page_id']}"
+            f"{application_instance.lms_host()}/mod/page/view.php?id={page_id}"
         )
         return urljoin(request.route_url("moodle_api.pages.proxy"), canonical_href)
 
