@@ -122,7 +122,14 @@ def initial_document_uri(  # noqa: PLR0911
         # there is no mapping yet and this derives the source course's URL. The
         # next launch corrects it.
         lms_host = application_instance.lms_host()
-        course_id = course.extra["canvas"]["custom_canvas_course_id"]
+        # `extra["canvas"]` is only written when a course row is first created
+        # (see CourseService.get_from_launch), so courses that predate it don't
+        # have it. Fall back to the id in document_url rather than raising on a
+        # launch: it's the right one outside a course copy anyway.
+        course_id = (
+            course.extra.get("canvas", {}).get("custom_canvas_course_id")
+            or match["course_id"]
+        )
         page_id = course.get_mapped_page_id(match["page_id"])
         return f"https://{lms_host}/courses/{course_id}/pages/{page_id}"
 

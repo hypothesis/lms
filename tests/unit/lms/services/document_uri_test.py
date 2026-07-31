@@ -75,6 +75,19 @@ class TestInitialDocumentURI:
 
         assert document_uri == "https://uni.instructure.com/courses/77/pages/999"
 
+    def test_canvas_pages_fall_back_to_the_document_urls_course(
+        self, pyramid_request, course
+    ):
+        # Courses created before we started recording the Canvas course id have
+        # no "canvas" key in extra. Deriving must not raise on a launch.
+        course.extra = {}
+
+        document_uri = initial_document_uri(
+            pyramid_request, "canvas://page/course/42/page_id/314", course
+        )
+
+        assert document_uri == "https://uni.instructure.com/courses/42/pages/314"
+
     def test_vitalsource_returns_the_bookshelf_url(self, pyramid_request, course):
         document_uri = initial_document_uri(
             pyramid_request,
