@@ -167,20 +167,18 @@ def ensure_checkpoint_fingerprint(request, assignment: Assignment, course: Cours
     """
     Fill in document_uri for a Hide & Reveal file assignment.
 
-    File content is identified in h by its PDF fingerprint, which requires
-    downloading the file — so it can't be derived at configure time like the
-    other document_uri cases and is computed here, on launch.
+    File content is identified by its PDF fingerprint, which needs the file's
+    bytes rather than just its URL.
+
+    Runs for whoever launches: the file is fetched with the launching user's own
+    credentials, so anyone who can view the document can be fingerprinted from
+    it, and students launch first most of the time.
 
     Best-effort: any failure (expired API token, unreachable file...) is
     logged and swallowed — a launch must never break over this. Until the
     fingerprint is stored the checkpoint sync degrades to being skipped.
     """
     if assignment.document_uri:
-        return
-
-    if not request.lti_user.is_instructor:
-        # Instructors are the only users guaranteed to have authorized us (they picked
-        # the file), and they always launch first (they configure via one).
         return
 
     try:

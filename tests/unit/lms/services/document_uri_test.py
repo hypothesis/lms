@@ -175,7 +175,6 @@ class TestInitialDocumentURI:
 
 @pytest.mark.usefixtures("canvas_service", "http_service")
 class TestEnsureCheckpointFingerprint:
-    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_computes_and_stores_the_fingerprint(
         self, pyramid_request, assignment, course, canvas_service, http_service
     ):
@@ -193,7 +192,6 @@ class TestEnsureCheckpointFingerprint:
             assignment.document_uri == f"urn:x-pdf:{pdf_fingerprint(PDF_WITH_HEX_ID)}"
         )
 
-    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_does_nothing_if_document_uri_is_already_set(
         self, pyramid_request, assignment, course, canvas_service
     ):
@@ -205,15 +203,19 @@ class TestEnsureCheckpointFingerprint:
         assert assignment.document_uri == "urn:x-pdf:already-there"
 
     @pytest.mark.usefixtures("user_is_learner")
-    def test_it_does_nothing_for_non_instructors(
-        self, pyramid_request, assignment, course, canvas_service
+    def test_it_computes_the_fingerprint_for_students_too(
+        self, pyramid_request, assignment, course, http_service
     ):
+        # Students launch first most of the time, so this must not need an
+        # instructor.
+        http_service.get.return_value.content = PDF_WITH_HEX_ID
+
         ensure_checkpoint_fingerprint(pyramid_request, assignment, course)
 
-        canvas_service.public_url_for_file.assert_not_called()
-        assert assignment.document_uri is None
+        assert (
+            assignment.document_uri == f"urn:x-pdf:{pdf_fingerprint(PDF_WITH_HEX_ID)}"
+        )
 
-    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_computes_the_fingerprint_for_blackboard_files(
         self, pyramid_request, assignment, course, blackboard_api_client, http_service
     ):
@@ -229,7 +231,7 @@ class TestEnsureCheckpointFingerprint:
             assignment.document_uri == f"urn:x-pdf:{pdf_fingerprint(PDF_WITH_HEX_ID)}"
         )
 
-    @pytest.mark.usefixtures("user_is_instructor", "oauth2_token_service")
+    @pytest.mark.usefixtures("oauth2_token_service")
     def test_it_computes_the_fingerprint_for_d2l_files(
         self,
         pyramid_request,
@@ -253,7 +255,6 @@ class TestEnsureCheckpointFingerprint:
             assignment.document_uri == f"urn:x-pdf:{pdf_fingerprint(PDF_WITH_HEX_ID)}"
         )
 
-    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_computes_the_fingerprint_for_moodle_files(
         self, pyramid_request, assignment, course, moodle_api_client, http_service
     ):
@@ -271,7 +272,6 @@ class TestEnsureCheckpointFingerprint:
             assignment.document_uri == f"urn:x-pdf:{pdf_fingerprint(PDF_WITH_HEX_ID)}"
         )
 
-    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_computes_the_fingerprint_for_jstor(
         self, pyramid_request, assignment, course, jstor_service, http_service
     ):
@@ -287,7 +287,6 @@ class TestEnsureCheckpointFingerprint:
             assignment.document_uri == f"urn:x-pdf:{pdf_fingerprint(PDF_WITH_HEX_ID)}"
         )
 
-    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_does_nothing_for_jstor_when_disabled(
         self, pyramid_request, assignment, course, jstor_service, http_service
     ):
@@ -299,7 +298,6 @@ class TestEnsureCheckpointFingerprint:
         http_service.get.assert_not_called()
         assert assignment.document_uri is None
 
-    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_does_nothing_for_non_file_urls(
         self, pyramid_request, assignment, course, canvas_service, http_service
     ):
@@ -311,7 +309,6 @@ class TestEnsureCheckpointFingerprint:
         http_service.get.assert_not_called()
         assert assignment.document_uri is None
 
-    @pytest.mark.usefixtures("user_is_instructor")
     def test_it_swallows_errors(
         self, pyramid_request, assignment, course, canvas_service
     ):
