@@ -152,7 +152,7 @@ class TestInitialDocumentURI:
             "canvas://file/course/42/file_id/99",
             "blackboard://content-resource/FILE_ID/",
             "d2l://file/course/42/file_id/99/",
-            "moodle://file/course/42/url/https%3A%2F%2Fmoodle.com%2Ffile.pdf",
+            "moodle://file/course/42/url/https://moodle.com/file.pdf",
             "jstor://10.2307/1234",
         ],
     )
