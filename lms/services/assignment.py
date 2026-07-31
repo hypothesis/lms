@@ -19,7 +19,10 @@ from lms.models import (
     User,
 )
 from lms.services.course import CourseService
-from lms.services.document_uri import initial_document_uri
+from lms.services.document_uri import (
+    ensure_checkpoint_fingerprint,
+    initial_document_uri,
+)
 from lms.services.upsert import bulk_upsert
 
 LOG = logging.getLogger(__name__)
@@ -129,18 +132,6 @@ class AssignmentService:
             # invalidates whatever we resolved for the old one.
             assignment.document_uri = None
 
-        # Re-derived on every launch, not just when it's missing: the page cases
-        # resolve their ids through `course`, so a copied course only derives the
-        # right identity once the course-copy mapping exists (see
-        # `initial_document_uri`).
-        #
-        # Only assign when we got something. None means the identity isn't
-        # derivable from the URL — file content, whose fingerprint is computed
-        # separately by `ensure_checkpoint_fingerprint` — and overwriting with
-        # None here would wipe that fingerprint on the next launch.
-        if (derived := initial_document_uri(request, document_url, course)) is not None:
-            assignment.document_uri = derived
-
         assignment.extra["group_set_id"] = group_set_id
 
         # Metadata based on the launch
@@ -168,7 +159,37 @@ class AssignmentService:
         self._update_auto_grading_config(assignment, auto_grading_config)
         self._update_checkpoint(assignment, checkpoint_enabled)
 
+        # Must stay *after* `_update_checkpoint`: that's what sets
+        # `checkpoint_enabled`, so resolving any earlier would skip the launch
+        # that first enables checkpoints.
+        if assignment.checkpoint_enabled:
+            self._resolve_document_uri(request, assignment, course)
+
         return assignment
+
+    @staticmethod
+    def _resolve_document_uri(request, assignment: Assignment, course: Course) -> None:
+        """Resolve the h document identity of a Hide & Reveal assignment.
+
+        Only called for checkpoint-enabled assignments: `document_uri` is what
+        the checkpoint in h is keyed by, and nothing else reads it.
+
+        `initial_document_uri` derives the identity from the URL and is cheap, so
+        it re-runs on every launch: the page cases resolve their ids through
+        `course`, and a copied course only derives the identity the client uses
+        once the course-copy mapping exists. It's only assigned when it returns
+        something — None means the identity isn't derivable from the URL (file
+        content), and assigning it would wipe the fingerprint below.
+
+        `ensure_checkpoint_fingerprint` covers that file content by downloading
+        it, and is a no-op once `document_uri` is set.
+        """
+        if (
+            derived := initial_document_uri(request, assignment.document_url, course)
+        ) is not None:
+            assignment.document_uri = derived
+
+        ensure_checkpoint_fingerprint(request, assignment, course)
 
     @staticmethod
     def _normalize_due_date(due_date: str | datetime | None) -> datetime | None:
