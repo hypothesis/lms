@@ -161,9 +161,25 @@ class TestAssignmentService:
             "https://example.com/document",
             sentinel.group_set_id,
             course,
+            checkpoint_enabled=True,
         )
 
         assert assignment.document_uri == "https://example.com/document"
+
+    def test_update_assignment_does_not_set_document_uri_without_checkpoints(
+        self, svc, pyramid_request, course
+    ):
+        # Nothing reads document_uri unless checkpoints are enabled, so we don't
+        # resolve it for ordinary assignments.
+        assignment = svc.update_assignment(
+            pyramid_request,
+            factories.Assignment(),
+            "https://example.com/document",
+            sentinel.group_set_id,
+            course,
+        )
+
+        assert assignment.document_uri is None
 
     def test_update_assignment_resets_document_uri_when_the_document_changes(
         self, svc, pyramid_request, course
@@ -181,8 +197,9 @@ class TestAssignmentService:
             course,
         )
 
-        # The new file's fingerprint isn't known yet: it gets computed on
-        # launch (see ensure_checkpoint_fingerprint).
+        # The reset is deliberately not gated on checkpoint_enabled — it runs
+        # wherever document_url is assigned. For a checkpoint assignment the new
+        # file's fingerprint is then resolved by `_resolve_document_uri`.
         assert assignment.document_uri is None
 
     def test_update_assignment_keeps_document_uri_when_the_document_is_unchanged(
@@ -199,6 +216,7 @@ class TestAssignmentService:
             "canvas://file/course/1/file_id/2",
             sentinel.group_set_id,
             course,
+            checkpoint_enabled=True,
         )
 
         assert assignment.document_uri == "urn:x-pdf:FINGERPRINT"
