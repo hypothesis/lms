@@ -1,18 +1,11 @@
 """Proxy API views for files-related Canvas API endpoints."""
 
-import re
-
 from pyramid.view import view_config, view_defaults
 
+from lms.document_url_regex import CANVAS_FILE as DOCUMENT_URL_REGEX
 from lms.security import Permissions
 from lms.services.canvas import CanvasService
 from lms.views import helpers
-
-#: A regex for parsing the COURSE_ID and FILE_ID parts out of one of our custom
-#: canvas://file/course/COURSE_ID/file_id/FILE_ID URLs.
-DOCUMENT_URL_REGEX = re.compile(
-    r"canvas:\/\/file\/course\/(?P<course_id>[^\/]*)\/file_id\/(?P<file_id>[^\/]*)"
-)
 
 
 @view_defaults(permission=Permissions.API, renderer="json")

@@ -1,18 +1,14 @@
-import re
 from logging import getLogger
 
 from pyramid.view import view_config
 
+from lms.document_url_regex import MOODLE_FILE as DOCUMENT_URL_REGEX
 from lms.security import Permissions
 from lms.services.exceptions import FileNotFoundInCourse
 from lms.services.moodle import MoodleAPIClient
 from lms.views import helpers
 
 LOG = getLogger(__name__)
-
-DOCUMENT_URL_REGEX = re.compile(
-    r"moodle:\/\/file\/course\/(?P<course_id>[^\/]*)\/url\/(?P<url>.*)"
-)
 
 
 @view_config(

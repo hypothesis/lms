@@ -1,19 +1,12 @@
 """Proxy API views for files-related Blackboard API endpoints."""
 
-import re
-
 from pyramid.view import view_config, view_defaults
 
+from lms.document_url_regex import BLACKBOARD_FILE as DOCUMENT_URL_REGEX
 from lms.product.blackboard import Blackboard
 from lms.security import Permissions
 from lms.services.exceptions import FileNotFoundInCourse
 from lms.views import helpers
-
-#: A regex for parsing just the file_id part out of one of our custom
-#: blackboard://content-resource/<file_id>/ URLs.
-DOCUMENT_URL_REGEX = re.compile(
-    r"blackboard:\/\/content-resource\/(?P<file_id>[^\/]*)\/"
-)
 
 
 @view_defaults(permission=Permissions.API, renderer="json")

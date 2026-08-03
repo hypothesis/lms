@@ -38,6 +38,14 @@ import logging
 import re
 from urllib.parse import quote_plus, urljoin
 
+from lms.document_url_regex import (
+    BLACKBOARD_FILE,
+    CANVAS_FILE,
+    CANVAS_PAGE,
+    D2L_FILE,
+    MOODLE_FILE,
+    MOODLE_PAGE,
+)
 from lms.models import Assignment, Course
 from lms.services.canvas import CanvasService
 from lms.services.d2l_api import D2LAPIClient
@@ -51,33 +59,8 @@ LOG = logging.getLogger(__name__)
 #: Content annotated at its own URL: document_url is already the h identity.
 _HTTP_URL_REGEX = re.compile(r"^https?://", re.IGNORECASE)
 
-# Keep in sync with lms/views/api/canvas/pages.py::DOCUMENT_URL_REGEX.
-_CANVAS_PAGE_REGEX = re.compile(
-    r"canvas:\/\/page\/course\/(?P<course_id>[^\/]*)\/page_id\/(?P<page_id>[^\/]*)"
-)
-
-# The file regexes below are kept in sync with each LMS's
-# views/api/*/files.py::DOCUMENT_URL_REGEX.
-_CANVAS_FILE_REGEX = re.compile(
-    r"canvas:\/\/file\/course\/(?P<course_id>[^\/]*)\/file_id\/(?P<file_id>[^\/]*)"
-)
-_BLACKBOARD_FILE_REGEX = re.compile(
-    r"blackboard:\/\/content-resource\/(?P<file_id>[^\/]*)\/"
-)
-_D2L_FILE_REGEX = re.compile(
-    r"d2l:\/\/file\/course\/(?P<course_id>[^\/]*)\/file_id\/(?P<file_id>[^\/]*)\/"
-)
-_MOODLE_FILE_REGEX = re.compile(
-    r"moodle:\/\/file\/course\/(?P<course_id>[^\/]*)\/url\/(?P<url>.*)"
-)
-
 # Keep in sync with CanvasStudioService.media_id()'s parsing.
 _CANVAS_STUDIO_REGEX = re.compile(r"canvas-studio:\/\/media\/(?P<media_id>.+)")
-
-# Keep in sync with lms/views/api/moodle/pages.py::DOCUMENT_URL_REGEX.
-_MOODLE_PAGE_REGEX = re.compile(
-    r"moodle:\/\/page\/course\/(?P<course_id>[^\/]*)\/page_id\/(?P<page_id>[^\/]*)"
-)
 
 
 def initial_document_uri(  # noqa: PLR0911
@@ -108,7 +91,7 @@ def initial_document_uri(  # noqa: PLR0911
             return f"https://www.youtube.com/watch?v={quote_plus(video_id)}"
         return document_url
 
-    if match := _CANVAS_PAGE_REGEX.search(document_url):
+    if match := CANVAS_PAGE.search(document_url):
         # The same URL as CanvasPage.canonical_url(), which our page proxy
         # injects as <link rel="canonical"> and the client uses as the URI.
         #
@@ -149,7 +132,7 @@ def initial_document_uri(  # noqa: PLR0911
             return None
         return f"https://{domain}/api/public/v1/media/{match['media_id']}"
 
-    if match := _MOODLE_PAGE_REGEX.search(document_url):
+    if match := MOODLE_PAGE.search(document_url):
         # Same course-copy resolution as the Canvas page case above, and the
         # same first-launch caveat.
         page_id = course.get_mapped_page_id(match["page_id"])
@@ -206,7 +189,7 @@ def _download_file_content(request, assignment: Assignment, course: Course):  # 
     document_url = assignment.document_url
     http = request.find_service(name="http")
 
-    if match := _CANVAS_FILE_REGEX.search(document_url):
+    if match := CANVAS_FILE.search(document_url):
         public_url = request.find_service(CanvasService).public_url_for_file(
             assignment,
             match["file_id"],
@@ -214,13 +197,13 @@ def _download_file_content(request, assignment: Assignment, course: Course):  # 
         )
         return http.get(public_url).content
 
-    if match := _BLACKBOARD_FILE_REGEX.search(document_url):
+    if match := BLACKBOARD_FILE.search(document_url):
         public_url = request.find_service(name="blackboard_api_client").public_url(
             course.lms_id, course.get_mapped_file_id(match["file_id"])
         )
         return http.get(public_url).content
 
-    if match := _D2L_FILE_REGEX.search(document_url):
+    if match := D2L_FILE.search(document_url):
         public_url = request.find_service(D2LAPIClient).public_url(
             course.lms_id, course.get_mapped_file_id(match["file_id"])
         )
@@ -229,7 +212,7 @@ def _download_file_content(request, assignment: Assignment, course: Course):  # 
             public_url, headers={"Authorization": f"Bearer {access_token}"}
         ).content
 
-    if match := _MOODLE_FILE_REGEX.search(document_url):
+    if match := MOODLE_FILE.search(document_url):
         token = request.find_service(MoodleAPIClient).token
         return http.get(
             course.get_mapped_file_id(match["url"]), params={"token": token}

@@ -1,8 +1,8 @@
 import logging
-import re
 
 from pyramid.view import view_config, view_defaults
 
+from lms.document_url_regex import MOODLE_PAGE as DOCUMENT_URL_REGEX
 from lms.security import Permissions
 from lms.services.exceptions import FileNotFoundInCourse
 from lms.services.moodle import MoodleAPIClient
@@ -10,11 +10,6 @@ from lms.validation.authentication import BearerTokenSchema
 from lms.views import helpers
 
 LOG = logging.getLogger(__name__)
-
-# A regex for parsing the COURSE_ID and PAGE_ID parts out of custom URL
-DOCUMENT_URL_REGEX = re.compile(
-    r"moodle:\/\/page\/course\/(?P<course_id>[^\/]*)\/page_id\/(?P<page_id>[^\/]*)"
-)
 
 
 class PageNotFoundInCourse(FileNotFoundInCourse):

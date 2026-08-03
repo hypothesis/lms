@@ -1,15 +1,10 @@
-import re
-
 from pyramid.view import view_config
 
+from lms.document_url_regex import D2L_FILE as DOCUMENT_URL_REGEX
 from lms.security import Permissions
 from lms.services.d2l_api import D2LAPIClient
 from lms.services.exceptions import FileNotFoundInCourse
 from lms.views import helpers
-
-DOCUMENT_URL_REGEX = re.compile(
-    r"d2l:\/\/file\/course\/(?P<course_id>[^\/]*)\/file_id\/(?P<file_id>[^\/]*)\/"
-)
 
 
 @view_config(
