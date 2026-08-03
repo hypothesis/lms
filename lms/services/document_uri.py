@@ -24,8 +24,8 @@ internal ``document_url``. That identity depends on the content type:
 * Canvas Studio: Via's video player saves the annotations with the video's
   canonical REST URL (``CanvasStudioService.get_canonical_video_url()``).
 
-* Moodle pages: the proxy's canonical link has no scheme, so annotations get
-  the href resolved against the page proxy's URL
+* Moodle pages: the proxy's canonical link has no scheme, so the browser
+  resolves the href against the *viahtml* URL of the proxied page.
 
 `initial_document_uri` covers the cases derivable from ``document_url`` alone
 and is re-applied on every launch, because the page cases resolve their ids
@@ -36,7 +36,7 @@ bytes and is filled in lazily by `ensure_checkpoint_fingerprint`.
 import hashlib
 import logging
 import re
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import quote_plus, urlparse
 
 from lms.document_url_regex import (
     BLACKBOARD_FILE,
@@ -52,7 +52,7 @@ from lms.services.d2l_api import D2LAPIClient
 from lms.services.jstor.service import JSTORService
 from lms.services.moodle import MoodleAPIClient
 from lms.services.vitalsource.model import VSBookLocation
-from lms.services.youtube import video_id_from_url
+from lms.services.youtube import YouTubeService, video_id_from_url
 
 LOG = logging.getLogger(__name__)
 
@@ -69,10 +69,11 @@ def initial_document_uri(  # noqa: PLR0911
     """
     Return the h document URI derivable from `document_url`, or None.
 
-    None means the identity can't be derived from the URL alone: file content
-    needs its PDF fingerprint computed from the file's bytes (see
-    `ensure_checkpoint_fingerprint`), and some content types aren't supported
-    yet.
+    None means the identity can't be derived (yet): file content needs its PDF
+    fingerprint computed from the file's bytes (see
+    `ensure_checkpoint_fingerprint`), pages in a copied course can't be
+    resolved until the course-copy mapping is stored, and some content types
+    aren't supported yet.
 
     `course` is the course of the *current* launch, not necessarily the one the
     assignment was configured in: the page cases below resolve their ids
@@ -81,10 +82,9 @@ def initial_document_uri(  # noqa: PLR0911
     application_instance = course.application_instance
 
     if _HTTP_URL_REGEX.match(document_url):
-        settings = application_instance.settings
-        if (video_id := video_id_from_url(document_url)) and settings.get_setting(
-            settings.fields[settings.Settings.YOUTUBE_ENABLED]
-        ):
+        if (video_id := video_id_from_url(document_url)) and request.find_service(
+            iface=YouTubeService
+        ).enabled:
             # Via's YouTube player canonicalizes the video URL before the
             # client annotates it (canonical_video_url() in via), so e.g. a
             # youtu.be/X document_url isn't what the annotations get.
@@ -92,29 +92,7 @@ def initial_document_uri(  # noqa: PLR0911
         return document_url
 
     if match := CANVAS_PAGE.search(document_url):
-        # The same URL as CanvasPage.canonical_url(), which our page proxy
-        # injects as <link rel="canonical"> and the client uses as the URI.
-        #
-        # Both ids are resolved the way `canvas_api.pages.via_url` resolves the
-        # ones it passes to the proxy: the *current* course's Canvas id, and the
-        # page id mapped for course copy (`get_mapped_page_id` returns the
-        # original when there's no mapping).
-        #
-        # NB: the mapping is stored by that view, which the frontend calls after
-        # the launch response — so on the very first launch in a copied course
-        # there is no mapping yet and this derives the source course's URL. The
-        # next launch corrects it.
-        lms_host = application_instance.lms_host()
-        # `extra["canvas"]` is only written when a course row is first created
-        # (see CourseService.get_from_launch), so courses that predate it don't
-        # have it. Fall back to the id in document_url rather than raising on a
-        # launch: it's the right one outside a course copy anyway.
-        course_id = (
-            course.extra.get("canvas", {}).get("custom_canvas_course_id")
-            or match["course_id"]
-        )
-        page_id = course.get_mapped_page_id(match["page_id"])
-        return f"https://{lms_host}/courses/{course_id}/pages/{page_id}"
+        return _canvas_page_uri(course, match)
 
     if document_url.startswith("vitalsource://"):
         try:
@@ -133,17 +111,92 @@ def initial_document_uri(  # noqa: PLR0911
         return f"https://{domain}/api/public/v1/media/{match['media_id']}"
 
     if match := MOODLE_PAGE.search(document_url):
-        # Same course-copy resolution as the Canvas page case above, and the
-        # same first-launch caveat.
-        page_id = course.get_mapped_page_id(match["page_id"])
-        canonical_href = (
-            f"{application_instance.lms_host()}/mod/page/view.php?id={page_id}"
-        )
-        return urljoin(request.route_url("moodle_api.pages.proxy"), canonical_href)
+        return _moodle_page_uri(request, course, match)
 
     # LMS files and jstor:// are PDFs: nothing derivable from the URL — their
     # fingerprint is computed at launch (see ensure_checkpoint_fingerprint).
     return None
+
+
+def _canvas_page_uri(course: Course, match: re.Match) -> str | None:
+    """
+    Return the h identity of a Canvas page, or None if it can't be derived yet.
+
+    The same URL as CanvasPage.canonical_url(), which our page proxy injects
+    as <link rel="canonical"> and the client uses as the URI.
+
+    Both ids are resolved the way `canvas_api.pages.via_url` resolves the ones
+    it passes to the proxy: the *current* course's Canvas id, and the page id
+    mapped for course copy (`get_mapped_page_id` returns the original when
+    there's no mapping).
+    """
+    course_id = _canvas_course_id(course, match)
+    page_id = course.get_mapped_page_id(match["page_id"])
+
+    if _in_unmapped_copied_course(course_id, page_id, match):
+        return None
+
+    lms_host = course.application_instance.lms_host()
+    return f"https://{lms_host}/courses/{course_id}/pages/{page_id}"
+
+
+def _canvas_course_id(course: Course, match: re.Match) -> str:
+    """
+    Return the *current* course's Canvas id.
+
+    `extra["canvas"]` is only written when a course row is first created (see
+    CourseService.get_from_launch), so courses that predate it don't have it.
+    Fall back to the id in document_url rather than raising on a launch: it's
+    the right one outside a course copy anyway.
+    """
+    return (
+        course.extra.get("canvas", {}).get("custom_canvas_course_id")
+        or match["course_id"]
+    )
+
+
+def _in_unmapped_copied_course(current_course_id, page_id, match: re.Match) -> bool:
+    """
+    Return whether `match` is a page in a copied course with no mapping yet.
+
+    A course id different from document_url's means a copied course, and an
+    unmapped page id (`get_mapped_page_id` returns the original when there's
+    no mapping) means the `*_api.pages.via_url` view — which the frontend only
+    calls after the launch response — hasn't stored the mapping yet. Deriving
+    now would produce the *source* course's URL — an identity the client never
+    uses — and sync an orphan checkpoint to h keyed by it. Better to leave the
+    identity unresolved: the next launch, with the mapping stored, derives the
+    right one.
+    """
+    return current_course_id != match["course_id"] and page_id == match["page_id"]
+
+
+def _moodle_page_uri(request, course: Course, match: re.Match) -> str | None:
+    """
+    Return the h identity of a Moodle page, or None if it can't be derived yet.
+
+    Same course-copy resolution as `_canvas_page_uri`, including skipping an
+    unmapped copied course (the same copy detection as
+    `moodle_api.pages.via_url`, which stores the mapping).
+    """
+    via_html_url = request.registry.settings.get("via_html_url")
+    if not via_html_url:
+        # Without knowing viahtml's public URL we'd derive an identity the
+        # client never uses; leave it unresolved instead.
+        LOG.warning("VIA_HTML_URL isn't set: can't resolve Moodle page identities")
+        return None
+
+    page_id = course.get_mapped_page_id(match["page_id"])
+
+    if _in_unmapped_copied_course(course.lms_id, page_id, match):
+        return None
+
+    canonical_href = (
+        f"{course.application_instance.lms_host()}/mod/page/view.php?id={page_id}"
+    )
+    browser_url = f"{via_html_url}{request.route_url('moodle_api.pages.proxy')}"
+
+    return f"{browser_url.rsplit('/', 1)[0]}/{canonical_href}"
 
 
 def ensure_checkpoint_fingerprint(request, assignment: Assignment, course: Course):
@@ -191,9 +244,7 @@ def _download_file_content(request, assignment: Assignment, course: Course):  # 
 
     if match := CANVAS_FILE.search(document_url):
         public_url = request.find_service(CanvasService).public_url_for_file(
-            assignment,
-            match["file_id"],
-            course.extra["canvas"]["custom_canvas_course_id"],
+            assignment, match["file_id"], _canvas_course_id(course, match)
         )
         return http.get(public_url).content
 
@@ -213,10 +264,16 @@ def _download_file_content(request, assignment: Assignment, course: Course):  # 
         ).content
 
     if match := MOODLE_FILE.search(document_url):
+        file_url = course.get_mapped_file_id(match["url"])
+        if urlparse(file_url).hostname != course.application_instance.lms_host():
+            LOG.warning(
+                "Not fingerprinting assignment %s: its Moodle file URL's host"
+                " isn't the application instance's LMS host",
+                assignment.id,
+            )
+            return None
         token = request.find_service(MoodleAPIClient).token
-        return http.get(
-            course.get_mapped_file_id(match["url"]), params={"token": token}
-        ).content
+        return http.get(file_url, params={"token": token}).content
 
     if document_url.startswith("jstor://"):
         jstor = request.find_service(iface=JSTORService)

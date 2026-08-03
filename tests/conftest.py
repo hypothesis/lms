@@ -6,6 +6,7 @@ import pytest
 TEST_SETTINGS = {
     "dev": False,
     "via_url": "http://TEST_VIA_SERVER.is/",
+    "via_html_url": "http://TEST_VIA_HTML_SERVER.is/proxy/",
     "jwt_secret": "test_secret",
     "google_client_id": "fake_client_id",
     "google_developer_key": "fake_developer_key",

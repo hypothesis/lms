@@ -25,6 +25,12 @@ def _append_trailing_slash(string):
     return string if string.endswith("/") else string + "/"
 
 
+def _append_trailing_slash_if_set(string):
+    """Like `_append_trailing_slash` but tolerate the setting being unset."""
+
+    return _append_trailing_slash(string) if string else string
+
+
 def _aes_to_16_chars(string):
     """Get 16 ascii bytes from the provided string."""
 
@@ -58,6 +64,7 @@ SETTINGS = (
     # The URL of the https://github.com/hypothesis/via instance to
     # integrate with.
     _Setting("via_url", value_mapper=_append_trailing_slash),
+    _Setting("via_html_url", value_mapper=_append_trailing_slash_if_set),
     _Setting("via_secret"),
     _Setting("jwt_secret"),
     _Setting("google_client_id"),

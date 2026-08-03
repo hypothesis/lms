@@ -34,8 +34,10 @@ class TestInitialDocumentURI:
         ],
     )
     def test_youtube_urls_return_the_canonical_video_url(
-        self, pyramid_request, course, document_url
+        self, pyramid_request, course, youtube_service, document_url
     ):
+        youtube_service.enabled = True
+
         # Via's YouTube player canonicalizes the URL before the client
         # annotates it, whatever form the instructor pasted.
         document_uri = initial_document_uri(pyramid_request, document_url, course)
@@ -43,9 +45,9 @@ class TestInitialDocumentURI:
         assert document_uri == "https://www.youtube.com/watch?v=VIDEO_ID"
 
     def test_youtube_urls_are_returned_as_is_when_youtube_is_disabled(
-        self, pyramid_request, course
+        self, pyramid_request, course, youtube_service
     ):
-        course.application_instance.settings.set("youtube", "enabled", False)  # noqa: FBT003
+        youtube_service.enabled = False
 
         document_uri = initial_document_uri(
             pyramid_request, "https://youtu.be/VIDEO_ID", course
@@ -74,6 +76,18 @@ class TestInitialDocumentURI:
         )
 
         assert document_uri == "https://uni.instructure.com/courses/77/pages/999"
+
+    def test_canvas_pages_in_an_unmapped_copied_course_return_None(
+        self, pyramid_request, course
+    ):
+        course.extra["canvas"]["custom_canvas_course_id"] = "77"
+
+        assert (
+            initial_document_uri(
+                pyramid_request, "canvas://page/course/42/page_id/314", course
+            )
+            is None
+        )
 
     def test_canvas_pages_fall_back_to_the_document_urls_course(
         self, pyramid_request, course
@@ -122,17 +136,26 @@ class TestInitialDocumentURI:
             is None
         )
 
-    def test_moodle_pages_return_the_proxy_resolved_url(self, pyramid_request, course):
+    def test_moodle_pages_return_the_viahtml_resolved_url(
+        self, pyramid_request, course
+    ):
+        course.lms_id = "42"
+
         document_uri = initial_document_uri(
             pyramid_request, "moodle://page/course/42/page_id/860", course
         )
 
         proxy_url = pyramid_request.route_url("moodle_api.pages.proxy")
-        assert document_uri == proxy_url.replace(
-            "/proxy", "/uni.instructure.com/mod/page/view.php?id=860"
+        assert (
+            document_uri
+            == "http://TEST_VIA_HTML_SERVER.is/proxy/"
+            + proxy_url.replace(
+                "/proxy", "/uni.instructure.com/mod/page/view.php?id=860"
+            )
         )
 
     def test_moodle_pages_use_the_mapped_page(self, pyramid_request, course):
+        course.lms_id = "77"
         course.set_mapped_page_id("860", "999")
 
         document_uri = initial_document_uri(
@@ -140,8 +163,37 @@ class TestInitialDocumentURI:
         )
 
         proxy_url = pyramid_request.route_url("moodle_api.pages.proxy")
-        assert document_uri == proxy_url.replace(
-            "/proxy", "/uni.instructure.com/mod/page/view.php?id=999"
+        assert (
+            document_uri
+            == "http://TEST_VIA_HTML_SERVER.is/proxy/"
+            + proxy_url.replace(
+                "/proxy", "/uni.instructure.com/mod/page/view.php?id=999"
+            )
+        )
+
+    def test_moodle_pages_without_via_html_url_return_None(
+        self, pyramid_request, course
+    ):
+        course.lms_id = "42"
+        del pyramid_request.registry.settings["via_html_url"]
+
+        assert (
+            initial_document_uri(
+                pyramid_request, "moodle://page/course/42/page_id/860", course
+            )
+            is None
+        )
+
+    def test_moodle_pages_in_an_unmapped_copied_course_return_None(
+        self, pyramid_request, course
+    ):
+        course.lms_id = "77"
+
+        assert (
+            initial_document_uri(
+                pyramid_request, "moodle://page/course/42/page_id/860", course
+            )
+            is None
         )
 
     @pytest.mark.parametrize(
@@ -258,6 +310,7 @@ class TestEnsureCheckpointFingerprint:
     def test_it_computes_the_fingerprint_for_moodle_files(
         self, pyramid_request, assignment, course, moodle_api_client, http_service
     ):
+        course.application_instance.lms_url = "https://moodle.com"
         assignment.document_url = (
             "moodle://file/course/42/url/https://moodle.com/file.pdf"
         )
@@ -271,6 +324,20 @@ class TestEnsureCheckpointFingerprint:
         assert (
             assignment.document_uri == f"urn:x-pdf:{pdf_fingerprint(PDF_WITH_HEX_ID)}"
         )
+
+    @pytest.mark.usefixtures("moodle_api_client")
+    def test_it_refuses_moodle_urls_on_other_hosts(
+        self, pyramid_request, assignment, course, http_service
+    ):
+        course.application_instance.lms_url = "https://moodle.com"
+        assignment.document_url = (
+            "moodle://file/course/42/url/https://evil.example.com/file.pdf"
+        )
+
+        ensure_checkpoint_fingerprint(pyramid_request, assignment, course)
+
+        http_service.get.assert_not_called()
+        assert assignment.document_uri is None
 
     def test_it_computes_the_fingerprint_for_jstor(
         self, pyramid_request, assignment, course, jstor_service, http_service
@@ -308,6 +375,23 @@ class TestEnsureCheckpointFingerprint:
         canvas_service.public_url_for_file.assert_not_called()
         http_service.get.assert_not_called()
         assert assignment.document_uri is None
+
+    def test_canvas_courses_without_extra_use_the_document_urls_course(
+        self, pyramid_request, assignment, course, canvas_service, http_service
+    ):
+        # Courses that predate extra["canvas"] don't have it: fall back to
+        # the course id in document_url rather than raising on every launch.
+        course.extra = {}
+        http_service.get.return_value.content = PDF_WITH_HEX_ID
+
+        ensure_checkpoint_fingerprint(pyramid_request, assignment, course)
+
+        canvas_service.public_url_for_file.assert_called_once_with(
+            assignment, "99", "42"
+        )
+        assert (
+            assignment.document_uri == f"urn:x-pdf:{pdf_fingerprint(PDF_WITH_HEX_ID)}"
+        )
 
     def test_it_swallows_errors(
         self, pyramid_request, assignment, course, canvas_service
