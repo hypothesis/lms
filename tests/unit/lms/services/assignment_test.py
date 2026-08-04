@@ -136,18 +136,18 @@ class TestAssignmentService:
         assignment = svc.update_assignment(
             pyramid_request,
             factories.Assignment(),
-            "https://example.com/document",
+            sentinel.document_url,
             sentinel.group_set_id,
             course,
         )
 
         if is_speed_grader:
             assert assignment.extra == {}
-            assert assignment.document_url != "https://example.com/document"
+            assert assignment.document_url != sentinel.document_url
             assert not assignment.lis_outcome_service_url
             assert not assignment.lti_v13_resource_link_id
         else:
-            assert assignment.document_url == "https://example.com/document"
+            assert assignment.document_url == sentinel.document_url
             assert assignment.extra["group_set_id"] == sentinel.group_set_id
             assert assignment.title == title
             assert assignment.course_id == course.id
@@ -174,7 +174,7 @@ class TestAssignmentService:
         assignment = svc.update_assignment(
             pyramid_request,
             factories.Assignment(),
-            "https://example.com/document",
+            sentinel.document_url,
             sentinel.group_set_id,
             course,
         )
@@ -238,7 +238,7 @@ class TestAssignmentService:
         assignment = svc.update_assignment(
             pyramid_request,
             assignment,
-            "https://example.com/document",
+            sentinel.document_url,
             sentinel.group_set_id,
             course,
             auto_grading_config={
@@ -300,7 +300,7 @@ class TestAssignmentService:
         assignment = svc.update_assignment(
             pyramid_request,
             assignment,
-            "https://example.com/document",
+            sentinel.document_url,
             sentinel.group_set_id,
             course,
             checkpoint_enabled=False,
@@ -342,7 +342,7 @@ class TestAssignmentService:
         assignment = svc.update_assignment(
             pyramid_request,
             factories.Assignment(),
-            "https://example.com/document",
+            sentinel.document_url,
             sentinel.group_set_id,
             course,
             due_date=due_date,
@@ -395,7 +395,7 @@ class TestAssignmentService:
         course,
     ):
         misc_plugin.get_assignment_configuration.return_value = {
-            "document_url": "https://example.com/document",
+            "document_url": sentinel.document_url,
             "group_set_id": sentinel.group_set_id,
         }
         get_assignment.return_value = factories.Assignment()
@@ -409,7 +409,7 @@ class TestAssignmentService:
         misc_plugin.is_assignment_gradable.assert_called_once_with(
             pyramid_request.lti_params
         )
-        assert assignment.document_url == "https://example.com/document"
+        assert assignment.document_url == sentinel.document_url
         assert assignment.extra["group_set_id"] == sentinel.group_set_id
 
         assert assignment.title == pyramid_request.lti_params.get("resource_link_title")
@@ -429,7 +429,7 @@ class TestAssignmentService:
         course,
     ):
         misc_plugin.get_assignment_configuration.return_value = {
-            "document_url": "https://example.com/document",
+            "document_url": sentinel.document_url,
             "group_set_id": sentinel.group_set_id,
             "due_date": "2026-07-01T12:00:00+00:00",
         }
@@ -459,7 +459,7 @@ class TestAssignmentService:
         course,
     ):
         misc_plugin.get_assignment_configuration.return_value = {
-            "document_url": "https://example.com/document",
+            "document_url": sentinel.document_url,
             "group_set_id": group_set_id,
         }
         create_assignment.return_value = factories.Assignment()
@@ -472,7 +472,7 @@ class TestAssignmentService:
         create_assignment.assert_called_once_with(
             "TEST_TOOL_CONSUMER_INSTANCE_GUID", "TEST_RESOURCE_LINK_ID"
         )
-        assert assignment.document_url == "https://example.com/document"
+        assert assignment.document_url == sentinel.document_url
         assert assignment.course_id == course.id
         if group_set_id:
             assignment.extra["group_set_id"] = group_set_id
