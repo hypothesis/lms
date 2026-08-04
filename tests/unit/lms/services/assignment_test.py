@@ -489,10 +489,11 @@ class TestAssignmentService:
         course,
     ):
         misc_plugin.get_assignment_configuration.return_value = {
-            "document_url": "https://example.com/document"
+            "document_url": sentinel.document_url
         }
         get_assignment.return_value = None
-        _get_copied_from_assignment.return_value = sentinel.original_assignment
+        original_assignment = factories.Assignment()
+        _get_copied_from_assignment.return_value = original_assignment
 
         assignment = svc.get_assignment_for_launch(pyramid_request, course)
 
@@ -500,8 +501,8 @@ class TestAssignmentService:
         create_assignment.assert_called_once_with(
             "TEST_TOOL_CONSUMER_INSTANCE_GUID", "TEST_RESOURCE_LINK_ID"
         )
-        assert assignment.copied_from == sentinel.original_assignment
-        assert assignment.document_url == "https://example.com/document"
+        assert assignment.copied_from == original_assignment
+        assert assignment.document_url == sentinel.document_url
 
     @pytest.mark.parametrize("with_lti11_grading_id", [True, False])
     def test_upsert_assignment_membership(
@@ -786,11 +787,13 @@ class TestAssignmentService:
     @pytest.fixture
     def create_assignment(self, svc):
         with patch.object(svc, "create_assignment", autospec=True) as patched:
+            patched.return_value = factories.Assignment()
             yield patched
 
     @pytest.fixture
     def get_assignment(self, svc):
         with patch.object(svc, "get_assignment", autospec=True) as patched:
+            patched.return_value = factories.Assignment()
             yield patched
 
     @pytest.fixture
