@@ -154,6 +154,73 @@ class TestAssignmentService:
             assert assignment.lis_outcome_service_url == "GRADING URL"
             assert assignment.lti_v13_resource_link_id == v13_resource_link_id
 
+    def test_update_assignment_sets_document_uri(self, svc, pyramid_request, course):
+        assignment = svc.update_assignment(
+            pyramid_request,
+            factories.Assignment(),
+            "https://example.com/document",
+            sentinel.group_set_id,
+            course,
+            checkpoint_enabled=True,
+        )
+
+        assert assignment.document_uri == "https://example.com/document"
+
+    def test_update_assignment_does_not_set_document_uri_without_checkpoints(
+        self, svc, pyramid_request, course
+    ):
+        # Nothing reads document_uri unless checkpoints are enabled, so we don't
+        # resolve it for ordinary assignments.
+        assignment = svc.update_assignment(
+            pyramid_request,
+            factories.Assignment(),
+            sentinel.document_url,
+            sentinel.group_set_id,
+            course,
+        )
+
+        assert assignment.document_uri is None
+
+    def test_update_assignment_resets_document_uri_when_the_document_changes(
+        self, svc, pyramid_request, course
+    ):
+        assignment = factories.Assignment(
+            document_url="canvas://file/course/1/file_id/2",
+            document_uri="urn:x-pdf:FINGERPRINT",
+        )
+
+        assignment = svc.update_assignment(
+            pyramid_request,
+            assignment,
+            "canvas://file/course/1/file_id/3",
+            sentinel.group_set_id,
+            course,
+        )
+
+        # The reset is deliberately not gated on checkpoint_enabled — it runs
+        # wherever document_url is assigned. For a checkpoint assignment the new
+        # file's fingerprint is then resolved by `_resolve_document_uri`.
+        assert assignment.document_uri is None
+
+    def test_update_assignment_keeps_document_uri_when_the_document_is_unchanged(
+        self, svc, pyramid_request, course
+    ):
+        assignment = factories.Assignment(
+            document_url="canvas://file/course/1/file_id/2",
+            document_uri="urn:x-pdf:FINGERPRINT",
+        )
+
+        assignment = svc.update_assignment(
+            pyramid_request,
+            assignment,
+            "canvas://file/course/1/file_id/2",
+            sentinel.group_set_id,
+            course,
+            checkpoint_enabled=True,
+        )
+
+        assert assignment.document_uri == "urn:x-pdf:FINGERPRINT"
+
     @pytest.mark.parametrize("with_existing", [True, False])
     def test_update_assignment_with_auto_grading_config(
         self, svc, pyramid_request, course, with_existing
@@ -219,7 +286,7 @@ class TestAssignmentService:
         assignment = svc.update_assignment(
             pyramid_request,
             assignment,
-            sentinel.document_url,
+            "https://example.com/document",
             sentinel.group_set_id,
             course,
             checkpoint_enabled=True,
@@ -249,7 +316,7 @@ class TestAssignmentService:
         assignment = svc.update_assignment(
             pyramid_request,
             assignment,
-            sentinel.document_url,
+            "https://example.com/document",
             sentinel.group_set_id,
             course,
             checkpoint_enabled=True,
@@ -425,7 +492,8 @@ class TestAssignmentService:
             "document_url": sentinel.document_url
         }
         get_assignment.return_value = None
-        _get_copied_from_assignment.return_value = sentinel.original_assignment
+        original_assignment = factories.Assignment()
+        _get_copied_from_assignment.return_value = original_assignment
 
         assignment = svc.get_assignment_for_launch(pyramid_request, course)
 
@@ -433,7 +501,7 @@ class TestAssignmentService:
         create_assignment.assert_called_once_with(
             "TEST_TOOL_CONSUMER_INSTANCE_GUID", "TEST_RESOURCE_LINK_ID"
         )
-        assert assignment.copied_from == sentinel.original_assignment
+        assert assignment.copied_from == original_assignment
         assert assignment.document_url == sentinel.document_url
 
     @pytest.mark.parametrize("with_lti11_grading_id", [True, False])
@@ -719,11 +787,13 @@ class TestAssignmentService:
     @pytest.fixture
     def create_assignment(self, svc):
         with patch.object(svc, "create_assignment", autospec=True) as patched:
+            patched.return_value = factories.Assignment()
             yield patched
 
     @pytest.fixture
     def get_assignment(self, svc):
         with patch.object(svc, "get_assignment", autospec=True) as patched:
+            patched.return_value = factories.Assignment()
             yield patched
 
     @pytest.fixture
