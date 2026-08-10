@@ -75,6 +75,8 @@ describe('FilePickerApp', () => {
       formFields = {},
       title = null,
       autoGradingConfig = null,
+      checkpointEnabled = false,
+      dueDate = null,
     },
   ) {
     const fieldsComponent = wrapper.find('FilePickerFormFields');
@@ -85,6 +87,8 @@ describe('FilePickerApp', () => {
       groupSet,
       title,
       autoGradingConfig,
+      checkpointEnabled,
+      dueDate,
     });
   }
 

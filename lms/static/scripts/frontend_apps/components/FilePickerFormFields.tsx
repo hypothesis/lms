@@ -24,6 +24,12 @@ export type FilePickerFormFieldsProps = {
 
   /** Auto-grading configuration for assignments where it is enabled */
   autoGradingConfig: AutoGradingConfig | null;
+
+  /** Whether this is a "Hide & Reveal" assignment. */
+  checkpointEnabled: boolean;
+
+  /** Due date as a UTC ISO string, or `null` when not set. */
+  dueDate: string | null;
 };
 
 /**
@@ -38,6 +44,8 @@ export default function FilePickerFormFields({
   formFields,
   groupSet,
   autoGradingConfig,
+  checkpointEnabled,
+  dueDate,
 }: FilePickerFormFieldsProps) {
   return (
     <>
@@ -57,6 +65,12 @@ export default function FilePickerFormFields({
           name="auto_grading_config"
           value={JSON.stringify(autoGradingConfig)}
         />
+      )}
+      {checkpointEnabled && (
+        <>
+          <input type="hidden" name="checkpoint_enabled" value="true" />
+          {dueDate && <input type="hidden" name="due_date" value={dueDate} />}
+        </>
       )}
     </>
   );
