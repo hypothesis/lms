@@ -306,6 +306,8 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   // instructor picked that type in the workflow. This drives the
   // `checkpoint_enabled` field the backend persists.
   const checkpointEnabled = assignmentType === 'hide_and_reveal';
+  // UTC ISO string for the backend. Both submit paths send this same value.
+  const dueDateISO = dueDate ? new Date(dueDate).toISOString() : null;
   // Current sub-step of the assignment-type workflow. When the workflow isn't
   // enabled we start as `done` so it is skipped entirely.
   const [workflowStep, setWorkflowStep] = useState<WorkflowStep>(
@@ -463,10 +465,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
           ...deepLinkingAPI.data,
           auto_grading_config: autoGradingConfigToSave,
           checkpoint_enabled: checkpointEnabled,
-          // Optional due date for "Hide & Reveal" assignments. The picker holds
-          // a local `datetime-local` value; convert it to a UTC ISO string for
-          // the backend. `null` when left blank or not a checkpoint assignment.
-          due_date: dueDate ? new Date(dueDate).toISOString() : null,
+          due_date: dueDateISO,
           content,
           group_set: groupConfig.useGroupSet ? groupConfig.groupSet : null,
           title,
@@ -495,7 +494,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     [
       authToken,
       checkpointEnabled,
-      dueDate,
+      dueDateISO,
       deepLinkingFields,
       deepLinkingAPI,
       groupConfig.groupSet,
@@ -833,6 +832,8 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                 formFields={formFields}
                 groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
                 autoGradingConfig={autoGradingConfigToSave}
+                checkpointEnabled={checkpointEnabled}
+                dueDate={dueDateISO}
               />
             )
           }
