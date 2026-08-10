@@ -140,39 +140,42 @@ describe('FilePickerApp', () => {
       });
     }
 
-    function setDueDate(wrapper, date) {
-      interact(wrapper, () => {
-        wrapper.find('DueDateSelector').first().props().onChange(date);
-      });
-    }
-
-    /**
-     * Stand in for `DueDateSelector`'s `validate`.
-     *
-     * `DueDateSelector` is mocked here, so the real fields — and the checks
-     * the real component runs over them — never exist. The mock still
-     * receives `selectorRef`, so populating the handle decides what the
-     * parent hears when it validates the step.
-     */
-    function setDueDateValidity(wrapper, valid) {
-      const { selectorRef } = wrapper.find('DueDateSelector').first().props();
-      selectorRef.current = { validate: sinon.stub().returns(valid) };
-      return selectorRef.current;
-    }
-
-    /**
-     * Local `datetime-local` string (`YYYY-MM-DDTHH:MM`) `days` from now
-     * (negative for the past).
-     */
-    function dueDateFromNow(days) {
-      const date = new Date();
-      date.setDate(date.getDate() + days);
-      const pad = n => String(n).padStart(2, '0');
-      return (
-        `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
-        `T${pad(date.getHours())}:${pad(date.getMinutes())}`
-      );
-    }
+    // Commented out while the due-date step is skipped (see
+    // `goToNextWorkflowStep`). Restore alongside the step.
+    //
+    // function setDueDate(wrapper, date) {
+    //   interact(wrapper, () => {
+    //     wrapper.find('DueDateSelector').first().props().onChange(date);
+    //   });
+    // }
+    //
+    // /**
+    //  * Stand in for `DueDateSelector`'s `validate`.
+    //  *
+    //  * `DueDateSelector` is mocked here, so the real fields — and the checks
+    //  * the real component runs over them — never exist. The mock still
+    //  * receives `selectorRef`, so populating the handle decides what the
+    //  * parent hears when it validates the step.
+    //  */
+    // function setDueDateValidity(wrapper, valid) {
+    //   const { selectorRef } = wrapper.find('DueDateSelector').first().props();
+    //   selectorRef.current = { validate: sinon.stub().returns(valid) };
+    //   return selectorRef.current;
+    // }
+    //
+    // /**
+    //  * Local `datetime-local` string (`YYYY-MM-DDTHH:MM`) `days` from now
+    //  * (negative for the past).
+    //  */
+    // function dueDateFromNow(days) {
+    //   const date = new Date();
+    //   date.setDate(date.getDate() + days);
+    //   const pad = n => String(n).padStart(2, '0');
+    //   return (
+    //     `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    //     `T${pad(date.getHours())}:${pad(date.getMinutes())}`
+    //   );
+    // }
 
     it('does not show the workflow when only one type is available', () => {
       fakeConfig.filePicker.assignmentTypes = ['reading'];
@@ -219,7 +222,7 @@ describe('FilePickerApp', () => {
       assert.isTrue(wrapper.exists('ContentSelector'));
     });
 
-    it('walks through checkpoint and due-date steps for "Hide & Reveal"', () => {
+    it('walks through the checkpoint step for "Hide & Reveal"', () => {
       fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
       const wrapper = renderFilePicker();
 
@@ -231,64 +234,64 @@ describe('FilePickerApp', () => {
       assert.isFalse(wrapper.exists('ContentSelector'));
       clickNext(wrapper);
 
-      // Due-date step.
-      assert.isTrue(wrapper.exists('DueDateSelector'));
-      assert.isFalse(wrapper.exists('ContentSelector'));
-      clickNext(wrapper);
-
-      // Regular flow takes over.
+      // Regular flow takes over: the due-date step that used to sit here is
+      // skipped for now (see `goToNextWorkflowStep`).
       assert.isFalse(wrapper.exists('DueDateSelector'));
       assert.isTrue(wrapper.exists('ContentSelector'));
     });
 
-    it('blocks the due-date step while the selector reports an invalid value', () => {
-      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
-      const wrapper = renderFilePicker();
-
-      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
-      clickNext(wrapper); // -> due-date
-      assert.isTrue(wrapper.exists('DueDateSelector'));
-
-      // Whatever the reason — a half-entered value, or a complete one that is
-      // no longer in the future — the selector shows it inline; the parent
-      // only acts on the verdict.
-      const handle = setDueDateValidity(wrapper, false);
-
-      clickNext(wrapper);
-      assert.isTrue(wrapper.exists('DueDateSelector'));
-      assert.isFalse(wrapper.exists('ContentSelector'));
-      assert.called(handle.validate);
-    });
-
-    it('anchors the earliest selectable due date to the present', () => {
-      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
-      const wrapper = renderFilePicker();
-
-      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
-      clickNext(wrapper); // -> due-date
-
-      // The selector rejects anything below `min` (past dates, past times on
-      // the current day); pinning `min` to "now" is the parent's half of the
-      // "no due dates in the past" rule.
-      const { min } = wrapper.find('DueDateSelector').first().props();
-      assert.isTrue(min <= dueDateFromNow(0));
-      assert.isTrue(min > dueDateFromNow(-1));
-    });
-
-    it('leaves the due-date step when the selector reports a valid value', () => {
-      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
-      const wrapper = renderFilePicker();
-
-      selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
-      clickNext(wrapper); // -> due-date
-
-      setDueDateValidity(wrapper, true);
-      setDueDate(wrapper, dueDateFromNow(7));
-
-      clickNext(wrapper);
-      assert.isFalse(wrapper.exists('DueDateSelector'));
-      assert.isTrue(wrapper.exists('ContentSelector'));
-    });
+    // The three tests below only make sense while the due-date step is
+    // reachable. Restore them alongside the step, and put the due-date hop back
+    // into the test above.
+    //
+    // it('blocks the due-date step while the selector reports an invalid value', () => {
+    //   fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+    //   const wrapper = renderFilePicker();
+    //
+    //   selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
+    //   clickNext(wrapper); // -> due-date
+    //   assert.isTrue(wrapper.exists('DueDateSelector'));
+    //
+    //   // Whatever the reason — a half-entered value, or a complete one that is
+    //   // no longer in the future — the selector shows it inline; the parent
+    //   // only acts on the verdict.
+    //   const handle = setDueDateValidity(wrapper, false);
+    //
+    //   clickNext(wrapper);
+    //   assert.isTrue(wrapper.exists('DueDateSelector'));
+    //   assert.isFalse(wrapper.exists('ContentSelector'));
+    //   assert.called(handle.validate);
+    // });
+    //
+    // it('anchors the earliest selectable due date to the present', () => {
+    //   fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+    //   const wrapper = renderFilePicker();
+    //
+    //   selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
+    //   clickNext(wrapper); // -> due-date
+    //
+    //   // The selector rejects anything below `min` (past dates, past times on
+    //   // the current day); pinning `min` to "now" is the parent's half of the
+    //   // "no due dates in the past" rule.
+    //   const { min } = wrapper.find('DueDateSelector').first().props();
+    //   assert.isTrue(min <= dueDateFromNow(0));
+    //   assert.isTrue(min > dueDateFromNow(-1));
+    // });
+    //
+    // it('leaves the due-date step when the selector reports a valid value', () => {
+    //   fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+    //   const wrapper = renderFilePicker();
+    //
+    //   selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
+    //   clickNext(wrapper); // -> due-date
+    //
+    //   setDueDateValidity(wrapper, true);
+    //   setDueDate(wrapper, dueDateFromNow(7));
+    //
+    //   clickNext(wrapper);
+    //   assert.isFalse(wrapper.exists('DueDateSelector'));
+    //   assert.isTrue(wrapper.exists('ContentSelector'));
+    // });
 
     it('does not offer a "Back" button on the first step', () => {
       fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
@@ -304,13 +307,9 @@ describe('FilePickerApp', () => {
       fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
       const wrapper = renderFilePicker();
 
+      // The due-date step this test used to walk back from is skipped for now.
       selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
-      clickNext(wrapper); // -> due-date
-      assert.isTrue(wrapper.exists('DueDateSelector'));
-
-      clickBack(wrapper); // -> checkpoint
       assert.isTrue(wrapper.exists('CheckpointSelector'));
-      assert.isFalse(wrapper.exists('DueDateSelector'));
 
       clickBack(wrapper); // -> assignment-type
       assert.isTrue(wrapper.exists('AssignmentTypeSelector'));
@@ -328,9 +327,7 @@ describe('FilePickerApp', () => {
       selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
       assert.equal(cardTitle(), 'Paced Social Annotation');
 
-      clickNext(wrapper); // -> due-date
-      assert.equal(cardTitle(), 'Paced Social Annotation');
-
+      // The skipped due-date step shared this title.
       clickNext(wrapper); // -> regular flow
       assert.equal(cardTitle(), 'Assignment details');
     });
@@ -342,9 +339,9 @@ describe('FilePickerApp', () => {
       // The mode-selection step itself offers no close button.
       assert.isNotOk(wrapper.find('CardHeader').prop('onClose'));
 
+      // Checked from the checkpoint step while the due-date step is skipped.
       selectAssignmentType(wrapper, 'hide_and_reveal'); // -> checkpoint
-      clickNext(wrapper); // -> due-date
-      assert.isTrue(wrapper.exists('DueDateSelector'));
+      assert.isTrue(wrapper.exists('CheckpointSelector'));
 
       // The header exposes a close handler during the Paced sub-steps.
       const onClose = wrapper.find('CardHeader').prop('onClose');
@@ -352,7 +349,7 @@ describe('FilePickerApp', () => {
       interact(wrapper, () => onClose());
 
       assert.isTrue(wrapper.exists('AssignmentTypeSelector'));
-      assert.isFalse(wrapper.exists('DueDateSelector'));
+      assert.isFalse(wrapper.exists('CheckpointSelector'));
     });
 
     it('recomputes the branch when the type is changed after going back', () => {
@@ -505,53 +502,57 @@ describe('FilePickerApp', () => {
       });
     });
 
-    it('sends the due date as a UTC datetime for "Hide & Reveal"', async () => {
-      fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
-      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
-      const wrapper = renderFilePicker({ onSubmit });
-
-      const clickNext = () =>
-        interact(wrapper, () => {
-          wrapper
-            .find('Button[data-testid="workflow-next-button"]')
-            .props()
-            .onClick();
-        });
-
-      // Walk the Hide & Reveal workflow, picking a future due date. The picker
-      // value is local wall-clock time; the backend receives it as UTC.
-      interact(wrapper, () => {
-        // Selecting the type advances straight to the checkpoint step.
-        wrapper
-          .find('AssignmentTypeSelector')
-          .props()
-          .onSelect('hide_and_reveal');
-      });
-      clickNext(); // -> due-date
-      const localDueDate = '2035-01-15T10:30';
-      interact(wrapper, () => {
-        wrapper.find('DueDateSelector').first().props().onChange(localDueDate);
-      });
-      clickNext(); // -> content selection
-
-      selectContent(wrapper, 'https://example.com');
-
-      await waitFor(() => fakeAPICall.called);
-      assert.calledWith(fakeAPICall, {
-        authToken: 'DUMMY_AUTH_TOKEN',
-        path: deepLinkingAPIPath,
-        data: {
-          ...deepLinkingAPIData,
-          content: { type: 'url', url: 'https://example.com' },
-          title: null,
-          group_set: null,
-          auto_grading_config: null,
-          assignment_gradable_max_points: null,
-          checkpoint_enabled: true,
-          due_date: new Date(localDueDate).toISOString(),
-        },
-      });
-    });
+    // No due date can be picked while the step is skipped, so the payload
+    // always carries `due_date: null` (asserted by the tests above). Restore
+    // alongside the step.
+    //
+    // it('sends the due date as a UTC datetime for "Hide & Reveal"', async () => {
+    //   fakeConfig.filePicker.assignmentTypes = ['reading', 'hide_and_reveal'];
+    //   const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+    //   const wrapper = renderFilePicker({ onSubmit });
+    //
+    //   const clickNext = () =>
+    //     interact(wrapper, () => {
+    //       wrapper
+    //         .find('Button[data-testid="workflow-next-button"]')
+    //         .props()
+    //         .onClick();
+    //     });
+    //
+    //   // Walk the Hide & Reveal workflow, picking a future due date. The picker
+    //   // value is local wall-clock time; the backend receives it as UTC.
+    //   interact(wrapper, () => {
+    //     // Selecting the type advances straight to the checkpoint step.
+    //     wrapper
+    //       .find('AssignmentTypeSelector')
+    //       .props()
+    //       .onSelect('hide_and_reveal');
+    //   });
+    //   clickNext(); // -> due-date
+    //   const localDueDate = '2035-01-15T10:30';
+    //   interact(wrapper, () => {
+    //     wrapper.find('DueDateSelector').first().props().onChange(localDueDate);
+    //   });
+    //   clickNext(); // -> content selection
+    //
+    //   selectContent(wrapper, 'https://example.com');
+    //
+    //   await waitFor(() => fakeAPICall.called);
+    //   assert.calledWith(fakeAPICall, {
+    //     authToken: 'DUMMY_AUTH_TOKEN',
+    //     path: deepLinkingAPIPath,
+    //     data: {
+    //       ...deepLinkingAPIData,
+    //       content: { type: 'url', url: 'https://example.com' },
+    //       title: null,
+    //       group_set: null,
+    //       auto_grading_config: null,
+    //       assignment_gradable_max_points: null,
+    //       checkpoint_enabled: true,
+    //       due_date: new Date(localDueDate).toISOString(),
+    //     },
+    //   });
+    // });
 
     it('fetches form field values via deep linking API on implicit form submission', async () => {
       // Enable title field, which is a field where the user could trigger an
