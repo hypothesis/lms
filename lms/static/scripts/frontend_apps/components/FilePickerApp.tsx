@@ -330,7 +330,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     ) {
       return;
     }
-    // TEMPORARY, at Michael's request: the due-date step is skipped because the
+    // TEMPORARY: the due-date step is skipped because the
     // date it collects has no effect yet, and offering it suggests the
     // assignment does something it doesn't. Nothing else about the step was
     // removed — to turn it back on, restore the commented-out line below in
