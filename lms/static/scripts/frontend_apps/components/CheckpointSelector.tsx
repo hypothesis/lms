@@ -28,12 +28,6 @@ export default function CheckpointSelector({
 }: CheckpointSelectorProps) {
   const headingId = useId();
 
-  // The note below is specific to the "manual" reveal, so it only shows for that
-  // option. `selected` is currently always 'manual' (the only enabled option),
-  // but this keeps the association explicit for when more types are added.
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  const showManualNote = selected === 'manual';
-
   return (
     <div className="space-y-2">
       <h3 id={headingId} className="uppercase font-medium text-slate-600">
@@ -52,18 +46,28 @@ export default function CheckpointSelector({
           }
         }}
       >
-        <RadioGroup.Radio value="manual">Manual</RadioGroup.Radio>
+        <RadioGroup.Radio
+          value="manual"
+          // `small` matches how the other radio subtitles in the file picker
+          // are rendered (see `AutoGradingConfigurator`).
+          subtitle={
+            <small>
+              Instructor clicks a button to reveal student annotations
+            </small>
+          }
+        >
+          Manual reveal
+        </RadioGroup.Radio>
         <RadioGroup.Radio value="more" disabled>
-          More coming soon
+          More options coming
         </RadioGroup.Radio>
       </RadioGroup>
-      {showManualNote && (
-        // No color class: inherits the base text color (black) per design.
-        <p>
-          Students will see when the settings have changed from
-          &ldquo;Hide&rdquo; to &ldquo;Reveal&rdquo; in their notifications.
-        </p>
-      )}
+      {/* No color class: inherits the base text color (black) per design. */}
+      <p>
+        A Checkpoint is the moment when student annotations switch from hidden
+        to visible. Before the Checkpoint, students write without seeing each
+        other&rsquo;s work.
+      </p>
     </div>
   );
 }
