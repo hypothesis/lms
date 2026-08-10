@@ -47,23 +47,12 @@ describe('CheckpointSelector', () => {
     assert.calledWith(fakeOnChange, 'automatic');
   });
 
-  it('shows the reveal note when "manual" is selected', () => {
-    const wrapper = createComponent('manual');
+  it('explains what a checkpoint is', () => {
+    const wrapper = createComponent();
 
     assert.include(
       wrapper.text(),
-      'Students will see when the settings have changed',
-    );
-  });
-
-  it('hides the reveal note when a non-manual option is selected', () => {
-    // `selected` is typed `'manual'` today (the only option), so this exercises
-    // the conditional that will matter once more checkpoint types exist.
-    const wrapper = createComponent('more');
-
-    assert.notInclude(
-      wrapper.text(),
-      'Students will see when the settings have changed',
+      'A Checkpoint is the moment when student annotations switch from hidden to visible',
     );
   });
 

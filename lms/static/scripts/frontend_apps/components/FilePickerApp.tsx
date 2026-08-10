@@ -322,6 +322,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     // from the legal "left blank", and a complete one can have fallen into
     // the past. Only the selector can tell; it shows the reason for any
     // rejection itself.
+    /* istanbul ignore next: unreachable while the due-date step is skipped */
     if (
       workflowStep === 'due-date' &&
       dueDateSelectorRef.current &&
@@ -329,10 +330,18 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     ) {
       return;
     }
+    // TEMPORARY: the due-date step is skipped because the
+    // date it collects has no effect yet, and offering it suggests the
+    // assignment does something it doesn't. Nothing else about the step was
+    // removed — to turn it back on, restore the commented-out line below in
+    // place of the one under it, and the blocks commented out in
+    // `FilePickerApp-test`.
+    //
     // From 'checkpoint' the next step is 'due-date'; from 'due-date' (the last
     // step) the workflow is done. The 'assignment-type' step has no "Next" — it
     // advances directly on selection (see `selectAssignmentType`).
-    setWorkflowStep(step => (step === 'checkpoint' ? 'due-date' : 'done'));
+    // setWorkflowStep(step => (step === 'checkpoint' ? 'due-date' : 'done'));
+    setWorkflowStep('done');
   };
 
   // Pick an assignment type in the first workflow step. Unlike the later steps,
