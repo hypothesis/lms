@@ -179,13 +179,6 @@ def _moodle_page_uri(request, course: Course, match: re.Match) -> str | None:
     unmapped copied course (the same copy detection as
     `moodle_api.pages.via_url`, which stores the mapping).
     """
-    via_html_url = request.registry.settings.get("via_html_url")
-    if not via_html_url:
-        # Without knowing viahtml's public URL we'd derive an identity the
-        # client never uses; leave it unresolved instead.
-        LOG.warning("VIA_HTML_URL isn't set: can't resolve Moodle page identities")
-        return None
-
     page_id = course.get_mapped_page_id(match["page_id"])
 
     if _in_unmapped_copied_course(course.lms_id, page_id, match):
@@ -194,7 +187,11 @@ def _moodle_page_uri(request, course: Course, match: re.Match) -> str | None:
     canonical_href = (
         f"{course.application_instance.lms_host()}/mod/page/view.php?id={page_id}"
     )
-    browser_url = f"{via_html_url}{request.route_url('moodle_api.pages.proxy')}"
+    proxy_route_url = request.route_url("moodle_api.pages.proxy")
+    via_html_url = request.registry.settings.get("via_html_url")
+    browser_url = (
+        f"{via_html_url}{proxy_route_url}" if via_html_url else proxy_route_url
+    )
 
     return f"{browser_url.rsplit('/', 1)[0]}/{canonical_href}"
 
