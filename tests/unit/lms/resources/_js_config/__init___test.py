@@ -74,8 +74,8 @@ class TestFilePickerMode:
             (True, ["reading", "hide_and_reveal"]),
             # Flag explicitly off.
             (False, ["reading"]),
-            # Flag unset: defaults to off.
-            (None, ["reading"]),
+            # Flag unset: defaults to on.
+            (None, ["reading", "hide_and_reveal"]),
         ],
     )
     def test_it_sets_assignment_types(
