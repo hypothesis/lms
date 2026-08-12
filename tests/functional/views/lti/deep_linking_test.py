@@ -28,7 +28,7 @@ class TestDeepLinkingLaunch:
         js_config = get_client_config(response)
         assert js_config["mode"] == JSConfig.Mode.FILE_PICKER
         assert js_config["filePicker"] == {
-            "assignmentTypes": ["reading"],
+            "assignmentTypes": ["reading", "hide_and_reveal"],
             "autoGradingEnabled": True,
             "blackboard": {"enabled": None},
             "canvas": {

@@ -186,7 +186,7 @@ class ApplicationSettings(JSONSettings):
         Settings.HYPOTHESIS_HIDE_AND_REVEAL: JSONSetting(
             Settings.HYPOTHESIS_HIDE_AND_REVEAL,
             SettingFormat.TRI_STATE,
-            default=False,
+            default=True,
         ),
     }
 
