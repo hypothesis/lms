@@ -171,17 +171,19 @@ class TestInitialDocumentURI:
             )
         )
 
-    def test_moodle_pages_without_via_html_url_return_None(
+    def test_moodle_pages_without_via_html_url_use_the_unproxied_url(
         self, pyramid_request, course
     ):
         course.lms_id = "42"
         del pyramid_request.registry.settings["via_html_url"]
 
-        assert (
-            initial_document_uri(
-                pyramid_request, "moodle://page/course/42/page_id/860", course
-            )
-            is None
+        document_uri = initial_document_uri(
+            pyramid_request, "moodle://page/course/42/page_id/860", course
+        )
+
+        proxy_url = pyramid_request.route_url("moodle_api.pages.proxy")
+        assert document_uri == proxy_url.replace(
+            "/proxy", "/uni.instructure.com/mod/page/view.php?id=860"
         )
 
     def test_moodle_pages_in_an_unmapped_copied_course_return_None(
