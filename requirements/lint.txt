@@ -509,7 +509,7 @@ sqlalchemy[asyncio]==2.0.40
     #   alembic
     #   data-tasks
     #   zope-sqlalchemy
-sqlparse==0.5.5
+sqlparse==0.6.0
     # via
     #   -r functests.txt
     #   -r tests.txt
