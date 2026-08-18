@@ -1,18 +1,16 @@
 import { useCallback, useMemo } from 'preact/hooks';
 
-import type {
-  AssignmentDetails,
-  StudentGradingSyncStatus,
-  StudentWithMetrics,
-} from '../../../api-types';
+import type { AssignmentDetails, StudentWithMetrics } from '../../../api-types';
 import { autoGradingVariant } from './auto-grading';
 import { plainVariant } from './plain';
 import type {
   ConditionalVariantModule,
   GradeToSync,
+  RenderContext,
   StudentsTableConfig,
   StudentsTableRow,
   StudentsTableVariantModule,
+  VariantContext,
 } from './types';
 
 /**
@@ -23,14 +21,10 @@ import type {
  * a capability this version of the frontend does not know about still renders
  * its annotation metrics instead of breaking.
  *
- * Order matters, and nothing enforces that the `matches` predicates are
- * mutually exclusive: an assignment matching two of them silently gets the one
- * listed first, including its `gradesToSync`, which would grade students by the
- * wrong rule without surfacing an error. Keep this ordered from the most
- * specific capability to the least, so that a variant which handles a narrower
- * case than another is listed before it.
+ * The `matches` predicates must stay mutually exclusive; `index-test` asserts
+ * it for the assignments it covers.
  */
-const VARIANT_MODULES: ConditionalVariantModule[] = [autoGradingVariant];
+export const VARIANT_MODULES: ConditionalVariantModule[] = [autoGradingVariant];
 
 /** Resolve the variant which handles this assignment. */
 export function resolveVariantModule(
@@ -53,11 +47,8 @@ export function assignmentSyncsGrades(
   return !!resolveVariantModule(assignment).gradesToSync;
 }
 
-export type StudentsTableConfigOptions = {
+export type StudentsTableConfigOptions = RenderContext & {
   students?: StudentWithMetrics[];
-  assignment?: AssignmentDetails | null;
-  /** Status of the most recent grade sync, per student. */
-  studentSyncStatuses: Record<string, StudentGradingSyncStatus>;
 };
 
 /**
@@ -79,7 +70,10 @@ export function useStudentsTableConfig({
     () => variantModule.buildRows(students ?? []),
     [students, variantModule],
   );
-  const columns = useMemo(() => variantModule.columns(), [variantModule]);
+  const columns = useMemo(
+    () => variantModule.columns({ assignment }),
+    [assignment, variantModule],
+  );
   const renderItem = useCallback(
     (row: StudentsTableRow, field: keyof StudentsTableRow) =>
       variantModule.renderItem(row, field, {
@@ -92,9 +86,8 @@ export function useStudentsTableConfig({
   return { rows, columns, renderItem };
 }
 
-export type StudentsToSyncOptions = {
+export type StudentsToSyncOptions = VariantContext & {
   students?: StudentWithMetrics[];
-  assignment?: AssignmentDetails | null;
 };
 
 /**

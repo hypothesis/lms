@@ -7,9 +7,9 @@ import type { OrderableActivityTableColumn } from '../OrderableActivityTable';
 import {
   buildRows,
   metricsColumns,
-  renderPlainField,
+  renderSharedField,
   studentColumn,
-} from './plain';
+} from './shared';
 import type {
   ConditionalVariantModule,
   GradeToSync,
@@ -29,7 +29,7 @@ function renderAutoGradingField(
   { assignment, studentSyncStatuses }: RenderContext,
 ): ComponentChildren {
   if (field !== 'current_grade') {
-    return renderPlainField(row, field);
+    return renderSharedField(row, field);
   }
 
   return (
