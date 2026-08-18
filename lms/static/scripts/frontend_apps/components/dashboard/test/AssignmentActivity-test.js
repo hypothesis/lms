@@ -1,4 +1,3 @@
-import { formatDateTime } from '@hypothesis/frontend-shared';
 import {
   checkAccessibility,
   mockImportedComponents,
@@ -121,13 +120,6 @@ describe('AssignmentActivity', () => {
     wrappers = [];
 
     $imports.$mock(mockImportedComponents());
-    $imports.$restore({
-      // Do not mock FormattedDate, for consistency when checking
-      // rendered values in different columns
-      './FormattedDate': true,
-      // Let badges render normally so that we can assert on their text
-      './StudentStatusBadge': true,
-    });
     $imports.$mock({
       '../../utils/api': {
         useAPIFetch: fakeUseAPIFetch,
@@ -155,21 +147,6 @@ describe('AssignmentActivity', () => {
     wrappers.push(wrapper);
 
     return wrapper;
-  }
-
-  function createGradeIndicator(stats) {
-    setUpFakeUseAPIFetch({
-      ...activeAssignment,
-      auto_grading_config: {},
-    });
-
-    const wrapper = createComponent();
-    const item = wrapper
-      .find('OrderableActivityTable')
-      .props()
-      .renderItem(stats, 'current_grade');
-
-    return mount(item).find('GradeIndicator');
   }
 
   it('shows loading indicators while data is loading', () => {
@@ -209,74 +186,6 @@ describe('AssignmentActivity', () => {
     const tableElement = wrapper.find('OrderableActivityTable');
 
     assert.equal(tableElement.prop('emptyMessage'), 'No students found');
-  });
-
-  [
-    { fieldName: 'display_name', expectedValue: 'Jane Doe' },
-    { fieldName: 'annotations', expectedValue: '37' },
-    { fieldName: 'replies', expectedValue: '25' },
-    {
-      fieldName: 'last_activity',
-      expectedValue: formatDateTime('2024-01-01T10:35:18'),
-    },
-    // Render "unknown" field name
-    { fieldName: 'id', expectedValue: '' },
-    // Render last_activity when it's null
-    {
-      fieldName: 'last_activity',
-      expectedValue: '',
-      studentStats: { last_activity: null },
-    },
-    // Render fallback when display_name is null
-    {
-      fieldName: 'display_name',
-      expectedValue:
-        "UnknownThis student launched the assignment but didn't annotate yet",
-      studentStats: {
-        id: 'e4ca30ee27eda1169d00b83f2a86e3494ffd9b12',
-        display_name: null,
-        active: true,
-      },
-    },
-    // Render fallback when display_name is null and user is not active
-    {
-      fieldName: 'display_name',
-      expectedValue:
-        "UnknownThis student launched the assignment but didn't annotate yetDrop",
-      studentStats: {
-        id: 'e4ca30ee27eda1169d00b83f2a86e3494ffd9b12',
-        display_name: null,
-        active: false,
-      },
-    },
-    // Render inactive user's display name
-    {
-      fieldName: 'display_name',
-      expectedValue: 'Jane DoeDrop',
-      studentStats: {
-        display_name: 'Jane Doe',
-        active: false,
-      },
-    },
-  ].forEach(({ fieldName, expectedValue, studentStats }) => {
-    it('renders every field as expected', () => {
-      const fallbackStudentStats = {
-        display_name: 'Jane Doe',
-        last_activity: '2024-01-01T10:35:18',
-        annotations: 37,
-        replies: 25,
-        active: true,
-      };
-      const wrapper = createComponent();
-
-      const item = wrapper
-        .find('OrderableActivityTable')
-        .props()
-        .renderItem(studentStats ?? fallbackStudentStats, fieldName);
-      const value = typeof item === 'string' ? item : mount(item).text();
-
-      assert.equal(value, expectedValue);
-    });
   });
 
   context('when filters are set', () => {
@@ -412,114 +321,93 @@ describe('AssignmentActivity', () => {
     });
   });
 
+  it('passes the table of the plain variant to the table component', () => {
+    const wrapper = createComponent();
+    const tableElement = wrapper.find('OrderableActivityTable');
+
+    // An assignment with no grading capability resolves to the plain variant,
+    // which displays no grade column
+    assert.deepEqual(
+      tableElement.prop('columns').map(({ field }) => field),
+      ['display_name', 'annotations', 'replies', 'last_activity'],
+    );
+    assert.lengthOf(tableElement.prop('rows'), activeStudents.length);
+  });
+
   context('when auto-grading is enabled', () => {
-    [
-      {
-        autoGradingEnabled: false,
-        expectedColumns: [
-          {
-            field: 'display_name',
-            label: 'Student',
-          },
-          {
-            field: 'annotations',
-            label: 'Annotations',
-            initialOrderDirection: 'descending',
-          },
-          {
-            field: 'replies',
-            label: 'Replies',
-            initialOrderDirection: 'descending',
-          },
-          {
-            field: 'last_activity',
-            label: 'Last Activity',
-            initialOrderDirection: 'descending',
-          },
-        ],
-      },
-      {
-        autoGradingEnabled: true,
-        expectedColumns: [
-          {
-            field: 'display_name',
-            label: 'Student',
-          },
-          {
-            field: 'current_grade',
-            label: 'Grade',
-          },
-          {
-            field: 'annotations',
-            label: 'Annotations',
-            initialOrderDirection: 'descending',
-          },
-          {
-            field: 'replies',
-            label: 'Replies',
-            initialOrderDirection: 'descending',
-          },
-          {
-            field: 'last_activity',
-            label: 'Last Activity',
-            initialOrderDirection: 'descending',
-          },
-        ],
-      },
-    ].forEach(({ autoGradingEnabled, expectedColumns }) => {
-      it('shows one more column in the metrics table', () => {
-        setUpFakeUseAPIFetch({
-          ...activeAssignment,
-          auto_grading_config: autoGradingEnabled ? {} : null,
-        });
-
-        const wrapper = createComponent();
-        const tableElement = wrapper.find('OrderableActivityTable');
-
-        assert.deepEqual(tableElement.prop('columns'), expectedColumns);
+    it('passes the table of the auto-grading variant to the table component', () => {
+      setUpFakeUseAPIFetch({
+        ...activeAssignment,
+        auto_grading_config: {},
       });
+
+      const wrapper = createComponent();
+      const tableElement = wrapper.find('OrderableActivityTable');
+
+      // What each variant displays is asserted in `students-table`. This only
+      // checks that the resolved table reaches the component.
+      assert.deepEqual(
+        tableElement.prop('columns').map(({ field }) => field),
+        [
+          'display_name',
+          'current_grade',
+          'annotations',
+          'replies',
+          'last_activity',
+        ],
+      );
+      assert.lengthOf(tableElement.prop('rows'), activeStudents.length);
+
+      // The renderer of the variant has to reach the table as well, or every
+      // cell of every column renders empty
+      const cell = mount(
+        tableElement.prop('renderItem')(
+          tableElement.prop('rows')[0],
+          'annotations',
+        ),
+      );
+      wrappers.push(cell);
+
+      assert.equal(
+        cell.text(),
+        `${activeStudents[0].annotation_metrics.annotations}`,
+      );
     });
 
-    [{ current_grade: undefined }, { current_grade: 25 }].forEach(
-      ({ current_grade }) => {
-        it('shows the grade for every student', () => {
-          const gradeIndicator = createGradeIndicator({ current_grade });
-          assert.equal(gradeIndicator.prop('grade'), current_grade ?? 0);
-        });
-      },
-    );
-
-    [
-      { h_userid: 'abc', expectedStatus: 'finished' },
-      { h_userid: 'def', expectedStatus: 'failed' },
-      { h_userid: 'ghi', expectedStatus: 'in_progress' },
-      { h_userid: 'unknown', expectedStatus: undefined },
-    ].forEach(({ h_userid, expectedStatus }) => {
-      it('passes right status to grade indicator', () => {
-        fakeUsePolledAPIFetch.returns({
-          data: {
-            grades: [
-              {
-                h_userid: 'abc',
-                status: 'finished',
-              },
-              {
-                h_userid: 'def',
-                status: 'failed',
-              },
-              {
-                h_userid: 'ghi',
-                status: 'in_progress',
-              },
-            ],
-          },
-          isLoading: false,
-        });
-
-        const gradeIndicator = createGradeIndicator({ h_userid });
-
-        assert.equal(gradeIndicator.prop('status'), expectedStatus);
+    it('indexes the status of the last grades sync by student', () => {
+      setUpFakeUseAPIFetch({
+        ...activeAssignment,
+        auto_grading_config: {},
       });
+      fakeUsePolledAPIFetch.returns({
+        data: {
+          grades: [
+            { h_userid: 'abc', status: 'finished' },
+            { h_userid: 'def', status: 'failed' },
+          ],
+        },
+        isLoading: false,
+      });
+      // Spy on the table config, so that the map can be asserted on without
+      // rendering the real grade indicator
+      const fakeUseStudentsTableConfig = sinon
+        .stub()
+        .returns({ rows: [], columns: [], renderItem: () => null });
+      $imports.$mock({
+        './students-table': {
+          useStudentsTableConfig: fakeUseStudentsTableConfig,
+        },
+      });
+
+      createComponent();
+
+      // How the status is displayed is asserted in `students-table`. This
+      // checks that the grades of the last sync reach the table indexed by the
+      // ID its renderer looks them up by.
+      assert.deepEqual(
+        fakeUseStudentsTableConfig.lastCall.args[0].studentSyncStatuses,
+        { abc: 'finished', def: 'failed' },
+      );
     });
 
     [
@@ -581,81 +469,23 @@ describe('AssignmentActivity', () => {
       });
     });
 
-    [
-      { studentsData: null, expectedStudentsToSync: undefined },
-      { studentsData: { students: [] }, expectedStudentsToSync: [] },
-      {
-        studentsData: {
-          students: [
-            // Included, because last grade is missing: Student never synced
-            {
-              display_name: 'a',
-              h_userid: 'foo',
-              auto_grading_grade: {
-                current_grade: 0.5,
-              },
-              active: true,
-            },
-            // Included, because last grade and current grade are different
-            {
-              display_name: 'b',
-              h_userid: 'bar',
-              auto_grading_grade: {
-                current_grade: 0.87,
-                last_grade: 0.7,
-              },
-              active: true,
-            },
-            // Ignored, because auto_grading_grade is not set
-            {
-              display_name: 'c',
-              h_userid: 'baz',
-              active: true,
-            },
-            // Ignored, because last and current grades are the same
-            {
-              display_name: 'd',
-              h_userid: 'baz',
-              auto_grading_grade: {
-                current_grade: 0.64,
-                last_grade: 0.64,
-              },
-              active: true,
-            },
-            // Ignored, because it's not active
-            {
-              display_name: 'e',
-              h_userid: 'foo',
-              auto_grading_grade: {
-                current_grade: 0.5,
-              },
-              active: false,
-            },
-          ],
-        },
-        expectedStudentsToSync: [
-          { h_userid: 'foo', grade: 0.5 },
-          { h_userid: 'bar', grade: 0.87 },
-        ],
-      },
-    ].forEach(({ studentsData, expectedStudentsToSync }) => {
-      it('resolves the right list of students to sync', () => {
-        setUpFakeUseAPIFetch(
-          {
-            ...activeAssignment,
-            auto_grading_config: {},
-          },
-          studentsData,
-        );
-        fakeConfig.dashboard.user.is_staff = false;
-
-        const wrapper = createComponent();
-
-        assert.deepEqual(
-          wrapper.find('SyncGradesButton').prop('studentsToSync'),
-          expectedStudentsToSync,
-        );
+    it('passes the grades to sync to the sync button', () => {
+      setUpFakeUseAPIFetch({
+        ...activeAssignment,
+        auto_grading_config: {},
       });
+      fakeConfig.dashboard.user.is_staff = false;
+
+      const wrapper = createComponent();
+
+      // Which grades need syncing is asserted in `students-table`. This only
+      // checks that the resolved list reaches the button: the two active
+      // students whose grade changed are included, and the third is left out
+      // for being inactive.
+      assert.lengthOf(
+        wrapper.find('SyncGradesButton').prop('studentsToSync'),
+        2,
+      );
     });
 
     it('updates students once sync has been scheduled', () => {
