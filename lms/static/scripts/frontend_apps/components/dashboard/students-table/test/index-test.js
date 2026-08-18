@@ -3,6 +3,7 @@ import { mockImportedComponents, mount } from '@hypothesis/frontend-testing';
 
 import { $imports as autoGradingImports } from '../auto-grading';
 import {
+  VARIANT_MODULES,
   assignmentSyncsGrades,
   resolveVariantModule,
   useStudentsTableConfig,
@@ -29,8 +30,9 @@ describe('students-table', () => {
     wrappers = [];
 
     // Only `GradeIndicator` is mocked, so that the props it receives can be
-    // asserted on. `FormattedDate` and `StudentStatusBadge` are rendered by the
-    // plain variant, and are left alone so that their output can be asserted.
+    // asserted on. `FormattedDate` and `StudentStatusBadge` come from the
+    // shared field renderer, and are left alone so that their output can be
+    // asserted.
     autoGradingImports.$mock(mockImportedComponents());
   });
 
@@ -128,6 +130,23 @@ describe('students-table', () => {
     ].forEach(({ assignment, expectedSyncsGrades }) => {
       it('is only true for variants which grade students', () => {
         assert.equal(assignmentSyncsGrades(assignment), expectedSyncsGrades);
+      });
+    });
+  });
+
+  describe('VARIANT_MODULES', () => {
+    // Two variants claiming the same assignment means the first listed wins
+    // silently, including its `gradesToSync`. Vacuous with one conditional
+    // variant; guards the next one.
+    [
+      { label: 'auto-grading', assignment: autoGradingAssignment },
+      { label: 'plain', assignment: plainAssignment },
+    ].forEach(({ label, assignment }) => {
+      it(`claims the ${label} assignment with at most one variant`, () => {
+        assert.isAtMost(
+          VARIANT_MODULES.filter(module => module.matches(assignment)).length,
+          1,
+        );
       });
     });
   });

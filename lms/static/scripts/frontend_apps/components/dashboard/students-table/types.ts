@@ -2,6 +2,7 @@ import type { ComponentChildren } from 'preact';
 
 import type {
   AssignmentDetails,
+  ISODateTime,
   StudentGradingSyncStatus,
   StudentWithMetrics,
 } from '../../../api-types';
@@ -40,6 +41,12 @@ export type StudentsTableRow = {
    */
   last_grade?: number | null;
 
+  /**
+   * When the last grade sync happened, if any.
+   * Not displayed in any column; it comes along with the rest of the grade.
+   */
+  last_grade_date?: ISODateTime | null;
+
   /** Whether this student is active in the course/assignment or roster */
   active: boolean;
 };
@@ -51,17 +58,25 @@ export type GradeToSync = {
 };
 
 /**
- * Data a variant needs to render a cell, beyond the row itself.
+ * Data a variant needs to decide its shape, beyond the students themselves.
  *
  * The whole assignment is passed rather than the specific fields a variant
  * reads, so that adding a variant which needs another field does not mean
  * touching the registry.
  */
-export type RenderContext = {
+export type VariantContext = {
   assignment?: AssignmentDetails | null;
+};
 
-  /** Status of the most recent grade sync, per student. */
-  studentSyncStatuses: Record<string, StudentGradingSyncStatus>;
+/** Data a variant needs to render a cell, beyond the row itself. */
+export type RenderContext = VariantContext & {
+  /**
+   * Status of the most recent grade sync, per student.
+   *
+   * A sync only covers the students whose grade changed, so a student with no
+   * entry here has nothing in flight.
+   */
+  studentSyncStatuses: Partial<Record<string, StudentGradingSyncStatus>>;
 };
 
 /**
@@ -79,8 +94,15 @@ export type StudentsTableVariantModule = {
   /** Flatten the API representation of the students into table rows. */
   buildRows(students: StudentWithMetrics[]): StudentsTableRow[];
 
-  /** Columns this variant displays, in display order. */
-  columns(): OrderableActivityTableColumn<StudentsTableRow>[];
+  /**
+   * Columns this variant displays, in display order.
+   *
+   * These depend on the assignment and nothing else: a variant which adds a
+   * column group per grading window reads how many there are from it.
+   */
+  columns(
+    context: VariantContext,
+  ): OrderableActivityTableColumn<StudentsTableRow>[];
 
   /** Render one cell of a row. */
   renderItem(
