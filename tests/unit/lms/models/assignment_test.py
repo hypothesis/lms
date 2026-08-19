@@ -1,6 +1,8 @@
 import pytest
+from sqlalchemy.exc import IntegrityError
 
-from lms.models import Assignment
+from lms.models import Assignment, AutoGradingConfig
+from tests import factories
 
 
 class TestAssignment:
@@ -40,3 +42,53 @@ class TestAssignment:
         db_session.add(assignment)
         db_session.flush()
         return assignment
+
+
+class TestAutoGradingConfig:
+    def test_configs_form_a_chain(self, db_session):
+        first, second = factories.AutoGradingConfig.create_batch(2)
+        db_session.flush()
+
+        second.previous_config = first
+        db_session.flush()
+
+        assert second.previous_config_id == first.id
+        assert second.previous_config == first
+
+    def test_the_first_config_of_a_chain_has_no_previous_config(self, db_session):
+        config = factories.AutoGradingConfig()
+        db_session.flush()
+
+        assert config.previous_config_id is None
+        assert config.previous_config is None
+
+    def test_every_assignment_can_have_a_config_with_no_previous_config(
+        self, db_session
+    ):
+        # The unique constraint must leave NULLs distinct: each assignment's
+        # first config has previous_config_id NULL.
+        factories.AutoGradingConfig.create_batch(2)
+
+        db_session.flush()
+
+    def test_a_config_cannot_be_the_previous_config_of_two_others(self, db_session):
+        first, second, third = factories.AutoGradingConfig.create_batch(3)
+        db_session.flush()
+        second.previous_config = first
+        db_session.flush()
+
+        third.previous_config = first
+
+        with pytest.raises(IntegrityError):
+            db_session.flush()
+
+    def test_deleting_a_config_deletes_the_rest_of_the_chain(self, db_session):
+        first, second = factories.AutoGradingConfig.create_batch(2)
+        db_session.flush()
+        second.previous_config = first
+        db_session.flush()
+
+        db_session.delete(first)
+        db_session.flush()
+
+        assert not db_session.query(AutoGradingConfig).count()
