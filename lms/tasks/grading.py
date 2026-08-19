@@ -1,13 +1,21 @@
 import logging
-from datetime import UTC
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import exists, select
+from sqlalchemy import exists, select, update
 
 from lms.models import GradingSync, GradingSyncGrade
 from lms.services.lti_grading.factory import service_factory
 from lms.tasks.celery import app
 
 LOG = logging.getLogger(__name__)
+
+STALE_GRADING_SYNC_TIMEOUT = timedelta(minutes=15)
+"""How long a GradingSync may stay non-terminal before we finalise it ourselves.
+
+A sync normally completes in about a second. The worst legitimate case is a grade
+exhausting its retries, which `max_retries=2` and `retry_backoff=10` bound to well
+under a minute. Fifteen minutes is a wide margin over that.
+"""
 
 
 @app.task()
@@ -103,6 +111,69 @@ def sync_grades_complete(*, grading_sync_id):
 
             if is_completed:
                 grading_sync.status = "failed" if is_failed else "finished"
+
+
+@app.task()
+def sweep_stale_grading_syncs():
+    """Finalise GradingSyncs that have been left in a non-terminal state.
+
+    A GradingSync only reaches `finished`/`failed` when a `sync_grades_complete`
+    task observes every one of its grades as complete. That relies on a single
+    delayed message arriving *after* the last grade commits. If it is lost, or
+    fires before the commit it needed to see, nothing ever re-checks and the sync
+    stays `in_progress` forever.
+
+    That matters because a non-terminal sync blocks all further grade syncing for
+    its assignment - `create_grading_sync` rejects new syncs with a 400, and a
+    partial unique index enforces the same rule in the database. So one lost
+    message takes out grade syncing for that assignment permanently, until a human
+    intervenes.
+
+    This task closes that hole: anything left non-terminal past
+    STALE_GRADING_SYNC_TIMEOUT gets finalised. Grades still incomplete by then are
+    marked failed - their task is not coming back - so the sync can reach a
+    terminal state and the assignment is usable again.
+    """
+    cutoff = datetime.now(UTC).replace(tzinfo=None) - STALE_GRADING_SYNC_TIMEOUT
+
+    with app.request_context() as request:  # noqa: SIM117
+        with request.tm:
+            stale_ids = list(
+                request.db.scalars(
+                    select(GradingSync.id).where(
+                        GradingSync.status.in_(["scheduled", "in_progress"]),
+                        GradingSync.updated < cutoff,
+                    )
+                )
+            )
+
+            for grading_sync_id in stale_ids:
+                abandoned = request.db.execute(
+                    update(GradingSyncGrade)
+                    .where(
+                        GradingSyncGrade.grading_sync_id == grading_sync_id,
+                        GradingSyncGrade.success.is_(None),
+                    )
+                    .values(
+                        success=False,
+                        error_details={
+                            "exception": "Timed out: the grade sync task never completed"
+                        },
+                    )
+                ).rowcount
+
+                LOG.warning(
+                    "Finalising stale GradingSync %s (%s grades never completed)",
+                    grading_sync_id,
+                    abandoned,
+                )
+
+    # Dispatch only after the transaction above has committed. Scheduling work
+    # from inside a transaction is precisely the bug this task exists to clean up
+    # after: the consumer can otherwise run against a snapshot that predates the
+    # commit it needs to see.
+    for grading_sync_id in stale_ids:
+        sync_grades_complete.delay(grading_sync_id=grading_sync_id)
 
 
 def _schedule_sync_grades_complete(grading_sync_id: int, countdown: int):
