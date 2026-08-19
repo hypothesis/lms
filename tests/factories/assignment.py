@@ -19,8 +19,10 @@ Assignment = make_factory(
 AutoGradingConfig = make_factory(
     models.AutoGradingConfig,
     FACTORY_CLASS=SQLAlchemyModelFactory,
-    activity_calculation=Faker("random_element", elements=list(models.AutoGradingType)),
-    grading_type=Faker("random_element", elements=list(models.AutoGradingCalculation)),
+    activity_calculation=Faker(
+        "random_element", elements=list(models.AutoGradingCalculation)
+    ),
+    grading_type=Faker("random_element", elements=list(models.AutoGradingType)),
     required_annotations=Faker("random_int"),
     required_replies=Faker("random_int"),
 )
