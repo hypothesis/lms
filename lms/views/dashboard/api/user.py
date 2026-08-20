@@ -12,6 +12,7 @@ from lms.js_config_types import (
     APIStudent,
     APIStudents,
     AutoGradingGrade,
+    CheckpointMetrics,
     RosterEntry,
 )
 from lms.models import Assignment, LMSUser, RoleScope, RoleType
@@ -139,14 +140,22 @@ class UserViews:
             ]
 
         request_h_userids = self.request.parsed_params.get("h_userids")
+        use_checkpoint = assignment.checkpoint_enabled and assignment.document_uri
         stats = self.h_api.get_annotation_counts(
             assignment_groupings_authority_provided_ids,
             group_by="user",
             resource_link_ids=[assignment.resource_link_id],
             h_userids=request_h_userids,
+            document_uri=assignment.document_uri if use_checkpoint else None,
+            due_date=assignment.due_date if use_checkpoint else None,
         )
         # Organize the H stats by userid for quick access
         stats_by_user = {s["userid"]: s for s in stats}
+        checkpoint_revealed = False
+        checkpoint_reveal_date = None
+        if use_checkpoint and stats:
+            checkpoint_revealed = stats[0]["checkpoint_revealed"]
+            checkpoint_reveal_date = stats[0]["checkpoint_reveal_date"]
         students: list[RosterEntry] = []
 
         roster_last_updated, users_query = self._students_query(
@@ -170,6 +179,8 @@ class UserViews:
                         last_activity=datetime.fromisoformat(s["last_activity"]),
                     ),
                 )
+                if use_checkpoint:
+                    api_student["checkpoint_metrics"] = self._checkpoint_metrics(s)
             else:
                 # We haven't seen this user H,
                 # use LMS DB's data and set 0s for all annotation related fields.
@@ -182,12 +193,75 @@ class UserViews:
                         annotations=0, replies=0, last_activity=None
                     ),
                 )
+                if use_checkpoint:
+                    empty = AnnotationMetrics(
+                        annotations=0, replies=0, last_activity=None
+                    )
+                    api_student["checkpoint_metrics"] = CheckpointMetrics(
+                        revealed=checkpoint_revealed,
+                        reveal_date=(
+                            datetime.fromisoformat(checkpoint_reveal_date)
+                            if checkpoint_reveal_date
+                            else None
+                        ),
+                        checkpoint=empty,
+                        due_date=empty,
+                    )
             students.append(api_student)
 
         if assignment.auto_grading_config:
             students = self._add_auto_grading_data(assignment, students)
 
         return APIRoster(students=students, last_updated=roster_last_updated)
+
+    @staticmethod
+    def _checkpoint_metrics(stats: dict) -> CheckpointMetrics:
+        """
+        Split one h stats row into "checkpoint" and "due_date" buckets.
+
+        h returns `checkpoint_*` counts (created at/before reveal_date) plus
+        the totals (bounded by the due_date sent in the request). The
+        "due_date" bucket — created after reveal_date, at/before due_date —
+        is not computed by h directly; it's derived here by subtraction.
+        """
+        total_annotations = stats["annotations"] + stats["page_notes"]
+        total_replies = stats["replies"]
+        checkpoint_annotations = (
+            stats["checkpoint_annotations"] + stats["checkpoint_page_notes"]
+        )
+        checkpoint_replies = stats["checkpoint_replies"]
+
+        due_date_annotations = total_annotations - checkpoint_annotations
+        due_date_replies = total_replies - checkpoint_replies
+        
+        due_date_last_activity = (
+            datetime.fromisoformat(stats["last_activity"])
+            if (due_date_annotations + due_date_replies) > 0 and stats["last_activity"]
+            else None
+        )
+
+        return CheckpointMetrics(
+            revealed=stats["checkpoint_revealed"],
+            reveal_date=(
+                datetime.fromisoformat(stats["checkpoint_reveal_date"])
+                if stats["checkpoint_reveal_date"]
+                else None
+            ),
+            checkpoint=AnnotationMetrics(
+                annotations=checkpoint_annotations,
+                replies=checkpoint_replies,
+                last_activity=(
+                    datetime.fromisoformat(stats["checkpoint_last_activity"])
+                    if stats["checkpoint_last_activity"]
+                    else None
+                ),
+            ),
+            due_date=AnnotationMetrics(
+                annotations=due_date_annotations,
+                replies=due_date_replies,
+                last_activity=due_date_last_activity,
+            ),
+        )
 
     def _add_auto_grading_data(
         self, assignment: Assignment, api_students: list[RosterEntry]
@@ -209,6 +283,23 @@ class UserViews:
                 auto_grading_grade["last_grade_date"] = last_grade.updated
 
             api_student["auto_grading_grade"] = auto_grading_grade
+
+            # Checkpoint/due_date grades are informational only — there's no
+            # mechanism to sync more than one grade per assignment to the
+            # LMS gradebook, so these never get a `last_grade`.
+            if checkpoint_metrics := api_student.get("checkpoint_metrics"):
+                checkpoint_metrics["checkpoint_grade"] = (
+                    self.auto_grading_service.calculate_grade(
+                        assignment.auto_grading_config,
+                        checkpoint_metrics["checkpoint"],
+                    )
+                )
+                checkpoint_metrics["due_date_grade"] = (
+                    self.auto_grading_service.calculate_grade(
+                        assignment.auto_grading_config,
+                        checkpoint_metrics["due_date"],
+                    )
+                )
 
         return api_students
 

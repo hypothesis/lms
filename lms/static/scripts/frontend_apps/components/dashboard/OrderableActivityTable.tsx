@@ -10,6 +10,8 @@ export type OrderableActivityTableColumn<T> = {
   field: keyof T;
   label: string;
   initialOrderDirection?: OrderDirection;
+
+  width?: string;
 };
 
 export type OrderableActivityTableProps<T> = Pick<
@@ -44,15 +46,15 @@ export default function OrderableActivityTable<T>({
   const orderedRows = useOrderedRows(rows, order);
   const dataTableColumns = useMemo(
     () =>
-      columns.map(({ field, label }, index) => ({
+      columns.map(({ field, label, width }, index) => ({
         field,
         label,
-        classes: classnames({
+        classes: classnames(width, {
           // For assignments with auto-grading, a fifth column is displayed.
           // In that case, we need to reserve less space for the first column,
           // otherwise the rest overflow.
-          'lg:w-[55%] md:w-[45%]': index === 0 && columns.length < 5,
-          'lg:w-[40%] md:w-[30%]': index === 0 && columns.length >= 5,
+          'lg:w-[55%] md:w-[45%]': !width && index === 0 && columns.length < 5,
+          'lg:w-[40%] md:w-[30%]': !width && index === 0 && columns.length >= 5,
         }),
       })),
     [columns],
