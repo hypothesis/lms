@@ -1,3 +1,4 @@
+import json
 import time
 from datetime import datetime
 from urllib.parse import urlencode
@@ -7,7 +8,7 @@ import oauthlib.oauth1
 import pytest
 from h_matchers import Any
 
-from lms.models import Assignment
+from lms.models import Assignment, AutoGradingConfig
 from lms.resources._js_config import JSConfig
 
 
@@ -105,6 +106,37 @@ class TestBasicLTILaunch:
             .one()
         )
         assert assignment.due_date == datetime(2026, 7, 1, 12, 0, 0)  # noqa: DTZ001
+
+    def test_basic_lti_launch_persists_one_auto_grading_config_per_phase(
+        self, do_lti_launch, db_session, lti_params, sign_lti_params
+    ):
+        post_params = sign_lti_params(
+            dict(
+                lti_params,
+                url="https://auto-grading.com/document.pdf",
+                auto_grading_config=json.dumps(
+                    {
+                        "activity_calculation": "cumulative",
+                        "grading_type": "scaled",
+                        "required_annotations": 3,
+                        "required_replies": 1,
+                    }
+                ),
+                tool_consumer_info_product_family_code="canvas",
+            )
+        )
+
+        do_lti_launch(post_params=post_params, status=200)
+
+        assignment = (
+            db_session.query(Assignment)
+            .filter_by(document_url="https://auto-grading.com/document.pdf")
+            .one()
+        )
+        # A launch carrying one config stores one phase, chained to nothing.
+        assert assignment.auto_grading_config.required_annotations == 3
+        assert assignment.auto_grading_config.previous_config_id is None
+        assert db_session.query(AutoGradingConfig).count() == 1
 
     @pytest.fixture
     def assignment(self, db_session, application_instance, lti_params):
