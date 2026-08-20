@@ -40,6 +40,25 @@ class AnnotationMetrics(TypedDict):
     last_activity: datetime | None
 
 
+class CheckpointMetrics(TypedDict):
+    """Annotation activity for a checkpoint-enabled assignment, split at the checkpoint's reveal_date and bounded by due_date."""
+
+    revealed: bool
+    reveal_date: datetime | None
+
+    checkpoint: AnnotationMetrics
+    """Activity created at or before reveal_date (or all activity, if not revealed yet)."""
+
+    due_date: AnnotationMetrics
+    """Activity created after reveal_date and at or before due_date."""
+
+    checkpoint_grade: NotRequired[float]
+    """Auto-grading grade calculated from `checkpoint` only. Informational: not synced to the LMS gradebook."""
+
+    due_date_grade: NotRequired[float]
+    """Auto-grading grade calculated from `due_date` only. Informational: not synced to the LMS gradebook."""
+
+
 class CourseMetrics(TypedDict):
     assignments: int
     last_launched: datetime | None
@@ -79,6 +98,7 @@ class APIStudent(TypedDict):
 
     annotation_metrics: NotRequired[AnnotationMetrics]
     auto_grading_grade: NotRequired[AutoGradingGrade]
+    checkpoint_metrics: NotRequired[CheckpointMetrics]
 
 
 class APICourses(TypedDict):
@@ -105,6 +125,9 @@ class APIAssignment(TypedDict):
 
     annotation_metrics: NotRequired[AnnotationMetrics]
     auto_grading_config: NotRequired[AutoGradingConfig]
+
+    checkpoint_enabled: NotRequired[bool]
+    due_date: NotRequired[str | None]
 
 
 class APIAssignments(TypedDict):

@@ -78,6 +78,8 @@ class TestAssignmentViews:
             "is_gradable": assignment.is_gradable,
             "created": assignment.created,
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+            "checkpoint_enabled": assignment.checkpoint_enabled,
+            "due_date": assignment.due_date,
         }
 
     def test_assignment_with_auto_grading(
@@ -106,6 +108,8 @@ class TestAssignmentViews:
             "created": assignment.created,
             "is_gradable": assignment.is_gradable,
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+            "checkpoint_enabled": assignment.checkpoint_enabled,
+            "due_date": assignment.due_date,
             "groups": [],
             "auto_grading_config": {
                 "activity_calculation": "separate",
@@ -136,6 +140,8 @@ class TestAssignmentViews:
             "created": assignment.created,
             "is_gradable": assignment.is_gradable,
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+            "checkpoint_enabled": assignment.checkpoint_enabled,
+            "due_date": assignment.due_date,
             "groups": [
                 {"h_authority_provided_id": g.authority_provided_id, "name": g.lms_name}
                 for g in groups
@@ -164,6 +170,8 @@ class TestAssignmentViews:
             "created": assignment.created,
             "is_gradable": assignment.is_gradable,
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+            "checkpoint_enabled": assignment.checkpoint_enabled,
+            "due_date": assignment.due_date,
             "sections": [
                 {"h_authority_provided_id": g.authority_provided_id, "name": g.lms_name}
                 for g in sections
