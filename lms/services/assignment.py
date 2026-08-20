@@ -27,9 +27,12 @@ from lms.services.upsert import bulk_upsert
 
 LOG = logging.getLogger(__name__)
 
-#: Bounds the auto-grading config chain walk. Well above any real number of
-#: grading phases; it exists so a cycle can't loop forever.
-MAX_AUTO_GRADING_PHASES = 20
+#: How deep `get_auto_grading_configs` will walk. Not a limit on grading
+#: phases: nothing enforces one, and this must stay well above any chain the
+#: writer can produce or reads would silently truncate. It exists only because
+#: a cycle can be created by hand, and the walk carries a `phase` column that
+#: differs on every iteration, so UNION would not deduplicate its way out.
+_MAX_CHAIN_DEPTH = 20
 
 
 class AssignmentService:
@@ -524,9 +527,8 @@ class AssignmentService:
             return [head]
 
         # Walk the chain with a recursive CTE, the same shape as
-        # OrganizationService.get_hierarchy_ids. `phase` both orders the result
-        # and bounds the recursion: nothing stops a cycle being created by hand,
-        # and union_all would follow one forever.
+        # OrganizationService.get_hierarchy_ids. `phase` orders the result --
+        # a recursive CTE has none of its own -- and bounds the walk.
         chain = (
             select(AutoGradingConfig.id, literal(1).label("phase"))
             .where(AutoGradingConfig.id == head.id)
@@ -535,7 +537,7 @@ class AssignmentService:
         chain = chain.union_all(
             select(AutoGradingConfig.id, chain.c.phase + 1)
             .join(chain, AutoGradingConfig.previous_config_id == chain.c.id)
-            .where(chain.c.phase < MAX_AUTO_GRADING_PHASES)
+            .where(chain.c.phase < _MAX_CHAIN_DEPTH)
         )
 
         return list(

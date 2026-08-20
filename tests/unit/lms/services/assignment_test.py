@@ -14,7 +14,7 @@ from lms.models import (
     RoleType,
 )
 from lms.services.assignment import (
-    MAX_AUTO_GRADING_PHASES,
+    _MAX_CHAIN_DEPTH,
     AssignmentService,
     factory,
 )
@@ -295,7 +295,7 @@ class TestAssignmentService:
 
         assert svc.get_auto_grading_configs(assignment) == [config]
 
-    def test_get_auto_grading_configs_stops_at_the_recursion_bound(
+    def test_get_auto_grading_configs_stops_at_the_chain_depth_bound(
         self, svc, db_session
     ):
         # A cycle can only be made by hand, but the walk must still terminate.
@@ -308,7 +308,7 @@ class TestAssignmentService:
 
         configs = svc.get_auto_grading_configs(assignment)
 
-        assert len(configs) == MAX_AUTO_GRADING_PHASES
+        assert len(configs) == _MAX_CHAIN_DEPTH
 
     def test_update_assignment_stores_a_config_per_phase(
         self, svc, pyramid_request, course, db_session, misc_plugin
