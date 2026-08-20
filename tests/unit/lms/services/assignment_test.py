@@ -13,7 +13,11 @@ from lms.models import (
     RoleScope,
     RoleType,
 )
-from lms.services.assignment import AssignmentService, factory
+from lms.services.assignment import (
+    MAX_AUTO_GRADING_PHASES,
+    AssignmentService,
+    factory,
+)
 from tests import factories
 
 
@@ -253,6 +257,176 @@ class TestAssignmentService:
         assert assignment.auto_grading_config.grading_type == "all_or_nothing"
         assert assignment.auto_grading_config.required_annotations == 10
         assert assignment.auto_grading_config.required_replies == 10
+
+    def test_get_auto_grading_configs_without_a_config(self, svc):
+        assignment = factories.Assignment(auto_grading_config=None)
+
+        assert svc.get_auto_grading_configs(assignment) == []
+
+    def test_get_auto_grading_configs_returns_the_chain_in_phase_order(
+        self, svc, db_session
+    ):
+        first, second, third = factories.AutoGradingConfig.create_batch(3)
+        second.previous_config = first
+        third.previous_config = second
+        assignment = factories.Assignment(auto_grading_config=first)
+        db_session.flush()
+
+        assert svc.get_auto_grading_configs(assignment) == [first, second, third]
+
+    def test_get_auto_grading_configs_ignores_another_assignments_chain(
+        self, svc, db_session
+    ):
+        ours, theirs = factories.AutoGradingConfig.create_batch(2)
+        factories.Assignment(auto_grading_config=theirs)
+        assignment = factories.Assignment(auto_grading_config=ours)
+        db_session.flush()
+
+        assert svc.get_auto_grading_configs(assignment) == [ours]
+
+    def test_get_auto_grading_configs_with_an_unflushed_config(self, svc):
+        config = AutoGradingConfig(
+            activity_calculation="separate",
+            grading_type="scaled",
+            required_annotations=1,
+            required_replies=1,
+        )
+        assignment = factories.Assignment(auto_grading_config=config)
+
+        assert svc.get_auto_grading_configs(assignment) == [config]
+
+    def test_get_auto_grading_configs_stops_at_the_recursion_bound(
+        self, svc, db_session
+    ):
+        # A cycle can only be made by hand, but the walk must still terminate.
+        first, second = factories.AutoGradingConfig.create_batch(2)
+        second.previous_config = first
+        assignment = factories.Assignment(auto_grading_config=first)
+        db_session.flush()
+        first.previous_config = second
+        db_session.flush()
+
+        configs = svc.get_auto_grading_configs(assignment)
+
+        assert len(configs) == MAX_AUTO_GRADING_PHASES
+
+    def test_update_assignment_stores_a_config_per_phase(
+        self, svc, pyramid_request, course, db_session, misc_plugin
+    ):
+        misc_plugin.is_assignment_gradable.return_value = True
+        assignment = factories.Assignment(auto_grading_config=None)
+
+        svc.update_assignment(
+            pyramid_request,
+            assignment,
+            "DOCUMENT_URL",
+            None,
+            course,
+            auto_grading_config=[
+                {
+                    "activity_calculation": "cumulative",
+                    "grading_type": "scaled",
+                    "required_annotations": 1,
+                    "required_replies": 1,
+                },
+                {
+                    "activity_calculation": "separate",
+                    "grading_type": "all_or_nothing",
+                    "required_annotations": 2,
+                    "required_replies": 2,
+                },
+            ],
+        )
+        db_session.flush()
+
+        configs = svc.get_auto_grading_configs(assignment)
+        assert [config.required_annotations for config in configs] == [1, 2]
+        assert configs[0].previous_config is None
+        assert configs[1].previous_config == configs[0]
+        assert assignment.auto_grading_config == configs[0]
+
+    def test_update_assignment_reuses_the_existing_configs_of_each_phase(
+        self, svc, pyramid_request, course, db_session, misc_plugin
+    ):
+        misc_plugin.is_assignment_gradable.return_value = True
+        first, second = factories.AutoGradingConfig.create_batch(2)
+        second.previous_config = first
+        assignment = factories.Assignment(auto_grading_config=first)
+        db_session.flush()
+
+        svc.update_assignment(
+            pyramid_request,
+            assignment,
+            "DOCUMENT_URL",
+            None,
+            course,
+            auto_grading_config=[
+                {
+                    "activity_calculation": "cumulative",
+                    "grading_type": "scaled",
+                    "required_annotations": 5,
+                },
+                {
+                    "activity_calculation": "cumulative",
+                    "grading_type": "scaled",
+                    "required_annotations": 6,
+                },
+            ],
+        )
+        db_session.flush()
+
+        assert svc.get_auto_grading_configs(assignment) == [first, second]
+        assert [first.required_annotations, second.required_annotations] == [5, 6]
+
+    def test_update_assignment_drops_the_phases_it_no_longer_has(
+        self, svc, pyramid_request, course, db_session, misc_plugin
+    ):
+        misc_plugin.is_assignment_gradable.return_value = True
+        first, second = factories.AutoGradingConfig.create_batch(2)
+        second.previous_config = first
+        assignment = factories.Assignment(auto_grading_config=first)
+        db_session.flush()
+
+        svc.update_assignment(
+            pyramid_request,
+            assignment,
+            "DOCUMENT_URL",
+            None,
+            course,
+            auto_grading_config=[
+                {
+                    "activity_calculation": "cumulative",
+                    "grading_type": "scaled",
+                    "required_annotations": 5,
+                }
+            ],
+        )
+        db_session.flush()
+
+        assert svc.get_auto_grading_configs(assignment) == [first]
+        assert not db_session.get(AutoGradingConfig, second.id)
+
+    def test_update_assignment_removes_every_phase(
+        self, svc, pyramid_request, course, db_session, misc_plugin
+    ):
+        misc_plugin.is_assignment_gradable.return_value = True
+        first, second = factories.AutoGradingConfig.create_batch(2)
+        second.previous_config = first
+        assignment = factories.Assignment(auto_grading_config=first)
+        db_session.flush()
+
+        svc.update_assignment(
+            pyramid_request,
+            assignment,
+            "DOCUMENT_URL",
+            None,
+            course,
+            auto_grading_config=None,
+        )
+        db_session.flush()
+
+        assert assignment.auto_grading_config is None
+        assert not db_session.query(AutoGradingConfig).count()
 
     def test_update_assignment_removes_auto_grading_config(
         self, svc, pyramid_request, course, db_session, misc_plugin
