@@ -159,6 +159,23 @@ export type AnnotationMetrics = {
 };
 
 /**
+ * Annotation activity for a checkpoint-enabled assignment.
+ * Only present when the assignment has `checkpoint_enabled`.
+ */
+export type CheckpointMetrics = {
+  revealed: boolean;
+  reveal_date: ISODateTime | null;
+
+  checkpoint: AnnotationMetrics;
+  due_date: AnnotationMetrics;
+
+  /** Informational only: not synced to the LMS gradebook. */
+  checkpoint_grade?: number;
+  /** Informational only: not synced to the LMS gradebook. */
+  due_date_grade?: number;
+};
+
+/**
  * Response for `/api/dashboard/courses/{course_id}` call.
  */
 export type Course = {
@@ -188,6 +205,9 @@ export type Assignment = {
   /** Date in which the assignment was created, in ISO format */
   created: ISODateTime;
   is_gradable: boolean;
+
+  checkpoint_enabled?: boolean;
+  due_date?: ISODateTime | null;
 };
 
 export type Student = {
@@ -211,6 +231,7 @@ export type AutoGradingGrade = {
 export type StudentWithMetrics = Student & {
   annotation_metrics: AnnotationMetrics;
   auto_grading_grade?: AutoGradingGrade;
+  checkpoint_metrics?: CheckpointMetrics;
 };
 
 /**

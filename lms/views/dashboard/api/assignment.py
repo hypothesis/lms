@@ -112,6 +112,8 @@ class AssignmentViews:
                 id=assignment.course.id,
                 title=assignment.course.lms_name,
             ),
+            checkpoint_enabled=assignment.checkpoint_enabled,
+            due_date=assignment.due_date,
         )
 
         if groups := self.assignment_service.get_assignment_groups(assignment):
