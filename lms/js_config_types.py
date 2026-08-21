@@ -40,6 +40,28 @@ class AnnotationMetrics(TypedDict):
     last_activity: datetime | None
 
 
+class PhaseMetrics(TypedDict):
+    """Annotation activity within one grading phase of an assignment.
+
+    Phases are delimited by the checkpoint reveals, with the last closing at the
+    due date. h reports them; the LMS never works out the dates itself.
+    """
+
+    phase: int
+    """1-based position, matching the auto-grading config at the same position."""
+
+    ends_at: datetime | None
+    """When the phase closes: the reveal this student's group saw, or the due
+    date for the last phase. None means the boundary isn't known yet -- an
+    unrevealed checkpoint, or an assignment with no due date."""
+
+    metrics: AnnotationMetrics
+
+    grade: NotRequired[float]
+    """Informational only: there's no way to sync more than one grade per
+    assignment to the LMS gradebook."""
+
+
 class CourseMetrics(TypedDict):
     assignments: int
     last_launched: datetime | None
@@ -79,6 +101,7 @@ class APIStudent(TypedDict):
 
     annotation_metrics: NotRequired[AnnotationMetrics]
     auto_grading_grade: NotRequired[AutoGradingGrade]
+    phase_metrics: NotRequired[list[PhaseMetrics]]
 
 
 class APICourses(TypedDict):
@@ -105,6 +128,9 @@ class APIAssignment(TypedDict):
 
     annotation_metrics: NotRequired[AnnotationMetrics]
     auto_grading_config: NotRequired[AutoGradingConfig]
+
+    checkpoint_enabled: NotRequired[bool]
+    due_date: NotRequired[str | None]
 
 
 class APIAssignments(TypedDict):
