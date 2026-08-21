@@ -40,23 +40,26 @@ class AnnotationMetrics(TypedDict):
     last_activity: datetime | None
 
 
-class CheckpointMetrics(TypedDict):
-    """Annotation activity for a checkpoint-enabled assignment, split at the checkpoint's reveal_date and bounded by due_date."""
+class PhaseMetrics(TypedDict):
+    """Annotation activity within one grading phase of an assignment.
 
-    revealed: bool
-    reveal_date: datetime | None
+    Phases are delimited by the checkpoint reveals, with the last closing at the
+    due date. h reports them; the LMS never works out the dates itself.
+    """
 
-    checkpoint: AnnotationMetrics
-    """Activity created at or before reveal_date (or all activity, if not revealed yet)."""
+    phase: int
+    """1-based position, matching the auto-grading config at the same position."""
 
-    due_date: AnnotationMetrics
-    """Activity created after reveal_date and at or before due_date."""
+    ends_at: datetime | None
+    """When the phase closes: the reveal this student's group saw, or the due
+    date for the last phase. None means the boundary isn't known yet -- an
+    unrevealed checkpoint, or an assignment with no due date."""
 
-    checkpoint_grade: NotRequired[float]
-    """Auto-grading grade calculated from `checkpoint` only. Informational: not synced to the LMS gradebook."""
+    metrics: AnnotationMetrics
 
-    due_date_grade: NotRequired[float]
-    """Auto-grading grade calculated from `due_date` only. Informational: not synced to the LMS gradebook."""
+    grade: NotRequired[float]
+    """Informational only: there's no way to sync more than one grade per
+    assignment to the LMS gradebook."""
 
 
 class CourseMetrics(TypedDict):
@@ -98,7 +101,7 @@ class APIStudent(TypedDict):
 
     annotation_metrics: NotRequired[AnnotationMetrics]
     auto_grading_grade: NotRequired[AutoGradingGrade]
-    checkpoint_metrics: NotRequired[CheckpointMetrics]
+    phase_metrics: NotRequired[list[PhaseMetrics]]
 
 
 class APICourses(TypedDict):
