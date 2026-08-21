@@ -176,7 +176,11 @@ class AssignmentViews:
                 metrics = AnnotationMetrics(
                     annotations=h_stats["annotations"] + h_stats["page_notes"],
                     replies=h_stats["replies"],
-                    last_activity=datetime.fromisoformat(h_stats["last_activity"]),
+                    last_activity=(
+                        datetime.fromisoformat(h_stats["last_activity"])
+                        if h_stats["last_activity"]
+                        else None
+                    ),
                 )
             else:
                 # Assignment with no annos, zeroing the stats
