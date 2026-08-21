@@ -144,6 +144,9 @@ class TestUserViews:
             group_by="user",
             resource_link_ids=[assignment.resource_link_id],
             h_userids=sentinel.h_userids,
+            # Not a checkpointed assignment: no phases to bucket by.
+            document_uri=None,
+            due_date=None,
         )
         expected = {
             "students": [
@@ -154,7 +157,7 @@ class TestUserViews:
                     "display_name": student.display_name,
                     "annotation_metrics": {
                         "annotations": 4,
-                        "replies": sentinel.replies,
+                        "replies": 3,
                         "last_activity": datetime(2024, 1, 1),  # noqa: DTZ001
                     },
                 },
@@ -247,6 +250,9 @@ class TestUserViews:
             group_by="user",
             resource_link_ids=[assignment.resource_link_id],
             h_userids=sentinel.h_userids,
+            # Not a checkpointed assignment: no phases to bucket by.
+            document_uri=None,
+            due_date=None,
         )
         expected = {
             "students": [
@@ -257,7 +263,7 @@ class TestUserViews:
                     "display_name": student.display_name,
                     "annotation_metrics": {
                         "annotations": 4,
-                        "replies": sentinel.replies,
+                        "replies": 3,
                         "last_activity": datetime(2024, 1, 1),  # noqa: DTZ001
                     },
                 },
@@ -372,15 +378,15 @@ class TestUserViews:
                 "display_name": student.display_name,
                 "annotations": 2,
                 "page_notes": 2,
-                "replies": sentinel.replies,
+                "replies": 3,
                 "userid": student.h_userid,
                 "last_activity": "2024-01-01",
             },
             {
                 "display_name": sentinel.display_name,
-                "annotations": sentinel.annotations,
-                "page_notes": sentinel.page_notes,
-                "replies": sentinel.replies,
+                "annotations": 5,
+                "page_notes": 5,
+                "replies": 7,
                 "userid": "TEACHER",
                 "last_activity": "2024-01-02",
             },

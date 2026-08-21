@@ -24,19 +24,16 @@ class AnnotationCounts(TypedDict):
     annotations: int
     replies: int
     page_notes: int
-    last_activity: str
+    last_activity: str | None
 
     assignment_id: str | None
     display_name: str | None
     userid: str | None
 
-    # Only present when `get_annotation_counts` was called with `document_uri`.
-    checkpoint_annotations: NotRequired[int]
-    checkpoint_replies: NotRequired[int]
-    checkpoint_page_notes: NotRequired[int]
-    checkpoint_last_activity: NotRequired[str | None]
-    checkpoint_revealed: NotRequired[bool]
-    checkpoint_reveal_date: NotRequired[str | None]
+    # Only present when grouping by "user_phase": one row per (user, grading
+    # phase) instead of one per user.
+    phase: NotRequired[int]
+    ends_at: NotRequired[str | None]
 
 
 class HAPIError(ExternalRequestError):
@@ -214,7 +211,7 @@ class HAPI:
         if not group_authority_ids:
             return []
 
-        filters = {
+        filters: dict = {
             "groups": group_authority_ids,
             "assignment_ids": resource_link_ids,
         }
