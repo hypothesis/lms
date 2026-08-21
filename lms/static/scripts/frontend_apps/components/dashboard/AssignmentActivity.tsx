@@ -57,15 +57,6 @@ type StudentsTableRow = {
 
   /** Whether this student is active in the course/assignment or roster */
   active: boolean;
-
-  // Only present for checkpoint-enabled assignments. Quick/functional
-  // columns: flattened from `checkpoint_metrics`, not grouped visually yet.
-  checkpoint_annotations?: number;
-  checkpoint_replies?: number;
-  checkpoint_grade?: number;
-  due_date_annotations?: number;
-  due_date_replies?: number;
-  due_date_grade?: number;
 };
 
 /**
@@ -225,43 +216,19 @@ export default function AssignmentActivity() {
   const rows: StudentsTableRow[] = useMemo(
     () =>
       (students.data?.students ?? []).map(
-        ({
-          annotation_metrics,
-          auto_grading_grade,
-          checkpoint_metrics,
-          ...rest
-        }) => ({
+        ({ annotation_metrics, auto_grading_grade, ...rest }) => ({
           ...auto_grading_grade,
           ...annotation_metrics,
           ...rest,
-          ...(checkpoint_metrics && {
-            checkpoint_annotations: checkpoint_metrics.checkpoint.annotations,
-            checkpoint_replies: checkpoint_metrics.checkpoint.replies,
-            checkpoint_grade: checkpoint_metrics.checkpoint_grade,
-            due_date_annotations: checkpoint_metrics.due_date.annotations,
-            due_date_replies: checkpoint_metrics.due_date.replies,
-            due_date_grade: checkpoint_metrics.due_date_grade,
-          }),
         }),
       ),
     [students.data],
   );
-  const isCheckpointAssignment = !!assignment.data?.checkpoint_enabled;
   const columns = useMemo(() => {
-    const width = isCheckpointAssignment
-      ? {
-          display_name: 'w-[200px]',
-          grade: 'w-[90px]',
-          count: 'w-[110px]',
-          last_activity: 'w-[130px]',
-        }
-      : {};
-
     const firstColumns: OrderableActivityTableColumn<StudentsTableRow>[] = [
       {
         field: 'display_name',
         label: 'Student',
-        ...(width.display_name && { width: width.display_name }),
       },
     ];
     const lastColumns: OrderableActivityTableColumn<StudentsTableRow>[] = [
@@ -269,19 +236,16 @@ export default function AssignmentActivity() {
         field: 'annotations',
         label: 'Annotations',
         initialOrderDirection: 'descending',
-        ...(width.count && { width: width.count }),
       },
       {
         field: 'replies',
         label: 'Replies',
         initialOrderDirection: 'descending',
-        ...(width.count && { width: width.count }),
       },
       {
         field: 'last_activity',
         label: 'Last Activity',
         initialOrderDirection: 'descending',
-        ...(width.last_activity && { width: width.last_activity }),
       },
     ];
 
@@ -289,63 +253,11 @@ export default function AssignmentActivity() {
       firstColumns.push({
         field: 'current_grade',
         label: 'Grade',
-        ...(width.grade && { width: width.grade }),
       });
     }
 
-    // TODO: these render as plain flat columns for now (functional, not
-    // grouped visually into "Checkpoint" / "Due Date" headers like the
-    // mockup). `OrderableActivityTable` only supports a single header row
-    // today, so grouping needs a follow-up there.
-    const checkpointColumns: OrderableActivityTableColumn<StudentsTableRow>[] =
-      isCheckpointAssignment
-        ? [
-            {
-              field: 'checkpoint_annotations',
-              label: 'Checkpoint Annot.',
-              initialOrderDirection: 'descending',
-              width: width.count,
-            },
-            {
-              field: 'checkpoint_replies',
-              label: 'Checkpoint Replies',
-              initialOrderDirection: 'descending',
-              width: width.count,
-            },
-            {
-              field: 'due_date_annotations',
-              label: 'Due Date Annot.',
-              initialOrderDirection: 'descending',
-              width: width.count,
-            },
-            {
-              field: 'due_date_replies',
-              label: 'Due Date Replies',
-              initialOrderDirection: 'descending',
-              width: width.count,
-            },
-          ]
-        : [];
-    if (isCheckpointAssignment && isAutoGradingAssignment) {
-      checkpointColumns.push(
-        {
-          field: 'checkpoint_grade',
-          label: 'Checkpoint Grade',
-          width: width.grade,
-        },
-        {
-          field: 'due_date_grade',
-          label: 'Due Date Grade',
-          width: width.grade,
-        },
-      );
-    }
-
-    return [...firstColumns, ...checkpointColumns, ...lastColumns];
-  }, [isAutoGradingAssignment, isCheckpointAssignment]);
-  const minTableWidth = isCheckpointAssignment
-    ? columns.length * 110 + 100
-    : undefined;
+    return [...firstColumns, ...lastColumns];
+  }, [isAutoGradingAssignment]);
 
   const title = assignment.data?.title ?? 'Untitled assignment';
   useDocumentTitle(title);
@@ -450,91 +362,72 @@ export default function AssignmentActivity() {
           />
         )}
       </div>
-      <div
-        className={classnames({ 'overflow-x-auto': isCheckpointAssignment })}
-      >
-        <div style={minTableWidth ? { minWidth: minTableWidth } : undefined}>
-          <OrderableActivityTable
-            loading={students.isLoading}
-            title={assignment.isLoading ? 'Loading...' : title}
-            emptyMessage={
-              students.error ? 'Could not load students' : 'No students found'
-            }
-            rows={rows}
-            columns={columns}
-            defaultOrderField="display_name"
-            renderItem={(stats, field) => {
-              switch (field) {
-                case 'annotations':
-                case 'replies':
-                case 'checkpoint_annotations':
-                case 'checkpoint_replies':
-                case 'due_date_annotations':
-                case 'due_date_replies':
-                  return <div className="text-right">{stats[field] ?? 0}</div>;
-                case 'checkpoint_grade':
-                case 'due_date_grade':
-                  return (
-                    <div className="text-right">
-                      {stats[field] !== undefined
-                        ? `${Math.round(stats[field] * 100)}%`
-                        : ''}
-                    </div>
-                  );
-                case 'last_activity':
-                  return stats.last_activity ? (
-                    <FormattedDate date={stats.last_activity} />
-                  ) : (
-                    ''
-                  );
-                case 'display_name':
-                  return (
-                    <div className="flex items-center justify-between gap-x-2">
-                      {stats.display_name ?? (
-                        <span className="flex flex-col gap-1.5">
-                          <span className="italic">Unknown</span>
-                          <span className="text-xs text-grey-7">
-                            This student launched the assignment but didn{"'"}t
-                            annotate yet
-                          </span>
-                        </span>
-                      )}
-                      {!stats.active && (
-                        <div
-                          className="-my-0.5"
-                          title="This student is no longer in this assignment"
-                        >
-                          <StudentStatusBadge type="drop" />
-                        </div>
-                      )}
-                    </div>
-                  );
-                case 'current_grade':
-                  return (
+      <OrderableActivityTable
+        loading={students.isLoading}
+        title={assignment.isLoading ? 'Loading...' : title}
+        emptyMessage={
+          students.error ? 'Could not load students' : 'No students found'
+        }
+        rows={rows}
+        columns={columns}
+        defaultOrderField="display_name"
+        renderItem={(stats, field) => {
+          switch (field) {
+            case 'annotations':
+            case 'replies':
+              return <div className="text-right">{stats[field]}</div>;
+            case 'last_activity':
+              return stats.last_activity ? (
+                <FormattedDate date={stats.last_activity} />
+              ) : (
+                ''
+              );
+            case 'display_name':
+              return (
+                <div className="flex items-center justify-between gap-x-2">
+                  {stats.display_name ?? (
+                    <span className="flex flex-col gap-1.5">
+                      <span className="italic">Unknown</span>
+                      <span className="text-xs text-grey-7">
+                        This student launched the assignment but didn{"'"}t
+                        annotate yet
+                      </span>
+                    </span>
+                  )}
+                  {!stats.active && (
                     <div
-                      className={classnames(
-                        // Add a bit of vertical negative margin to avoid the chip
-                        // component to make rows too tall
-                        '-my-0.5',
-                      )}
+                      className="-my-0.5"
+                      title="This student is no longer in this assignment"
                     >
-                      <GradeIndicator
-                        grade={stats.current_grade ?? 0}
-                        lastGrade={stats.last_grade}
-                        annotations={stats.annotations}
-                        replies={stats.replies}
-                        status={studentSyncStatuses[stats.h_userid]}
-                        config={assignment.data?.auto_grading_config}
-                      />
+                      <StudentStatusBadge type="drop" />
                     </div>
-                  );
-                default:
-                  return '';
-              }
-            }}
-          />
-        </div>
-      </div>
+                  )}
+                </div>
+              );
+            case 'current_grade':
+              return (
+                <div
+                  className={classnames(
+                    // Add a bit of vertical negative margin to avoid the chip
+                    // component to make rows too tall
+                    '-my-0.5',
+                  )}
+                >
+                  <GradeIndicator
+                    grade={stats.current_grade ?? 0}
+                    lastGrade={stats.last_grade}
+                    annotations={stats.annotations}
+                    replies={stats.replies}
+                    status={studentSyncStatuses[stats.h_userid]}
+                    config={assignment.data?.auto_grading_config}
+                  />
+                </div>
+              );
+            default:
+              return '';
+          }
+        }}
+      />
       {!students.isLoading && !students.data?.last_updated && (
         <Link
           variant="text-light"
