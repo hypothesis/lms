@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -12,13 +13,14 @@ from lms.js_config_types import (
     APIStudent,
     APIStudents,
     AutoGradingGrade,
+    PhaseMetrics,
     RosterEntry,
 )
 from lms.models import Assignment, LMSUser, RoleScope, RoleType
 from lms.security import Permissions
 from lms.services import UserService
 from lms.services.auto_grading import AutoGradingService
-from lms.services.h_api import HAPI
+from lms.services.h_api import HAPI, AnnotationCounts
 from lms.validation._base import PyramidRequestSchema
 from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
 
@@ -139,14 +141,30 @@ class UserViews:
             ]
 
         request_h_userids = self.request.parsed_params.get("h_userids")
+        # A checkpointed assignment is graded per phase, so ask h to bucket the
+        # counts. It needs `document_uri` to find the checkpoint whose reveals
+        # delimit them, and `due_date` to close the last one.
+        use_phases = bool(assignment.checkpoint_enabled and assignment.document_uri)
         stats = self.h_api.get_annotation_counts(
             assignment_groupings_authority_provided_ids,
-            group_by="user",
+            group_by="user_phase" if use_phases else "user",
             resource_link_ids=[assignment.resource_link_id],
             h_userids=request_h_userids,
+            document_uri=assignment.document_uri if use_phases else None,
+            due_date=assignment.due_date if use_phases else None,
         )
-        # Organize the H stats by userid for quick access
-        stats_by_user = {s["userid"]: s for s in stats}
+        # Organize the H stats by userid for quick access. Grouping by phase
+        # returns several rows per user, one per phase.
+        stats_by_user: dict[str, list[AnnotationCounts]] = defaultdict(list)
+        for row in stats:
+            if userid := row["userid"]:
+                stats_by_user[userid].append(row)
+
+        auto_grading_configs = (
+            self.assignment_service.get_auto_grading_configs(assignment)
+            if use_phases
+            else []
+        )
         students: list[RosterEntry] = []
 
         roster_last_updated, users_query = self._students_query(
@@ -157,19 +175,17 @@ class UserViews:
         # Iterate over all the students we have in the DB
         for roster_data in self.request.db.execute(users_query).all():
             user, active = roster_data
-            if s := stats_by_user.get(user.h_userid):
+            if rows := stats_by_user.get(user.h_userid):
                 # We seen this student in H, get all the data from there
                 api_student = RosterEntry(
                     active=active,
                     h_userid=user.h_userid,
                     lms_id=user.user_id,
-                    display_name=s["display_name"],
-                    annotation_metrics=AnnotationMetrics(
-                        annotations=s["annotations"] + s["page_notes"],
-                        replies=s["replies"],
-                        last_activity=datetime.fromisoformat(s["last_activity"]),
-                    ),
+                    display_name=rows[0]["display_name"],
+                    annotation_metrics=self._total_metrics(rows),
                 )
+                if use_phases:
+                    api_student["phase_metrics"] = self._phase_metrics(rows)
             else:
                 # We haven't seen this user H,
                 # use LMS DB's data and set 0s for all annotation related fields.
@@ -182,6 +198,19 @@ class UserViews:
                         annotations=0, replies=0, last_activity=None
                     ),
                 )
+                if use_phases:
+                    # h reports a phase only for students it has annotations
+                    # for, so fall back to the phases the configs describe.
+                    api_student["phase_metrics"] = [
+                        PhaseMetrics(
+                            phase=phase,
+                            ends_at=None,
+                            metrics=AnnotationMetrics(
+                                annotations=0, replies=0, last_activity=None
+                            ),
+                        )
+                        for phase, _ in enumerate(auto_grading_configs, start=1)
+                    ]
             students.append(api_student)
 
         if assignment.auto_grading_config:
@@ -189,11 +218,63 @@ class UserViews:
 
         return APIRoster(students=students, last_updated=roster_last_updated)
 
+    @staticmethod
+    def _metrics(row: AnnotationCounts) -> AnnotationMetrics:
+        """Read one h row's counts, page notes folded into annotations."""
+        return AnnotationMetrics(
+            annotations=row["annotations"] + row["page_notes"],
+            replies=row["replies"],
+            last_activity=(
+                datetime.fromisoformat(row["last_activity"])
+                if row["last_activity"]
+                else None
+            ),
+        )
+
+    @classmethod
+    def _total_metrics(cls, rows: list[AnnotationCounts]) -> AnnotationMetrics:
+        """Sum a student's rows.
+
+        One row unless we asked h to bucket by phase, in which case the totals
+        are the phases added up. Note they only cover activity up to the due
+        date, because that bounds every count h returns for the request.
+        """
+        per_row = [cls._metrics(row) for row in rows]
+        activity = [m["last_activity"] for m in per_row if m["last_activity"]]
+
+        return AnnotationMetrics(
+            annotations=sum(m["annotations"] for m in per_row),
+            replies=sum(m["replies"] for m in per_row),
+            last_activity=max(activity) if activity else None,
+        )
+
+    @classmethod
+    def _phase_metrics(cls, rows: list[AnnotationCounts]) -> list[PhaseMetrics]:
+        """One entry per grading phase, in phase order.
+
+        h buckets the annotations and reports where each phase ends, so nothing
+        here needs to know the checkpoint's reveal dates.
+        """
+        return [
+            PhaseMetrics(
+                phase=row["phase"],
+                ends_at=(
+                    datetime.fromisoformat(row["ends_at"]) if row["ends_at"] else None
+                ),
+                metrics=cls._metrics(row),
+            )
+            for row in sorted(rows, key=lambda row: row["phase"])
+        ]
+
     def _add_auto_grading_data(
         self, assignment: Assignment, api_students: list[RosterEntry]
     ) -> list[RosterEntry]:
         """Augment APIStudent with auto-grading data."""
         last_sync_grades = self.auto_grading_service.get_last_grades(assignment)
+        # Phase N is graded against the config at position N. A shorter chain
+        # leaves the later phases ungraded, which `zip` does by stopping at the
+        # shorter side.
+        configs = self.assignment_service.get_auto_grading_configs(assignment)
 
         for api_student in api_students:
             auto_grading_grade: AutoGradingGrade = {
@@ -209,6 +290,16 @@ class UserViews:
                 auto_grading_grade["last_grade_date"] = last_grade.updated
 
             api_student["auto_grading_grade"] = auto_grading_grade
+
+            # Per-phase grades are informational only: there's no mechanism to
+            # sync more than one grade per assignment to the LMS gradebook, so
+            # these never get a `last_grade`.
+            for phase_metrics, config in zip(
+                api_student.get("phase_metrics") or [], configs, strict=False
+            ):
+                phase_metrics["grade"] = self.auto_grading_service.calculate_grade(
+                    config, phase_metrics["metrics"]
+                )
 
         return api_students
 

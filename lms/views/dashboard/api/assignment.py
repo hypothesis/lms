@@ -112,6 +112,8 @@ class AssignmentViews:
                 id=assignment.course.id,
                 title=assignment.course.lms_name,
             ),
+            checkpoint_enabled=assignment.checkpoint_enabled,
+            due_date=assignment.due_date,
         )
 
         if groups := self.assignment_service.get_assignment_groups(assignment):
@@ -174,7 +176,11 @@ class AssignmentViews:
                 metrics = AnnotationMetrics(
                     annotations=h_stats["annotations"] + h_stats["page_notes"],
                     replies=h_stats["replies"],
-                    last_activity=datetime.fromisoformat(h_stats["last_activity"]),
+                    last_activity=(
+                        datetime.fromisoformat(h_stats["last_activity"])
+                        if h_stats["last_activity"]
+                        else None
+                    ),
                 )
             else:
                 # Assignment with no annos, zeroing the stats
