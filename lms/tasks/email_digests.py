@@ -100,6 +100,15 @@ def send_instructor_email_digest_tasks():
                         .is_(False)
                     ),
                 )
+                # Without this the rows come back in whatever physical order
+                # Postgres finds them in, which depends on what else has been
+                # written to `user` before. That makes the order the digests go
+                # out in arbitrary, and it makes the test which asserts the
+                # recipients pass or fail depending on which xdist worker picked
+                # it up: the unit tests all share one database, so any change to
+                # the number of tests reshuffles the distribution and can flip
+                # it.
+                .order_by(User.h_userid)
             ).all()
 
             for h_userid in h_userids:
