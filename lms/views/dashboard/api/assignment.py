@@ -112,6 +112,10 @@ class AssignmentViews:
                 id=assignment.course.id,
                 title=assignment.course.lms_name,
             ),
+            # Emitted for every assignment rather than only when true: the
+            # dashboard picks the shape of its table off it, and an absent key
+            # would be indistinguishable from an older backend.
+            checkpoint_enabled=assignment.checkpoint_enabled,
         )
 
         if groups := self.assignment_service.get_assignment_groups(assignment):

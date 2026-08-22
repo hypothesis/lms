@@ -78,7 +78,52 @@ class TestAssignmentViews:
             "is_gradable": assignment.is_gradable,
             "created": assignment.created,
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+            "checkpoint_enabled": assignment.checkpoint_enabled,
         }
+
+    def test_assignment_with_checkpoints(
+        self,
+        views,
+        pyramid_request,
+        assignment,
+        db_session,
+        dashboard_service,
+        assignment_service,
+    ):
+        assignment.checkpoint_enabled = True
+
+        db_session.flush()
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
+        assignment_service.get_assignment_groups.return_value = []
+        assignment_service.get_assignment_sections.return_value = []
+        dashboard_service.get_request_assignment.return_value = assignment
+
+        response = views.assignment()
+
+        assert response["checkpoint_enabled"] is True
+
+    def test_assignment_without_checkpoints(
+        self,
+        views,
+        pyramid_request,
+        assignment,
+        db_session,
+        dashboard_service,
+        assignment_service,
+    ):
+        assignment.checkpoint_enabled = False
+
+        db_session.flush()
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
+        assignment_service.get_assignment_groups.return_value = []
+        assignment_service.get_assignment_sections.return_value = []
+        dashboard_service.get_request_assignment.return_value = assignment
+
+        response = views.assignment()
+
+        # Sent as false rather than left out: the frontend reads it to pick the
+        # shape of the students table
+        assert response["checkpoint_enabled"] is False
 
     def test_assignment_with_auto_grading(
         self, views, pyramid_request, assignment, db_session, dashboard_service
@@ -106,6 +151,7 @@ class TestAssignmentViews:
             "created": assignment.created,
             "is_gradable": assignment.is_gradable,
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+            "checkpoint_enabled": assignment.checkpoint_enabled,
             "groups": [],
             "auto_grading_config": {
                 "activity_calculation": "separate",
@@ -136,6 +182,7 @@ class TestAssignmentViews:
             "created": assignment.created,
             "is_gradable": assignment.is_gradable,
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+            "checkpoint_enabled": assignment.checkpoint_enabled,
             "groups": [
                 {"h_authority_provided_id": g.authority_provided_id, "name": g.lms_name}
                 for g in groups
@@ -164,6 +211,7 @@ class TestAssignmentViews:
             "created": assignment.created,
             "is_gradable": assignment.is_gradable,
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+            "checkpoint_enabled": assignment.checkpoint_enabled,
             "sections": [
                 {"h_authority_provided_id": g.authority_provided_id, "name": g.lms_name}
                 for g in sections

@@ -106,6 +106,11 @@ class APIAssignment(TypedDict):
     annotation_metrics: NotRequired[AnnotationMetrics]
     auto_grading_config: NotRequired[AutoGradingConfig]
 
+    # Whether the assignment splits its activity into windows of time
+    # ("Hide & Reveal"). Independent from auto-grading: an assignment can have
+    # both, in which case every window is graded.
+    checkpoint_enabled: NotRequired[bool]
+
 
 class APIAssignments(TypedDict):
     assignments: list[APIAssignment]
