@@ -17,13 +17,24 @@ import type {
   StudentsTableRow,
 } from './types';
 
-const gradeColumn: OrderableActivityTableColumn<StudentsTableRow> = {
+/**
+ * Grade currently calculated for a student.
+ *
+ * The checkpoint variant which grades displays this same column as its final
+ * grade, so it is exported rather than private.
+ */
+export const gradeColumn: OrderableActivityTableColumn<StudentsTableRow> = {
   field: 'current_grade',
   label: 'Grade',
 };
 
-/** Render the grade of a student, and fall back to the plain fields. */
-function renderAutoGradingField(
+/**
+ * Render the grade of a student, and fall back to the shared fields.
+ *
+ * The checkpoint variant which grades reuses this for its final grade column,
+ * which is the same value displayed the same way.
+ */
+export function renderAutoGradingField(
   row: StudentsTableRow,
   field: keyof StudentsTableRow,
   { assignment, studentSyncStatuses }: RenderContext,
@@ -56,7 +67,7 @@ function renderAutoGradingField(
  * Grades of the active students whose current grade differs from the last one
  * synced. A student whose grade has not changed is not synced again.
  */
-function gradesToSync(students: StudentWithMetrics[]): GradeToSync[] {
+export function gradesToSync(students: StudentWithMetrics[]): GradeToSync[] {
   return students
     .filter(
       ({ auto_grading_grade, active }) =>
@@ -73,10 +84,13 @@ function gradesToSync(students: StudentWithMetrics[]): GradeToSync[] {
 /**
  * Annotation metrics plus the grade calculated from them, which can be synced
  * to the LMS.
+ *
+ * An assignment which also has checkpoints is handled by the checkpoint variant
+ * which grades, because that one declares both capabilities.
  */
 export const autoGradingVariant: ConditionalVariantModule = {
   variant: 'auto-grading',
-  matches: assignment => !!assignment?.auto_grading_config,
+  handles: ['auto-grading'],
   buildRows,
   columns: () => [studentColumn, gradeColumn, ...metricsColumns],
   renderItem: renderAutoGradingField,
