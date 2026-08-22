@@ -13,7 +13,7 @@ export type GradeStatusChipProps = {
  * will be returned as an integer string. Otherwise, it will be returned
  * with two decimal places.
  */
-function formatGrade(grade: number): string {
+export function formatGrade(grade: number): string {
   const scaledGrade = grade * 100;
 
   return Number.isInteger(scaledGrade)
