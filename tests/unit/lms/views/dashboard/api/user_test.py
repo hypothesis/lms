@@ -203,11 +203,15 @@ class TestUserViews:
             "h_userids": sentinel.h_userids,
             "assignment_id": sentinel.assignment_id,
         }
+        first_config, second_config = factories.AutoGradingConfig.create_batch(2)
         assignment = factories.Assignment(
             course=factories.Course(),
             checkpoint_enabled=True,
             document_uri="https://example.com/reading",
             due_date=datetime(2024, 2, 1),  # noqa: DTZ001
+            # Points at the head of the chain, which is what gates the
+            # per-phase grades.
+            auto_grading_config=first_config,
         )
         db_session.flush()
         dashboard_service.get_request_assignment.return_value = assignment
@@ -215,7 +219,6 @@ class TestUserViews:
             None,
             select(User).where(User.id == student.id).add_columns(True),  # noqa: FBT003
         )
-        first_config, second_config = factories.AutoGradingConfig.create_batch(2)
         assignment_service.get_auto_grading_configs.return_value = [
             first_config,
             second_config,
@@ -296,6 +299,75 @@ class TestUserViews:
                 call(second_config, api_student["phase_metrics"][1]["metrics"]),
             ]
         )
+
+    def test_students_metrics_zero_fills_the_phases_h_reports_nothing_for(
+        self,
+        views,
+        pyramid_request,
+        h_api,
+        student,
+        dashboard_service,
+        assignment_service,
+        db_session,
+    ):
+        pyramid_request.parsed_params = {
+            "h_userids": sentinel.h_userids,
+            "assignment_id": sentinel.assignment_id,
+        }
+        assignment = factories.Assignment(
+            course=factories.Course(),
+            checkpoint_enabled=True,
+            document_uri="https://example.com/reading",
+        )
+        db_session.flush()
+        dashboard_service.get_request_assignment.return_value = assignment
+        dashboard_service.get_assignment_roster.return_value = (
+            None,
+            select(User).where(User.id == student.id).add_columns(True),  # noqa: FBT003
+        )
+        assignment_service.get_auto_grading_configs.return_value = (
+            factories.AutoGradingConfig.create_batch(2)
+        )
+        # A row h can't attribute to a user, and nothing for the student on the
+        # roster.
+        h_api.get_annotation_counts.return_value = [
+            {
+                "display_name": None,
+                "userid": None,
+                "phase": 1,
+                "ends_at": None,
+                "annotations": 7,
+                "page_notes": 0,
+                "replies": 2,
+                "last_activity": "2024-01-10",
+            }
+        ]
+
+        response = views.students_metrics()
+
+        (api_student,) = response["students"]
+        # One phase per config, all zeroed: the configs say how many phases the
+        # assignment has, h only says which ones were annotated in.
+        assert api_student["phase_metrics"] == [
+            {
+                "phase": 1,
+                "ends_at": None,
+                "metrics": {
+                    "annotations": 0,
+                    "replies": 0,
+                    "last_activity": None,
+                },
+            },
+            {
+                "phase": 2,
+                "ends_at": None,
+                "metrics": {
+                    "annotations": 0,
+                    "replies": 0,
+                    "last_activity": None,
+                },
+            },
+        ]
 
     @pytest.mark.parametrize("with_last_grade", [True, False])
     def test_students_metrics_with_auto_grading(
