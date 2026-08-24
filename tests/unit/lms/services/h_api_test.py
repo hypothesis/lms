@@ -164,6 +164,26 @@ class TestHAPI:
                     },
                 },
             ),
+            (
+                # Grouping by phase needs the document that identifies the
+                # checkpoint, and the due date that closes the last phase.
+                {
+                    "group_authority_ids": ["group_1"],
+                    "group_by": "user_phase",
+                    "resource_link_ids": ["assignment_id"],
+                    "document_uri": "https://example.com/reading",
+                    "due_date": datetime(2024, 2, 1),  # noqa: DTZ001
+                },
+                {
+                    "group_by": "user_phase",
+                    "filter": {
+                        "groups": ["group_1"],
+                        "assignment_ids": ["assignment_id"],
+                        "document_uri": "https://example.com/reading",
+                        "due_date": "2024-02-01T00:00:00+00:00",
+                    },
+                },
+            ),
         ],
     )
     def test_get_annotation_counts(self, h_api, http_service, kwargs, payload):
