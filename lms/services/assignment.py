@@ -562,6 +562,16 @@ class AssignmentService:
         else:
             phases = list(auto_grading_config)
 
+        if len(phases) > _MAX_CHAIN_DEPTH:
+            # Writing a longer chain than the read side follows would leave the
+            # tail unreachable: it is never returned, so it is never relinked
+            # or deleted either.
+            msg = (
+                f"An assignment cannot have more than {_MAX_CHAIN_DEPTH}"
+                f" auto-grading phases, got {len(phases)}"
+            )
+            raise ValueError(msg)
+
         existing = self.get_auto_grading_configs(assignment)
 
         if not phases:

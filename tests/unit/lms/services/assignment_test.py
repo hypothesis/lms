@@ -310,6 +310,26 @@ class TestAssignmentService:
 
         assert len(configs) == _MAX_CHAIN_DEPTH
 
+    def test_update_assignment_rejects_more_phases_than_the_chain_bound(
+        self, svc, pyramid_request, course, misc_plugin
+    ):
+        # Writing past the bound would leave the tail unreachable: it is never
+        # read back, so it is never relinked or deleted either.
+        misc_plugin.is_assignment_gradable.return_value = True
+        assignment = factories.Assignment(auto_grading_config=None)
+
+        with pytest.raises(ValueError, match="more than"):
+            svc.update_assignment(
+                pyramid_request,
+                assignment,
+                "DOCUMENT_URL",
+                None,
+                course,
+                auto_grading_config=[
+                    {"required_annotations": 1} for _ in range(_MAX_CHAIN_DEPTH + 1)
+                ],
+            )
+
     def test_update_assignment_stores_a_config_per_phase(
         self, svc, pyramid_request, course, db_session, misc_plugin
     ):
