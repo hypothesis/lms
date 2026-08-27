@@ -88,7 +88,10 @@ class LTIAHTTPService:
                 "client_assertion": signed_jwt,
                 "scope": " ".join(scopes),
             },
-            timeout=(30, 30),
+            # Keep this comfortably below the gunicorn worker timeout. A
+            # read timeout at or above it means the worker is killed
+            # mid-request instead of raising an error we can handle.
+            timeout=(10, 20),
         )
 
         try:
