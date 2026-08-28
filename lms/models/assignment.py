@@ -32,6 +32,27 @@ class AutoGradingConfig(Base):
     required_annotations: Mapped[int] = mapped_column()
     required_replies: Mapped[int | None] = mapped_column()
 
+    previous_config_id: Mapped[int | None] = mapped_column(
+        sa.Integer,
+        # Named explicitly: the generated name would exceed Postgres's 63-byte
+        # identifier limit and be truncated.
+        sa.ForeignKey(
+            "assignment_auto_grading_config.id",
+            ondelete="cascade",
+            name="fk__aagc__previous_config_id__aagc",
+        ),
+        nullable=True,
+        unique=True,
+    )
+    """The config of the grading phase before this one; NULL for the first.
+
+    Configs of one assignment form a chain, ordered like the checkpoints that
+    delimit their phases (see `h.models.Checkpoint`, which uses the same shape).
+    `Assignment.auto_grading_config` points at the first one.
+    """
+
+    previous_config = relationship("AutoGradingConfig", remote_side=[id], uselist=False)
+
     def asdict(self):
         return {
             "grading_type": self.grading_type,
