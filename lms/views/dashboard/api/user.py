@@ -160,10 +160,9 @@ class UserViews:
             if userid := row["userid"]:
                 stats_by_user[userid].append(row)
 
-        auto_grading_configs = (
-            self.assignment_service.get_auto_grading_configs(assignment)
-            if use_phases
-            else []
+        # From h: an assignment can have phases and no grading configs.
+        phase_count = (
+            max((row["phase"] for row in stats), default=0) if use_phases else 0
         )
         students: list[RosterEntry] = []
 
@@ -199,18 +198,9 @@ class UserViews:
                     ),
                 )
                 if use_phases:
-                    # h reports a phase only for students it has annotations
-                    # for, so fall back to the phases the configs describe.
-                    api_student["phase_metrics"] = [
-                        PhaseMetrics(
-                            phase=phase,
-                            ends_at=None,
-                            metrics=AnnotationMetrics(
-                                annotations=0, replies=0, last_activity=None
-                            ),
-                        )
-                        for phase, _ in enumerate(auto_grading_configs, start=1)
-                    ]
+                    api_student["phase_metrics"] = self._zeroed_phase_metrics(
+                        phase_count
+                    )
             students.append(api_student)
 
         if assignment.auto_grading_config:
@@ -264,6 +254,21 @@ class UserViews:
                 metrics=cls._metrics(row),
             )
             for row in sorted(rows, key=lambda row: row["phase"])
+        ]
+
+    @staticmethod
+    def _zeroed_phase_metrics(phase_count: int) -> list[PhaseMetrics]:
+        """Build the phases of a student h reports no annotations for.
+
+        Sent rather than omitted so the dashboard shows a 0, not a blank cell.
+        """
+        return [
+            PhaseMetrics(
+                phase=phase,
+                ends_at=None,
+                metrics=AnnotationMetrics(annotations=0, replies=0, last_activity=None),
+            )
+            for phase in range(1, phase_count + 1)
         ]
 
     def _add_auto_grading_data(

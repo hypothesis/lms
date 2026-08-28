@@ -325,29 +325,26 @@ class TestUserViews:
             None,
             select(User).where(User.id == student.id).add_columns(True),  # noqa: FBT003
         )
-        assignment_service.get_auto_grading_configs.return_value = (
-            factories.AutoGradingConfig.create_batch(2)
-        )
-        # A row h can't attribute to a user, and nothing for the student on the
-        # roster.
+        # No configs, so the phase count can only come from h.
+        assignment_service.get_auto_grading_configs.return_value = []
         h_api.get_annotation_counts.return_value = [
             {
                 "display_name": None,
                 "userid": None,
-                "phase": 1,
+                "phase": phase,
                 "ends_at": None,
                 "annotations": 7,
                 "page_notes": 0,
                 "replies": 2,
                 "last_activity": "2024-01-10",
             }
+            for phase in (1, 2)
         ]
 
         response = views.students_metrics()
 
         (api_student,) = response["students"]
-        # One phase per config, all zeroed: the configs say how many phases the
-        # assignment has, h only says which ones were annotated in.
+        # One zeroed entry per phase h reported.
         assert api_student["phase_metrics"] == [
             {
                 "phase": 1,
