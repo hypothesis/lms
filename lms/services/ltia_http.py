@@ -6,7 +6,11 @@ from requests.exceptions import JSONDecodeError
 
 from lms.models import JWTOAuth2Token, LTIRegistration
 from lms.product.plugin.misc import MiscPlugin
-from lms.services.exceptions import SerializableError
+from lms.services.exceptions import (
+    ExternalRequestError,
+    LTIATokenRequestError,
+    SerializableError,
+)
 from lms.services.jwt import JWTService
 from lms.services.jwt_oauth2_token import JWTOAuth2TokenService
 
@@ -80,16 +84,29 @@ class LTIAHTTPService:
             }
         )
 
-        response = self._http.post(
-            lti_registration.token_url,
-            data={
-                "grant_type": "client_credentials",
-                "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                "client_assertion": signed_jwt,
-                "scope": " ".join(scopes),
-            },
-            timeout=(30, 30),
-        )
+        try:
+            response = self._http.post(
+                lti_registration.token_url,
+                data={
+                    "grant_type": "client_credentials",
+                    "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                    "client_assertion": signed_jwt,
+                    "scope": " ".join(scopes),
+                },
+                # Keep this comfortably below the gunicorn worker timeout. A
+                # read timeout at or above it means the worker is killed
+                # mid-request instead of raising an error we can handle.
+                timeout=(10, 20),
+            )
+        except ExternalRequestError as err:
+            # Re-raise as LTIATokenRequestError so callers can tell a failure
+            # to authenticate apart from a failure of the LTI Advantage call
+            # they asked for. Chain from `err.__cause__` (the underlying
+            # requests exception) rather than from `err`, to keep
+            # `ExternalRequestError.is_timeout` working.
+            raise LTIATokenRequestError(
+                request=err.request, response=err.response
+            ) from err.__cause__
 
         try:
             token_data = response.json()

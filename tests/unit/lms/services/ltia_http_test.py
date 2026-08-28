@@ -3,7 +3,9 @@ from unittest.mock import sentinel
 
 import pytest
 from freezegun import freeze_time
+from requests.exceptions import Timeout
 
+from lms.services.exceptions import ExternalRequestError, LTIATokenRequestError
 from lms.services.ltia_http import LTIAHTTPService, factory
 from tests import factories
 
@@ -44,7 +46,7 @@ class TestLTIAHTTPService:
                 "client_assertion": jwt_service.encode_with_private_key.return_value,
                 "scope": " ".join(scopes),
             },
-            timeout=(30, 30),
+            timeout=(10, 20),
         )
         http_service.request.assert_called_once_with(
             "POST",
@@ -60,6 +62,23 @@ class TestLTIAHTTPService:
             http_service.post.return_value.json.return_value["access_token"],
             http_service.post.return_value.json.return_value["expires_in"],
         )
+
+    def test_request_raises_LTIATokenRequestError_when_the_token_request_fails(
+        self, svc, http_service, jwt_oauth2_token_service, scopes, lti_registration
+    ):
+        jwt_oauth2_token_service.get_token.return_value = None
+        cause = Timeout()
+        original = ExternalRequestError(request=sentinel.request)
+        original.__cause__ = cause
+        http_service.post.side_effect = original
+
+        with pytest.raises(LTIATokenRequestError) as exc_info:
+            svc.request(lti_registration, "POST", "https://example.com", scopes)
+
+        # The caller must still be able to tell this was a timeout, so the
+        # underlying requests exception has to stay as __cause__.
+        assert exc_info.value.is_timeout
+        assert exc_info.value.request == sentinel.request
 
     @freeze_time("2022-04-04")
     def test_request_with_existing_token(

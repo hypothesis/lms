@@ -5,7 +5,11 @@ import pytest
 from h_matchers import Any
 from requests.exceptions import Timeout
 
-from lms.services.exceptions import ExternalRequestError, SerializableError
+from lms.services.exceptions import (
+    ExternalRequestError,
+    LTIATokenRequestError,
+    SerializableError,
+)
 from lms.services.lti_grading.interface import GradingResult
 from lms.views.api.grading import CanvasPreRecordHook, GradingViews
 
@@ -51,6 +55,20 @@ class TestRecordCanvasSpeedgraderSubmission:
             GradingViews(pyramid_request).record_canvas_speedgrader_submission()
 
         assert exc_info.value.retryable
+
+    def test_it_does_not_retry_a_token_request_timeout(
+        self, lti_grading_service, pyramid_request
+    ):
+        # Retrying a token-request timeout just issues another token request,
+        # which is what tips the endpoint into rate-limiting us.
+        exception = LTIATokenRequestError()
+        exception.__cause__ = Timeout()
+        lti_grading_service.read_result.side_effect = exception
+
+        with pytest.raises(LTIATokenRequestError) as exc_info:
+            GradingViews(pyramid_request).record_canvas_speedgrader_submission()
+
+        assert not exc_info.value.retryable
 
     def test_it_max_attempts(self, pyramid_request, lti_grading_service):
         lti_grading_service.read_result.side_effect = ExternalRequestError(

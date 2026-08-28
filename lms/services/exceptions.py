@@ -172,6 +172,19 @@ class OAuth2TokenError(ExternalRequestError):
     """
 
 
+class LTIATokenRequestError(ExternalRequestError):
+    """
+    A request for an LTI Advantage access token failed.
+
+    Raised instead of a plain `ExternalRequestError` when the failing request
+    is the `client_credentials` call to the LMS's own token endpoint, rather
+    than the LTI Advantage call the caller actually asked for. Callers need to
+    tell the two apart because retrying a failed token request means issuing
+    another token request, which is counter-productive when the endpoint is
+    rate-limiting us.
+    """
+
+
 class ConcurrentTokenRefreshError(Exception):
     """Another process is attempting to refresh the same OAuth token."""
 

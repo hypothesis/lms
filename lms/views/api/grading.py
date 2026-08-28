@@ -8,7 +8,11 @@ from lms.error_code import ErrorCode
 from lms.events import LTIEvent
 from lms.security import Permissions
 from lms.services import LTIGradingService
-from lms.services.exceptions import ExternalRequestError, SerializableError
+from lms.services.exceptions import (
+    ExternalRequestError,
+    LTIATokenRequestError,
+    SerializableError,
+)
 from lms.validation import (
     APIReadResultSchema,
     APIRecordResultSchema,
@@ -119,8 +123,13 @@ class GradingViews:
 
         except ExternalRequestError as err:
             if err.is_timeout:
-                # We'll inform the frontend that this is a retryable error for timeouts.
-                err.retryable = True
+                # We'll inform the frontend that this is a retryable error for
+                # timeouts -- but not when the request that timed out was the
+                # LTI Advantage token request itself. Retrying that issues
+                # another token request, and a timeout there means the token
+                # endpoint is already rate-limiting us, so a retry makes the
+                # problem worse rather than better.
+                err.retryable = not isinstance(err, LTIATokenRequestError)
                 raise
 
             if (

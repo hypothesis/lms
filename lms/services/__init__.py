@@ -15,6 +15,7 @@ from lms.services.exceptions import (
     CanvasAPIServerError,
     ExternalAsyncRequestError,
     ExternalRequestError,
+    LTIATokenRequestError,
     OAuth2TokenError,
     SerializableError,
 )
