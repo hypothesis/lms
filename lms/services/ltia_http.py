@@ -4,9 +4,11 @@ from datetime import datetime, timedelta
 
 from requests.exceptions import JSONDecodeError
 
+from lms.db import CouldNotAcquireLock
 from lms.models import JWTOAuth2Token, LTIRegistration
 from lms.product.plugin.misc import MiscPlugin
 from lms.services.exceptions import (
+    ConcurrentTokenRefreshError,
     ExternalRequestError,
     LTIATokenRequestError,
     SerializableError,
@@ -53,15 +55,46 @@ class LTIAHTTPService:
     def _get_access_token(
         self, lti_registration: LTIRegistration, scopes: list[str]
     ) -> str:
-        """Get a valid access token from the DB or get a new one from the LMS."""
-        token = self._jwt_oauth2_token_service.get_token(lti_registration, scopes)
-        if not token:
-            LOG.debug("Requesting new LTIA JWT token")
-            token = self._get_new_access_token(lti_registration, scopes)
-        else:
-            LOG.debug("Using cached LTIA JWT token")
+        """
+        Get a valid access token from the DB or get a new one from the LMS.
 
-        return token.access_token
+        :raise ConcurrentTokenRefreshError: if another request is already
+            refreshing this registration's token
+        """
+        token = self._jwt_oauth2_token_service.get_token(lti_registration, scopes)
+        if token:
+            LOG.debug("Using cached LTIA JWT token")
+            return token.access_token
+
+        # The token is missing or about to expire, so it needs refreshing.
+        # Only one request should do that at a time. There is a single cached
+        # token per registration, so without this lock every request in
+        # flight when it expires issues its own identical token request --
+        # and LMS token endpoints rate-limit us for it.
+        try:
+            self._jwt_oauth2_token_service.try_lock_for_refresh(lti_registration)
+        except CouldNotAcquireLock as err:
+            # Another request holds the lock. Waiting for it here would not
+            # help: its new token only becomes visible once its transaction
+            # commits, which happens at the end of its request, not ours. So
+            # ask the caller to retry -- this surfaces as a 409, which the
+            # frontend already retries -- by which point the token should be
+            # in the DB.
+            LOG.debug(
+                "Concurrent LTIA token refresh for registration %s",
+                lti_registration.id,
+            )
+            raise ConcurrentTokenRefreshError() from err  # noqa: RSE102
+
+        # Check again now that we hold the lock: another request may have
+        # refreshed the token between our read above and us acquiring it.
+        token = self._jwt_oauth2_token_service.get_token(lti_registration, scopes)
+        if token:
+            LOG.debug("Using LTIA JWT token refreshed by a concurrent request")
+            return token.access_token
+
+        LOG.debug("Requesting new LTIA JWT token")
+        return self._get_new_access_token(lti_registration, scopes).access_token
 
     def _get_new_access_token(
         self, lti_registration: LTIRegistration, scopes: list[str]
