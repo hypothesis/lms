@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from lms.db import LockType, try_advisory_transaction_lock
 from lms.models.jwt_oauth2_token import JWTOAuth2Token
 
 
@@ -58,6 +59,28 @@ class JWTOAuth2TokenService:
             )
 
         return query.one_or_none()
+
+    def try_lock_for_refresh(self, lti_registration) -> None:
+        """
+        Attempt to acquire an advisory lock before refreshing a token.
+
+        This does not block if the lock is already held. Instead it raises.
+
+        The lock is released at the end of the current transaction.
+
+        The lock is keyed on the registration rather than on the token row:
+        there is no row to key on the first time a registration needs a
+        token, and tokens belong to a registration, so the registration is
+        the right thing to serialize on. Registrations using more than one
+        set of scopes will serialize their refreshes against each other,
+        which is a little broader than strictly necessary and harmless.
+
+        :param lti_registration: Registration whose token is being refreshed
+        :raise CouldNotAcquireLock: if the lock cannot be immediately acquired
+        """
+        try_advisory_transaction_lock(
+            self._db, LockType.LTIA_TOKEN_REFRESH, lti_registration.id
+        )
 
     def _normalize_scopes(self, scopes: list[str]) -> str:
         """Normalize a list of scopes to be queried/stored in DB."""
