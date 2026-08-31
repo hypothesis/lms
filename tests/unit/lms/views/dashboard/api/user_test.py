@@ -300,6 +300,72 @@ class TestUserViews:
             ]
         )
 
+    @pytest.mark.parametrize(
+        ("first_phase_ends_at", "expected"),
+        [
+            # Phase 1 closed, so phase 2 has started and both count.
+            ("2024-01-15", 0.375),
+            # Phase 1 is still open, so phase 2 hasn't started.
+            (None, 0.25),
+            # A scheduled reveal that hasn't fired yet closes nothing.
+            ("2099-01-01", 0.25),
+        ],
+    )
+    def test_students_metrics_averages_the_started_phases(
+        self,
+        views,
+        pyramid_request,
+        h_api,
+        student,
+        dashboard_service,
+        assignment_service,
+        auto_grading_service,
+        db_session,
+        first_phase_ends_at,
+        expected,
+    ):
+        pyramid_request.parsed_params = {
+            "h_userids": sentinel.h_userids,
+            "assignment_id": sentinel.assignment_id,
+        }
+        first_config, second_config = factories.AutoGradingConfig.create_batch(2)
+        assignment = factories.Assignment(
+            course=factories.Course(),
+            checkpoint_enabled=True,
+            document_uri="https://example.com/reading",
+            auto_grading_config=first_config,
+        )
+        db_session.flush()
+        dashboard_service.get_request_assignment.return_value = assignment
+        dashboard_service.get_assignment_roster.return_value = (
+            None,
+            select(User).where(User.id == student.id).add_columns(True),  # noqa: FBT003
+        )
+        assignment_service.get_auto_grading_configs.return_value = [
+            first_config,
+            second_config,
+        ]
+        auto_grading_service.get_last_grades.return_value = {}
+        auto_grading_service.calculate_grade.side_effect = [0.25, 0.5]
+        h_api.get_annotation_counts.return_value = [
+            {
+                "display_name": student.display_name,
+                "userid": student.h_userid,
+                "phase": phase,
+                "ends_at": ends_at,
+                "annotations": 1,
+                "page_notes": 0,
+                "replies": 0,
+                "last_activity": "2024-01-10",
+            }
+            for phase, ends_at in ((1, first_phase_ends_at), (2, None))
+        ]
+
+        response = views.students_metrics()
+
+        (api_student,) = response["students"]
+        assert api_student["auto_grading_grade"]["current_grade"] == expected
+
     def test_students_metrics_zero_fills_the_phases_h_reports_nothing_for(
         self,
         views,

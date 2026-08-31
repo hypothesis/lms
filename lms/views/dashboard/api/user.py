@@ -282,8 +282,18 @@ class UserViews:
         configs = self.assignment_service.get_auto_grading_configs(assignment)
 
         for api_student in api_students:
+            phases = api_student.get("phase_metrics") or []
+            for phase_metrics, config in zip(phases, configs, strict=False):
+                phase_metrics["grade"] = self.auto_grading_service.calculate_grade(
+                    config, phase_metrics["metrics"]
+                )
+
             auto_grading_grade: AutoGradingGrade = {
-                "current_grade": self.auto_grading_service.calculate_grade(
+                # Only the final grade is ever synced; the per-phase grades feed
+                # into it but are never sent on their own.
+                "current_grade": self._final_grade(phases)
+                if phases
+                else self.auto_grading_service.calculate_grade(
                     assignment.auto_grading_config,
                     api_student["annotation_metrics"],
                 ),
@@ -296,17 +306,37 @@ class UserViews:
 
             api_student["auto_grading_grade"] = auto_grading_grade
 
-            # Per-phase grades are informational only: there's no mechanism to
-            # sync more than one grade per assignment to the LMS gradebook, so
-            # these never get a `last_grade`.
-            for phase_metrics, config in zip(
-                api_student.get("phase_metrics") or [], configs, strict=False
-            ):
-                phase_metrics["grade"] = self.auto_grading_service.calculate_grade(
-                    config, phase_metrics["metrics"]
-                )
-
         return api_students
+
+    @classmethod
+    def _final_grade(cls, phases: list[PhaseMetrics]) -> float:
+        """Average the grades of the phases that have started.
+
+        `ends_at` is naive UTC, matching lms's other `utcnow()` comparisons.
+        """
+        now = datetime.utcnow()  # noqa: DTZ003
+        grades = [
+            phase_metrics["grade"]
+            for index, phase_metrics in enumerate(phases)
+            if "grade" in phase_metrics and cls._phase_started(phases, index, now)
+        ]
+
+        return round(sum(grades) / len(grades), 3)
+
+    @staticmethod
+    def _phase_started(phases: list[PhaseMetrics], index: int, now: datetime) -> bool:
+        """Whether the phase at `index` has begun.
+
+        A phase starts when the previous one ends, so a previous boundary that
+        is unset (an unrevealed checkpoint) or still ahead (a scheduled reveal,
+        or a due date yet to pass) means this one hasn't.
+        """
+        if index == 0:
+            return True
+
+        previous_end = phases[index - 1]["ends_at"]
+
+        return previous_end is not None and previous_end <= now
 
     def _students_query(
         self,
