@@ -268,8 +268,8 @@ describe('GroupedActivityTable', () => {
 
     assert.deepEqual(labels, [
       undefined,
-      'Checkpoint Annotations',
-      'Due Date Annotations',
+      'Hidden Phase Annotations',
+      'Revealed Phase Annotations',
     ]);
   });
 
