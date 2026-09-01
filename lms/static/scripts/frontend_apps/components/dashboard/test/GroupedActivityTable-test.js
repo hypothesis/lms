@@ -113,6 +113,31 @@ describe('GroupedActivityTable', () => {
     );
   });
 
+  it('rules off each group from the one before it', () => {
+    const wrapper = createComponent();
+
+    // Three columns in two groups plus the ungrouped student column, so the
+    // rule falls on the last two of every row and never on the first.
+    const ruled = row =>
+      row.map(cell => (cell.prop('className') ?? '').includes('border-l-2'));
+
+    assert.deepEqual(ruled(wrapper.find('thead tr').at(0).find('th')), [
+      false,
+      true,
+      true,
+    ]);
+    assert.deepEqual(ruled(wrapper.find('thead tr').at(1).find('th')), [
+      false,
+      true,
+      true,
+    ]);
+    assert.deepEqual(ruled(wrapper.find('tbody tr').at(0).find('td')), [
+      false,
+      true,
+      true,
+    ]);
+  });
+
   it('does not display a group row when no column declares a group', () => {
     const wrapper = createComponent({
       columns: [
