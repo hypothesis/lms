@@ -192,7 +192,7 @@ describe('OrderableActivityTable', () => {
     { group: undefined, expectedTable: 'DataTable' },
     // A column declaring a group needs a second header row, which `DataTable`
     // cannot render
-    { group: 'Checkpoint', expectedTable: 'GroupedActivityTable' },
+    { group: 'Hidden Phase', expectedTable: 'GroupedActivityTable' },
   ].forEach(({ group, expectedTable }) => {
     it('renders the grouped table only when a column declares a group', () => {
       const wrapper = mount(
