@@ -62,6 +62,29 @@ function columnGroups<T>(
 }
 
 /**
+ * Indices of the columns which open a group, excluding the first.
+ *
+ * These carry the rule that separates one group from the next, so a reader can
+ * tell where a phase's metrics end and the next phase's begin.
+ */
+function groupBoundaries(groups: ColumnGroup[]): Set<number> {
+  const boundaries = new Set<number>();
+  let index = 0;
+
+  for (const { span } of groups) {
+    if (index > 0) {
+      boundaries.add(index);
+    }
+    index += span;
+  }
+
+  return boundaries;
+}
+
+/** Separates a group from the one before it. */
+const GROUP_RULE = 'border-l-2 border-l-grey-5';
+
+/**
  * Activity table whose columns are displayed under a shared header, for views
  * which repeat the same metrics for more than one window of time.
  *
@@ -96,6 +119,7 @@ export default function GroupedActivityTable<T>({
   );
   const orderedRows = useOrderedRows(rows, effectiveOrder);
   const groups = useMemo(() => columnGroups(columns), [columns]);
+  const boundaries = useMemo(() => groupBoundaries(groups), [groups]);
   const hasGroups = useMemo(
     () => columns.some(({ group }) => !!group),
     [columns],
@@ -139,7 +163,11 @@ export default function GroupedActivityTable<T>({
         {hasGroups && (
           <TableRow>
             {groups.map(({ label, span }, index) => (
-              <TableCell key={`${label ?? ''}-${index}`} colSpan={span}>
+              <TableCell
+                key={`${label ?? ''}-${index}`}
+                colSpan={span}
+                classes={classnames({ [GROUP_RULE]: index > 0 })}
+              >
                 {/*
                   The alignment goes on a wrapper rather than on the cell:
                   `TableCell` sets `text-left` on every header cell, and it wins
@@ -157,13 +185,14 @@ export default function GroupedActivityTable<T>({
           </TableRow>
         )}
         <TableRow>
-          {columns.map(column => {
+          {columns.map((column, index) => {
             const { field, label, group } = column;
             const isOrdered = effectiveOrder.field === field;
 
             return (
               <TableCell
                 key={String(field)}
+                classes={classnames({ [GROUP_RULE]: boundaries.has(index) })}
                 aria-sort={isOrdered ? effectiveOrder.direction : undefined}
               >
                 <button
@@ -200,8 +229,13 @@ export default function GroupedActivityTable<T>({
         {!loading &&
           orderedRows.map((row, index) => (
             <TableRow key={index}>
-              {columns.map(({ field }) => (
-                <TableCell key={String(field)}>
+              {columns.map(({ field }, columnIndex) => (
+                <TableCell
+                  key={String(field)}
+                  classes={classnames({
+                    [GROUP_RULE]: boundaries.has(columnIndex),
+                  })}
+                >
                   {renderItem(row, field)}
                 </TableCell>
               ))}
