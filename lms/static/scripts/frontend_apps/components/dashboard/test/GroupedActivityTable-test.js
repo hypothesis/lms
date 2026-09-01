@@ -64,7 +64,11 @@ describe('GroupedActivityTable', () => {
     const wrapper = createComponent();
 
     // The ungrouped column keeps an empty header, so both rows stay aligned
-    assert.deepEqual(headerRow(wrapper, 0), ['', 'Hidden Phase', 'Revealed Phase']);
+    assert.deepEqual(headerRow(wrapper, 0), [
+      '',
+      'Hidden Phase',
+      'Revealed Phase',
+    ]);
     assert.deepEqual(
       wrapper
         .find('thead tr')
