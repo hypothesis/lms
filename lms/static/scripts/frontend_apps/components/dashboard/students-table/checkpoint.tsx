@@ -62,15 +62,14 @@ const PHASE_FIELD = new RegExp(`^phase_\\d+_(${PHASE_METRICS.join('|')})$`);
  * A checkpoint splits the activity in two, and the MVP has exactly one, so an
  * assignment which reports any phase has two. This is what keeps the last phase
  * from being guessed wrong while nobody has been active in it yet: the day after
- * a reveal, the API only reports phase 1, and calling that one the due date
- * would be wrong.
+ * a reveal, the API only reports phase 1, and calling that one the revealed
+ * phase would be wrong.
  *
  * ⚠️ This makes the labels correct for **one** checkpoint and only that. With
  * two, the API reports phases 1 and 2 until somebody is active in the third, and
- * phase 2 gets labelled as the due date. There is no way around it from here:
- * the API reports the position of a phase and never how many the assignment has,
- * and `ends_at` does not settle it either — telling a reveal from the due date
- * needs the assignment's `due_date` to compare against.
+ * phase 2 gets labelled as the revealed one. There is no way around it from
+ * here: the API reports the position of a phase and never how many the
+ * assignment has.
  *
  * @todo Two things fix this for good, both on the API: reporting the phases of
  * the assignment (the per-phase auto-grading configs already exist in the
@@ -82,9 +81,10 @@ const MIN_PHASES = 2;
 /**
  * Header a phase is displayed under.
  *
- * The API reports the position of a phase, not a name. Phases are delimited by
- * the reveals of the checkpoints and the last one closes at the due date, so the
- * last phase is the due date and every other one is a checkpoint.
+ * The API reports the position of a phase, not a name. Annotations stay hidden
+ * until the checkpoint before them is revealed, so every phase but the last is
+ * a hidden one and the last is what the reveal opens up. Naming them that way
+ * rather than after the due date also suits an assignment which has none.
  *
  * Numbering by position rather than by how many phases came back keeps the
  * labels in order and distinct, which the grouped header needs: two adjacent
@@ -92,10 +92,11 @@ const MIN_PHASES = 2;
  */
 function phaseLabel(phase: number, lastPhase: number): string {
   if (phase === lastPhase) {
-    return 'Due Date';
+    return 'Revealed Phase';
   }
 
-  return lastPhase > 2 ? `Checkpoint ${phase}` : 'Checkpoint';
+  // Numbered only when there is more than one to tell apart.
+  return lastPhase > 2 ? `Hidden Phase ${phase}` : 'Hidden Phase';
 }
 
 /**

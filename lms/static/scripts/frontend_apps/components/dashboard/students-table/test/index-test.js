@@ -511,10 +511,10 @@ describe('students-table', () => {
         columns.map(({ field, group }) => [field, group]),
         [
           ['display_name', undefined],
-          ['phase_1_annotations', 'Checkpoint'],
-          ['phase_1_replies', 'Checkpoint'],
-          ['phase_2_annotations', 'Due Date'],
-          ['phase_2_replies', 'Due Date'],
+          ['phase_1_annotations', 'Hidden Phase'],
+          ['phase_1_replies', 'Hidden Phase'],
+          ['phase_2_annotations', 'Revealed Phase'],
+          ['phase_2_replies', 'Revealed Phase'],
           ['last_activity', undefined],
         ],
       );
@@ -527,12 +527,12 @@ describe('students-table', () => {
         columns.map(({ field, group }) => [field, group]),
         [
           ['display_name', undefined],
-          ['phase_1_grade', 'Checkpoint'],
-          ['phase_1_annotations', 'Checkpoint'],
-          ['phase_1_replies', 'Checkpoint'],
-          ['phase_2_grade', 'Due Date'],
-          ['phase_2_annotations', 'Due Date'],
-          ['phase_2_replies', 'Due Date'],
+          ['phase_1_grade', 'Hidden Phase'],
+          ['phase_1_annotations', 'Hidden Phase'],
+          ['phase_1_replies', 'Hidden Phase'],
+          ['phase_2_grade', 'Revealed Phase'],
+          ['phase_2_annotations', 'Revealed Phase'],
+          ['phase_2_replies', 'Revealed Phase'],
           // The grade the LMS gets is the final one, outside every phase
           ['current_grade', 'Final grade'],
           ['last_activity', undefined],
@@ -559,7 +559,7 @@ describe('students-table', () => {
 
       assert.deepEqual(
         [...new Set(columns.map(({ group }) => group).filter(Boolean))],
-        ['Checkpoint 1', 'Checkpoint 2', 'Due Date'],
+        ['Checkpoint 1', 'Checkpoint 2', 'Revealed Phase'],
       );
     });
 
@@ -578,8 +578,8 @@ describe('students-table', () => {
         columns.map(({ field, group }) => [field, group]),
         [
           ['display_name', undefined],
-          ['phase_1_annotations', 'Checkpoint'],
-          ['phase_1_replies', 'Checkpoint'],
+          ['phase_1_annotations', 'Hidden Phase'],
+          ['phase_1_replies', 'Hidden Phase'],
           ['last_activity', undefined],
         ],
       );
@@ -626,8 +626,8 @@ describe('students-table', () => {
           ['display_name', undefined],
           ['phase_2_annotations', 'Checkpoint 2'],
           ['phase_2_replies', 'Checkpoint 2'],
-          ['phase_3_annotations', 'Due Date'],
-          ['phase_3_replies', 'Due Date'],
+          ['phase_3_annotations', 'Revealed Phase'],
+          ['phase_3_replies', 'Revealed Phase'],
           ['last_activity', undefined],
         ],
       );

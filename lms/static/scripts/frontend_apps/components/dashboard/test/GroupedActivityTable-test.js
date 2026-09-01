@@ -14,13 +14,13 @@ describe('GroupedActivityTable', () => {
     {
       field: 'checkpoint_annotations',
       label: 'Annotations',
-      group: 'Checkpoint',
+      group: 'Hidden Phase',
       initialOrderDirection: 'descending',
     },
     {
       field: 'due_date_annotations',
       label: 'Annotations',
-      group: 'Due Date',
+      group: 'Revealed Phase',
       initialOrderDirection: 'descending',
     },
   ];
@@ -64,7 +64,7 @@ describe('GroupedActivityTable', () => {
     const wrapper = createComponent();
 
     // The ungrouped column keeps an empty header, so both rows stay aligned
-    assert.deepEqual(headerRow(wrapper, 0), ['', 'Checkpoint', 'Due Date']);
+    assert.deepEqual(headerRow(wrapper, 0), ['', 'Hidden Phase', 'Revealed Phase']);
     assert.deepEqual(
       wrapper
         .find('thead tr')
@@ -92,17 +92,17 @@ describe('GroupedActivityTable', () => {
         {
           field: 'checkpoint_annotations',
           label: 'Annotations',
-          group: 'Checkpoint',
+          group: 'Hidden Phase',
         },
         {
           field: 'due_date_annotations',
           label: 'Replies',
-          group: 'Checkpoint',
+          group: 'Hidden Phase',
         },
       ],
     });
 
-    assert.deepEqual(headerRow(wrapper, 0), ['', 'Checkpoint']);
+    assert.deepEqual(headerRow(wrapper, 0), ['', 'Hidden Phase']);
     assert.deepEqual(
       wrapper
         .find('thead tr')
@@ -212,7 +212,7 @@ describe('GroupedActivityTable', () => {
         {
           field: 'due_date_annotations',
           label: 'Annotations',
-          group: 'Due Date',
+          group: 'Revealed Phase',
         },
       ],
     });
