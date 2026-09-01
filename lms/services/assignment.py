@@ -264,6 +264,12 @@ class AssignmentService:
         document_url = assignment_config.get("document_url")
         group_set_id = assignment_config.get("group_set_id")
         auto_grading_config = assignment_config.get("auto_grading_config")
+        if source := assignment or historical_assignment:
+            # The plugin only sees the head of the chain. Passing that single
+            # phase back to update_assignment would delete the rest.
+            auto_grading_config = [
+                config.asdict() for config in self.get_auto_grading_configs(source)
+            ] or None
         checkpoint_enabled = assignment_config.get("checkpoint_enabled", False)
         due_date = assignment_config.get("due_date")
 
