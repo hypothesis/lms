@@ -271,6 +271,7 @@ class TestUserViews:
             {
                 "phase": 1,
                 "ends_at": datetime(2024, 1, 15),  # noqa: DTZ001
+                "started": True,
                 "metrics": {
                     "annotations": 3,
                     "replies": 4,
@@ -283,6 +284,8 @@ class TestUserViews:
                 # The checkpoint hasn't been revealed, or there's no due date:
                 # either way this phase hasn't closed.
                 "ends_at": None,
+                # Phase 1 closed, so this one is open.
+                "started": True,
                 "metrics": {
                     "annotations": 3,
                     "replies": 1,
@@ -415,6 +418,7 @@ class TestUserViews:
             {
                 "phase": 1,
                 "ends_at": None,
+                "started": True,
                 "metrics": {
                     "annotations": 0,
                     "replies": 0,
@@ -424,6 +428,9 @@ class TestUserViews:
             {
                 "phase": 2,
                 "ends_at": None,
+                # Nothing has closed phase 1, so this one hasn't begun: the
+                # dashboard shows it blank rather than as a zero.
+                "started": False,
                 "metrics": {
                     "annotations": 0,
                     "replies": 0,
