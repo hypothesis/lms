@@ -8,7 +8,7 @@ import time
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 from h_api.bulk_api import BulkAPI, CommandBuilder
 
@@ -24,11 +24,16 @@ class AnnotationCounts(TypedDict):
     annotations: int
     replies: int
     page_notes: int
-    last_activity: str
+    last_activity: str | None
 
     assignment_id: str | None
     display_name: str | None
     userid: str | None
+
+    # Only present when grouping by "user_phase": one row per (user, grading
+    # phase) instead of one per user.
+    phase: NotRequired[int]
+    ends_at: NotRequired[str | None]
 
 
 class HAPIError(ExternalRequestError):
@@ -194,22 +199,28 @@ class HAPI:
                         authority_provided_id=group["authority_provided_id"]
                     )
 
-    def get_annotation_counts(
+    def get_annotation_counts(  # noqa: PLR0913
         self,
         group_authority_ids: list[str],
         group_by: str,
         h_userids: list[str] | None = None,
         resource_link_ids: list[str] | None = None,
+        document_uri: str | None = None,
+        due_date: datetime | None = None,
     ) -> list[AnnotationCounts]:
         if not group_authority_ids:
             return []
 
-        filters = {
+        filters: dict = {
             "groups": group_authority_ids,
             "assignment_ids": resource_link_ids,
         }
         if h_userids:
             filters["h_userids"] = h_userids
+        if document_uri:
+            filters["document_uri"] = document_uri
+        if due_date:
+            filters["due_date"] = _rfc3339_format(due_date)
 
         response = self._api_request(
             "POST",
