@@ -613,6 +613,33 @@ class TestAssignmentService:
         assert assignment.is_gradable == misc_plugin.is_assignment_gradable.return_value
         assert assignment.course_id == course.id
 
+    def test_get_assignment_for_launch_keeps_the_whole_config_chain(
+        self,
+        pyramid_request,
+        svc,
+        misc_plugin,
+        get_assignment,
+        _get_copied_from_assignment,  # noqa: PT019
+        course,
+        db_session,
+    ):
+        misc_plugin.is_assignment_gradable.return_value = True
+        first, second = factories.AutoGradingConfig.create_batch(2)
+        second.previous_config = first
+        existing = factories.Assignment(auto_grading_config=first)
+        db_session.flush()
+        get_assignment.return_value = existing
+        # The plugin reads the assignment's own config, which is the head only.
+        misc_plugin.get_assignment_configuration.return_value = {
+            "document_url": "https://example.com/reading",
+            "auto_grading_config": first.asdict(),
+        }
+
+        assignment = svc.get_assignment_for_launch(pyramid_request, course)
+
+        # Launching must not drop the phases the head doesn't mention.
+        assert svc.get_auto_grading_configs(assignment) == [first, second]
+
     def test_get_assignment_for_launch_sets_due_date(
         self,
         pyramid_request,
