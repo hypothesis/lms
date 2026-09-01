@@ -208,9 +208,52 @@ export type AutoGradingGrade = {
   last_grade_date: ISODateTime | null;
 };
 
+/**
+ * Annotation activity of a student within one grading phase of an assignment.
+ *
+ * The phases of a Hide & Reveal assignment are delimited by the reveals of its
+ * checkpoints, and the last one closes at the due date. `h` buckets the counts
+ * and reports where each phase ends, so nothing here knows the reveal dates.
+ */
+export type PhaseMetrics = {
+  /**
+   * 1-based position of the phase, matching the auto-grading config at the same
+   * position. The API reports the position, not a name.
+   */
+  phase: number;
+
+  /**
+   * When the phase closes: the reveal this student's group saw, or the due date
+   * for the last phase.
+   *
+   * `null` means the boundary is not known yet — an unrevealed checkpoint, or
+   * an assignment with no due date.
+   */
+  ends_at: ISODateTime | null;
+
+  metrics: AnnotationMetrics;
+
+  /**
+   * Grade of this phase, for an auto-graded assignment.
+   *
+   * Informational only: the LMS gradebook has a single grade per assignment, so
+   * only `auto_grading_grade` is ever synced.
+   */
+  grade?: number;
+};
+
 export type StudentWithMetrics = Student & {
   annotation_metrics: AnnotationMetrics;
   auto_grading_grade?: AutoGradingGrade;
+
+  /**
+   * Activity split by grading phase, for a checkpoint assignment.
+   *
+   * Absent for an assignment without checkpoints. `annotation_metrics` holds
+   * the totals either way, so a table which does not know about phases keeps
+   * working.
+   */
+  phase_metrics?: PhaseMetrics[];
 };
 
 /**
@@ -288,6 +331,16 @@ export type AssignmentDetails = AssignmentWithCourse &
      * enabled.
      */
     auto_grading_config?: AutoGradingConfig;
+
+    /**
+     * Whether this assignment has at least one checkpoint, which splits its
+     * activity into windows of time ("Hide & Reveal").
+     *
+     * This is independent from auto grading: an assignment can have both, in
+     * which case every window is graded and the final grade is the one synced
+     * to the LMS.
+     */
+    checkpoint_enabled?: boolean;
   };
 
 export type AssignmentWithMetrics = AssignmentWithCourse & {

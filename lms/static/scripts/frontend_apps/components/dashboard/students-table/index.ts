@@ -1,37 +1,82 @@
 import { useCallback, useMemo } from 'preact/hooks';
 
-import type { AssignmentDetails, StudentWithMetrics } from '../../../api-types';
+import type { AssignmentDetails } from '../../../api-types';
 import { autoGradingVariant } from './auto-grading';
+import { checkpointAutoGradingVariant, checkpointVariant } from './checkpoint';
 import { plainVariant } from './plain';
 import type {
+  AnyStudentsTableRow,
+  AssignmentCapability,
   ConditionalVariantModule,
   GradeToSync,
   RenderContext,
   StudentsTableConfig,
-  StudentsTableRow,
   StudentsTableVariantModule,
   VariantContext,
 } from './types';
 
 /**
- * Variants which only handle an assignment exposing a given capability. The
- * first one which matches the assignment owns the table.
+ * How each capability is detected on an assignment.
  *
- * `plainVariant` handles everything none of these claim, so an assignment with
- * a capability this version of the frontend does not know about still renders
- * its annotation metrics instead of breaking.
- *
- * The `matches` predicates must stay mutually exclusive; `index-test` asserts
- * it for the assignments it covers.
+ * This is the only place which reads the fields behind them, so a variant never
+ * has to know about a capability it does not handle. Detecting them from the
+ * data the API returns rather than from explicit flags is what lets an
+ * assignment fall through to a more basic variant instead of breaking.
  */
-export const VARIANT_MODULES: ConditionalVariantModule[] = [autoGradingVariant];
+const CAPABILITY_DETECTORS: Record<
+  AssignmentCapability,
+  (assignment?: AssignmentDetails | null) => boolean
+> = {
+  'auto-grading': assignment => !!assignment?.auto_grading_config,
+  checkpoints: assignment => !!assignment?.checkpoint_enabled,
+};
+
+/**
+ * Capabilities this assignment exposes, as far as this version of the frontend
+ * knows: one it does not know about is not detected at all, which is what makes
+ * such an assignment fall back to a more basic variant.
+ */
+function capabilitiesOf(
+  assignment?: AssignmentDetails | null,
+): Set<AssignmentCapability> {
+  const detected = new Set<AssignmentCapability>();
+
+  for (const capability of Object.keys(
+    CAPABILITY_DETECTORS,
+  ) as AssignmentCapability[]) {
+    if (CAPABILITY_DETECTORS[capability](assignment)) {
+      detected.add(capability);
+    }
+  }
+
+  return detected;
+}
+
+/**
+ * Variants which only handle an assignment exposing a given capability.
+ *
+ * `plainVariant` handles the assignments with no capability at all, and is the
+ * fallback for a combination no variant declares.
+ *
+ * The order of this list is irrelevant: a variant owns the assignments whose
+ * capabilities are exactly the ones it declares, so at most one of these can
+ * claim any given assignment.
+ */
+export const VARIANT_MODULES: ConditionalVariantModule<AnyStudentsTableRow>[] =
+  [autoGradingVariant, checkpointVariant, checkpointAutoGradingVariant];
 
 /** Resolve the variant which handles this assignment. */
 export function resolveVariantModule(
   assignment?: AssignmentDetails | null,
-): StudentsTableVariantModule {
+): StudentsTableVariantModule<AnyStudentsTableRow> {
+  const capabilities = capabilitiesOf(assignment);
+
   return (
-    VARIANT_MODULES.find(module => module.matches(assignment)) ?? plainVariant
+    VARIANT_MODULES.find(
+      ({ handles }) =>
+        handles.length === capabilities.size &&
+        handles.every(capability => capabilities.has(capability)),
+    ) ?? plainVariant
   );
 }
 
@@ -47,9 +92,7 @@ export function assignmentSyncsGrades(
   return !!resolveVariantModule(assignment).gradesToSync;
 }
 
-export type StudentsTableConfigOptions = RenderContext & {
-  students?: StudentWithMetrics[];
-};
+export type StudentsTableConfigOptions = RenderContext;
 
 /**
  * Build the rows, columns and item renderer of the students table.
@@ -61,7 +104,7 @@ export function useStudentsTableConfig({
   students,
   assignment,
   studentSyncStatuses,
-}: StudentsTableConfigOptions): StudentsTableConfig {
+}: StudentsTableConfigOptions): StudentsTableConfig<AnyStudentsTableRow> {
   // Variant modules are singletons, so this is stable across renders as long as
   // the assignment keeps resolving to the same variant.
   const variantModule = resolveVariantModule(assignment);
@@ -71,24 +114,23 @@ export function useStudentsTableConfig({
     [students, variantModule],
   );
   const columns = useMemo(
-    () => variantModule.columns({ assignment }),
-    [assignment, variantModule],
+    () => variantModule.columns({ assignment, students }),
+    [assignment, students, variantModule],
   );
   const renderItem = useCallback(
-    (row: StudentsTableRow, field: keyof StudentsTableRow) =>
+    (row: AnyStudentsTableRow, field: keyof AnyStudentsTableRow) =>
       variantModule.renderItem(row, field, {
         assignment,
+        students,
         studentSyncStatuses,
       }),
-    [assignment, studentSyncStatuses, variantModule],
+    [assignment, students, studentSyncStatuses, variantModule],
   );
 
   return { rows, columns, renderItem };
 }
 
-export type StudentsToSyncOptions = VariantContext & {
-  students?: StudentWithMetrics[];
-};
+export type StudentsToSyncOptions = VariantContext;
 
 /**
  * Grades to send to the LMS on the next sync, for the variant of this
