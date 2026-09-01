@@ -2,7 +2,7 @@ import logging
 from collections.abc import Sequence
 from datetime import UTC, datetime
 
-from sqlalchemy import Select, func, or_, select, text
+from sqlalchemy import Select, func, literal, or_, select, text
 from sqlalchemy.orm import Session
 
 from lms.models import (
@@ -26,6 +26,13 @@ from lms.services.document_uri import (
 from lms.services.upsert import bulk_upsert
 
 LOG = logging.getLogger(__name__)
+
+#: How deep `get_auto_grading_configs` will walk. Not a limit on grading
+#: phases: nothing enforces one, and this must stay well above any chain the
+#: writer can produce or reads would silently truncate. It exists only because
+#: a cycle can be created by hand, and the walk carries a `phase` column that
+#: differs on every iteration, so UNION would not deduplicate its way out.
+_MAX_CHAIN_DEPTH = 20
 
 
 class AssignmentService:
@@ -113,7 +120,7 @@ class AssignmentService:
         document_url: str,
         group_set_id,
         course: Course,
-        auto_grading_config: dict | None = None,
+        auto_grading_config: dict | list[dict] | None = None,
         checkpoint_enabled: bool = False,  # noqa: FBT001, FBT002
         due_date: str | datetime | None = None,
     ):
@@ -257,6 +264,12 @@ class AssignmentService:
         document_url = assignment_config.get("document_url")
         group_set_id = assignment_config.get("group_set_id")
         auto_grading_config = assignment_config.get("auto_grading_config")
+        if source := assignment or historical_assignment:
+            # The plugin only sees the head of the chain. Passing that single
+            # phase back to update_assignment would delete the rest.
+            auto_grading_config = [
+                config.asdict() for config in self.get_auto_grading_configs(source)
+            ] or None
         checkpoint_enabled = assignment_config.get("checkpoint_enabled", False)
         due_date = assignment_config.get("due_date")
 
@@ -501,32 +514,107 @@ class AssignmentService:
         if checkpoint_enabled and not assignment.checkpoint_enabled:
             assignment.checkpoint_enabled = True
 
-    def _update_auto_grading_config(
-        self, assignment: Assignment, auto_grading_config: dict | None
-    ) -> None:
-        if auto_grading_config:
-            auto_grading_model = assignment.auto_grading_config
-            if not assignment.auto_grading_config:
-                # No existing config, create a new one
-                auto_grading_model = AutoGradingConfig()
-                self._db.add(auto_grading_model)
-                assignment.auto_grading_config = auto_grading_model
+    def get_auto_grading_configs(
+        self, assignment: Assignment
+    ) -> list[AutoGradingConfig]:
+        """Return the assignment's auto-grading configs, in grading-phase order.
 
-            # Update the DB config based on the passed dict
-            auto_grading_model.activity_calculation = auto_grading_config.get(
-                "activity_calculation"
+        One config per phase, chained by `previous_config_id`, starting from the
+        one `assignment.auto_grading_config` points at. An assignment without
+        auto-grading has none; one without Hide & Reveal has exactly one.
+        """
+        head = assignment.auto_grading_config
+        if head is None:
+            return []
+
+        if head.id is None:
+            # Assigned in this session but not flushed, so it can't have
+            # successors in the DB yet.
+            return [head]
+
+        # Walk the chain with a recursive CTE, the same shape as
+        # OrganizationService.get_hierarchy_ids. `phase` orders the result --
+        # a recursive CTE has none of its own -- and bounds the walk.
+        chain = (
+            select(AutoGradingConfig.id, literal(1).label("phase"))
+            .where(AutoGradingConfig.id == head.id)
+            .cte("auto_grading_configs", recursive=True)
+        )
+        chain = chain.union_all(
+            select(AutoGradingConfig.id, chain.c.phase + 1)
+            .join(chain, AutoGradingConfig.previous_config_id == chain.c.id)
+            .where(chain.c.phase < _MAX_CHAIN_DEPTH)
+        )
+
+        return list(
+            self._db.scalars(
+                select(AutoGradingConfig)
+                .join(chain, chain.c.id == AutoGradingConfig.id)
+                .order_by(chain.c.phase)
+            ).all()
+        )
+
+    def _update_auto_grading_config(
+        self, assignment: Assignment, auto_grading_config: dict | list[dict] | None
+    ) -> None:
+        """Store one auto-grading config per grading phase, in the given order.
+
+        A single dict is one phase, which is what every caller passes today.
+        """
+        if auto_grading_config is None:
+            phases = []
+        elif isinstance(auto_grading_config, dict):
+            phases = [auto_grading_config]
+        else:
+            phases = list(auto_grading_config)
+
+        if len(phases) > _MAX_CHAIN_DEPTH:
+            # Writing a longer chain than the read side follows would leave the
+            # tail unreachable: it is never returned, so it is never relinked
+            # or deleted either.
+            msg = (
+                f"An assignment cannot have more than {_MAX_CHAIN_DEPTH}"
+                f" auto-grading phases, got {len(phases)}"
             )
-            auto_grading_model.grading_type = auto_grading_config.get("grading_type")
-            auto_grading_model.required_annotations = auto_grading_config[
-                "required_annotations"
-            ]
-            auto_grading_model.required_replies = auto_grading_config.get(
-                "required_replies"
-            )
-        elif assignment.auto_grading_config:
+            raise ValueError(msg)
+
+        existing = self.get_auto_grading_configs(assignment)
+
+        if not phases:
             # Clear the config in the DB when no config is passed in
-            self._db.delete(assignment.auto_grading_config)
+            self._delete_configs(existing)
             assignment.auto_grading_config = None
+            return
+
+        # Drop surplus phases before relinking, so a shortened chain can't leave
+        # a row pointing at one that is about to be reused.
+        self._delete_configs(existing[len(phases) :])
+
+        head = None
+        previous = None
+        for index, phase in enumerate(phases):
+            if index < len(existing):
+                config = existing[index]
+            else:
+                config = AutoGradingConfig()
+                self._db.add(config)
+
+            config.activity_calculation = phase.get("activity_calculation")
+            config.grading_type = phase.get("grading_type")
+            config.required_annotations = phase["required_annotations"]
+            config.required_replies = phase.get("required_replies")
+            config.previous_config = previous
+
+            head = head or config
+            previous = config
+
+        assignment.auto_grading_config = head
+
+    def _delete_configs(self, configs: list[AutoGradingConfig]) -> None:
+        # Tail first: a config's ON DELETE CASCADE points at its predecessor, so
+        # deleting from the head would cascade over rows the session still holds.
+        for config in reversed(configs):
+            self._db.delete(config)
 
 
 def factory(_context, request):
