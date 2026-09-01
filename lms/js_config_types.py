@@ -55,6 +55,10 @@ class PhaseMetrics(TypedDict):
     date for the last phase. None means the boundary isn't known yet -- an
     unrevealed checkpoint, or an assignment with no due date."""
 
+    started: bool
+    """Whether the phase has begun. An unstarted phase reports no activity
+    because none was possible, which the dashboard shows as blank, not zero."""
+
     metrics: AnnotationMetrics
 
     grade: NotRequired[float]
