@@ -559,7 +559,7 @@ describe('students-table', () => {
 
       assert.deepEqual(
         [...new Set(columns.map(({ group }) => group).filter(Boolean))],
-        ['Checkpoint 1', 'Checkpoint 2', 'Revealed Phase'],
+        ['Hidden Phase 1', 'Hidden Phase 2', 'Revealed Phase'],
       );
     });
 
@@ -624,8 +624,8 @@ describe('students-table', () => {
         columns.map(({ field, group }) => [field, group]),
         [
           ['display_name', undefined],
-          ['phase_2_annotations', 'Checkpoint 2'],
-          ['phase_2_replies', 'Checkpoint 2'],
+          ['phase_2_annotations', 'Hidden Phase 2'],
+          ['phase_2_replies', 'Hidden Phase 2'],
           ['phase_3_annotations', 'Revealed Phase'],
           ['phase_3_replies', 'Revealed Phase'],
           ['last_activity', undefined],
