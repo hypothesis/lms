@@ -206,6 +206,14 @@ export type AutoGradingGrade = {
   last_grade: number | null;
   /** When did the last grade sync happen, if any */
   last_grade_date: ISODateTime | null;
+
+  /**
+   * The requirements of the phases counted in the grade, added up.
+   *
+   * What the student's totals are compared against, so a two-phase assignment
+   * asking for two annotations each reads as four.
+   */
+  requirements: AutoGradingConfig;
 };
 
 /**

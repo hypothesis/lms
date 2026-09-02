@@ -93,6 +93,11 @@ class AutoGradingGrade(TypedDict):
     last_grade_date: datetime | None
     """Time when `last_grade` was synced to the LMS."""
 
+    requirements: AutoGradingConfig
+    """The requirements of the phases counted in the grade, added up. What the
+    dashboard compares the student's totals against, so a two-phase assignment
+    asking for two annotations each reads as four."""
+
 
 class APIStudent(TypedDict):
     h_userid: str
