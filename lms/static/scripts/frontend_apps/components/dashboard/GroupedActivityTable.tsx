@@ -95,18 +95,19 @@ const GUTTER_WIDTH = 'w-2';
  * and the thin rules around it gets a mitred corner where they meet. A cell of
  * its own carries no rules at all, and the ones around it stop at its edges.
  */
-function GutterCell() {
-  return (
-    <TableCell
-      // White so the gap reads as empty against the grey header; the rules to
-      // either side are the neighbouring cells' own, left in place so each
-      // group still closes off.
-      classes="bg-white"
-      unpadded
-      // Hidden from assistive technology: it holds no data, and a column of
-      // empty cells is announced on every row otherwise.
-      aria-hidden
-    />
+function GutterCell({ head = false }: { head?: boolean }) {
+  // A bare cell rather than `TableCell`: that one carries the rules which make
+  // the table a grid, and drawing them through the gutter would make it read
+  // as another column instead of a gap. The rule closing the group off is the
+  // neighbouring cell's own, and `divide-x` gives this one the rule that opens
+  // the next.
+  //
+  // `aria-hidden` because it holds no data: a column of empty cells would
+  // otherwise be announced on every row.
+  return head ? (
+    <th className="bg-white" aria-hidden />
+  ) : (
+    <td className="bg-white" aria-hidden />
   );
 }
 
@@ -193,7 +194,7 @@ export default function GroupedActivityTable<T>({
           <TableRow>
             {groups.map(({ label, span, start }) => (
               <Fragment key={`${label ?? ''}-${start}`}>
-                {boundaries.has(start) && <GutterCell />}
+                {boundaries.has(start) && <GutterCell head />}
                 <TableCell colSpan={span}>
                   {/*
                   The alignment goes on a wrapper rather than on the cell:
@@ -219,7 +220,7 @@ export default function GroupedActivityTable<T>({
 
             return (
               <Fragment key={String(field)}>
-                {boundaries.has(index) && <GutterCell />}
+                {boundaries.has(index) && <GutterCell head />}
                 <TableCell
                   aria-sort={isOrdered ? effectiveOrder.direction : undefined}
                 >
