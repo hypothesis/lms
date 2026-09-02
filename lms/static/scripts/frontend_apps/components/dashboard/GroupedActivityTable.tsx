@@ -12,6 +12,7 @@ import {
 } from '@hypothesis/frontend-shared';
 import type { Order } from '@hypothesis/frontend-shared/lib/types';
 import classnames from 'classnames';
+import { Fragment } from 'preact';
 import type { ComponentChildren } from 'preact';
 import { useMemo, useState } from 'preact/hooks';
 
@@ -35,6 +36,9 @@ export type GroupedActivityTableProps<T> = {
 type ColumnGroup = {
   label?: string;
   span: number;
+
+  /** Index of the first column of the run, so both header rows agree. */
+  start: number;
 };
 
 /**
@@ -49,40 +53,62 @@ function columnGroups<T>(
   const groups: ColumnGroup[] = [];
   let current: ColumnGroup | undefined;
 
-  for (const { group } of columns) {
+  columns.forEach(({ group }, index) => {
     if (current && current.label === group) {
       current.span += 1;
     } else {
-      current = { label: group, span: 1 };
+      current = { label: group, span: 1, start: index };
       groups.push(current);
     }
-  }
+  });
 
   return groups;
 }
 
 /**
- * Indices of the columns which open a group, excluding the first.
+ * Indices of the columns which open a named group, excluding the first.
  *
- * These carry the rule that separates one group from the next, so a reader can
- * tell where a phase's metrics end and the next phase's begin.
+ * These carry the gutter that separates one group from the next, so a reader
+ * can tell where a phase's metrics end and the next phase's begin. Columns
+ * outside any group need no gutter: there is nothing to tell them apart from.
  */
 function groupBoundaries(groups: ColumnGroup[]): Set<number> {
   const boundaries = new Set<number>();
-  let index = 0;
 
-  for (const { span } of groups) {
-    if (index > 0) {
-      boundaries.add(index);
+  for (const { label, start } of groups) {
+    if (start > 0 && label) {
+      boundaries.add(start);
     }
-    index += span;
   }
 
   return boundaries;
 }
 
-/** Separates a group from the one before it. */
-const GROUP_RULE = 'border-l-2 border-l-grey-5';
+/** Width of the gutter separating one group from the next. */
+const GUTTER_WIDTH = 'w-2';
+
+/**
+ * A column of empty space between two groups.
+ *
+ * A column rather than a wide border on the neighbouring cell: `border-separate`
+ * makes every cell draw its own borders, so a cell carrying both a thick gutter
+ * and the thin rules around it gets a mitred corner where they meet. A cell of
+ * its own carries no rules at all, and the ones around it stop at its edges.
+ */
+function GutterCell() {
+  return (
+    <TableCell
+      // White so the gap reads as empty against the grey header; the rules to
+      // either side are the neighbouring cells' own, left in place so each
+      // group still closes off.
+      classes="bg-white"
+      unpadded
+      // Hidden from assistive technology: it holds no data, and a column of
+      // empty cells is announced on every row otherwise.
+      aria-hidden
+    />
+  );
+}
 
 /**
  * Activity table whose columns are displayed under a shared header, for views
@@ -155,32 +181,34 @@ export default function GroupedActivityTable<T>({
         cells span several columns.
        */}
       <colgroup>
-        {columns.map(({ field, width }) => (
-          <col key={String(field)} className={width} />
+        {columns.map(({ field, width }, index) => (
+          <Fragment key={String(field)}>
+            {boundaries.has(index) && <col className={GUTTER_WIDTH} />}
+            <col className={width} />
+          </Fragment>
         ))}
       </colgroup>
       <TableHead>
         {hasGroups && (
           <TableRow>
-            {groups.map(({ label, span }, index) => (
-              <TableCell
-                key={`${label ?? ''}-${index}`}
-                colSpan={span}
-                classes={classnames({ [GROUP_RULE]: index > 0 })}
-              >
-                {/*
+            {groups.map(({ label, span, start }) => (
+              <Fragment key={`${label ?? ''}-${start}`}>
+                {boundaries.has(start) && <GutterCell />}
+                <TableCell colSpan={span}>
+                  {/*
                   The alignment goes on a wrapper rather than on the cell:
                   `TableCell` sets `text-left` on every header cell, and it wins
                   over a utility class passed in `classes`.
                  */}
-                <div
-                  className={classnames('text-center', {
-                    'font-bold': !!label,
-                  })}
-                >
-                  {label}
-                </div>
-              </TableCell>
+                  <div
+                    className={classnames('text-center', {
+                      'font-bold': !!label,
+                    })}
+                  >
+                    {label}
+                  </div>
+                </TableCell>
+              </Fragment>
             ))}
           </TableRow>
         )}
@@ -190,37 +218,38 @@ export default function GroupedActivityTable<T>({
             const isOrdered = effectiveOrder.field === field;
 
             return (
-              <TableCell
-                key={String(field)}
-                classes={classnames({ [GROUP_RULE]: boundaries.has(index) })}
-                aria-sort={isOrdered ? effectiveOrder.direction : undefined}
-              >
-                <button
-                  className="flex items-center gap-x-1 w-full"
-                  onClick={() => toggleOrder(column)}
-                  // The group is in a cell of its own row, which `TableCell`
-                  // scopes to a single column, so a column of a group carries
-                  // its name in its own accessible name. Without it the two
-                  // `Annotations` of a two-phase table are indistinguishable.
-                  aria-label={group ? `${group} ${label}` : undefined}
+              <Fragment key={String(field)}>
+                {boundaries.has(index) && <GutterCell />}
+                <TableCell
+                  aria-sort={isOrdered ? effectiveOrder.direction : undefined}
                 >
-                  <div className="grow">{label}</div>
-                  <div className="flex items-center" aria-hidden>
-                    {/*
+                  <button
+                    className="flex items-center gap-x-1 w-full"
+                    onClick={() => toggleOrder(column)}
+                    // The group is in a cell of its own row, which `TableCell`
+                    // scopes to a single column, so a column of a group carries
+                    // its name in its own accessible name. Without it the two
+                    // `Annotations` of a two-phase table are indistinguishable.
+                    aria-label={group ? `${group} ${label}` : undefined}
+                  >
+                    <div className="grow">{label}</div>
+                    <div className="flex items-center" aria-hidden>
+                      {/*
                       Always displayed, as `DataTable` does: hiding it until
                       hover would reveal it on every column at once, because the
                       element carrying `group` is the row, not the cell.
                      */}
-                    {!isOrdered && <OrderableIcon className="text-grey-5" />}
-                    {isOrdered &&
-                      (effectiveOrder.direction === 'ascending' ? (
-                        <ArrowUpIcon />
-                      ) : (
-                        <ArrowDownIcon />
-                      ))}
-                  </div>
-                </button>
-              </TableCell>
+                      {!isOrdered && <OrderableIcon className="text-grey-5" />}
+                      {isOrdered &&
+                        (effectiveOrder.direction === 'ascending' ? (
+                          <ArrowUpIcon />
+                        ) : (
+                          <ArrowDownIcon />
+                        ))}
+                    </div>
+                  </button>
+                </TableCell>
+              </Fragment>
             );
           })}
         </TableRow>
@@ -230,20 +259,16 @@ export default function GroupedActivityTable<T>({
           orderedRows.map((row, index) => (
             <TableRow key={index}>
               {columns.map(({ field }, columnIndex) => (
-                <TableCell
-                  key={String(field)}
-                  classes={classnames({
-                    [GROUP_RULE]: boundaries.has(columnIndex),
-                  })}
-                >
-                  {renderItem(row, field)}
-                </TableCell>
+                <Fragment key={String(field)}>
+                  {boundaries.has(columnIndex) && <GutterCell />}
+                  <TableCell>{renderItem(row, field)}</TableCell>
+                </Fragment>
               ))}
             </TableRow>
           ))}
         {(loading || showEmptyMessage) && (
           <TableRow>
-            <TableCell colSpan={columns.length}>
+            <TableCell colSpan={columns.length + boundaries.size}>
               <div className="flex justify-center">
                 {loading ? <SpinnerSpokesIcon /> : emptyMessage}
               </div>
