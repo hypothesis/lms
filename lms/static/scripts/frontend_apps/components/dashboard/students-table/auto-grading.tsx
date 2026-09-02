@@ -37,11 +37,18 @@ export const gradeColumn: OrderableActivityTableColumn<StudentsTableRow> = {
 export function renderAutoGradingField(
   row: StudentsTableRow,
   field: keyof StudentsTableRow,
-  { assignment, studentSyncStatuses }: RenderContext,
+  { assignment, students, studentSyncStatuses }: RenderContext,
 ): ComponentChildren {
   if (field !== 'current_grade') {
     return renderSharedField(row, field);
   }
+
+  // Read off the student rather than the row: a row holds one value per cell,
+  // and these are the requirements of every phase counted in the grade added
+  // together. Falls back to the assignment for a table without phases.
+  const requirements =
+    students?.find(({ h_userid }) => h_userid === row.h_userid)
+      ?.auto_grading_grade?.requirements ?? assignment?.auto_grading_config;
 
   return (
     <div
@@ -57,7 +64,7 @@ export function renderAutoGradingField(
         annotations={row.annotations}
         replies={row.replies}
         status={studentSyncStatuses[row.h_userid]}
-        config={assignment?.auto_grading_config}
+        config={requirements}
       />
     </div>
   );
