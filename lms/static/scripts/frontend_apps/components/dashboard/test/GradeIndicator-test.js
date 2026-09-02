@@ -12,14 +12,17 @@ describe('GradeIndicator', () => {
     required_replies: 1,
   };
 
-  function createComponent({ config = defaultConfig, lastGrade, status } = {}) {
+  function createComponent({
+    config = defaultConfig,
+    lastGrade,
+    status,
+    phases,
+  } = {}) {
     return mount(
       <GradeIndicator
         grade={80}
         lastGrade={lastGrade}
-        annotations={5}
-        replies={2}
-        config={config}
+        phases={phases ?? [{ annotations: 5, replies: 2, config }]}
         status={status}
       />,
     );

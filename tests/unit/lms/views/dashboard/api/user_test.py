@@ -278,6 +278,7 @@ class TestUserViews:
                     "last_activity": datetime(2024, 1, 10),  # noqa: DTZ001
                 },
                 "grade": auto_grading_service.calculate_grade.return_value,
+                "requirements": first_config.asdict(),
             },
             {
                 "phase": 2,
@@ -292,6 +293,7 @@ class TestUserViews:
                     "last_activity": datetime(2024, 1, 20),  # noqa: DTZ001
                 },
                 "grade": auto_grading_service.calculate_grade.return_value,
+                "requirements": second_config.asdict(),
             },
         ]
         # Each phase is graded against the config at its own position, not the
@@ -367,17 +369,13 @@ class TestUserViews:
         response = views.students_metrics()
 
         (api_student,) = response["students"]
-        grade = api_student["auto_grading_grade"]
-        assert grade["current_grade"] == expected
-        # The totals are compared against what the counted phases add up to,
-        # so an unstarted phase doesn't inflate the requirement either.
-        counted = [first_config] if expected == 0.25 else [first_config, second_config]
-        assert grade["requirements"]["required_annotations"] == sum(
-            config.required_annotations for config in counted
-        )
-        assert grade["requirements"]["required_replies"] == sum(
-            config.required_replies or 0 for config in counted
-        )
+        assert api_student["auto_grading_grade"]["current_grade"] == expected
+        # Each phase carries what it was graded against, so the dashboard can
+        # show how the average was reached.
+        assert [phase["requirements"] for phase in api_student["phase_metrics"]] == [
+            first_config.asdict(),
+            second_config.asdict(),
+        ]
 
     def test_students_metrics_zero_fills_the_phases_h_reports_nothing_for(
         self,
@@ -559,9 +557,6 @@ class TestUserViews:
         for api_student in expected["students"]:
             api_student["auto_grading_grade"] = {
                 "current_grade": auto_grading_service.calculate_grade.return_value,
-                # No phases, so the requirements are the assignment's own.
-                "requirements": assignment.auto_grading_config.asdict()
-                | {"required_replies": 0},
                 "last_grade": last_grades.get.return_value.grade
                 if with_last_grade
                 else None,

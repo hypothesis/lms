@@ -206,14 +206,6 @@ export type AutoGradingGrade = {
   last_grade: number | null;
   /** When did the last grade sync happen, if any */
   last_grade_date: ISODateTime | null;
-
-  /**
-   * The requirements of the phases counted in the grade, added up.
-   *
-   * What the student's totals are compared against, so a two-phase assignment
-   * asking for two annotations each reads as four.
-   */
-  requirements: AutoGradingConfig;
 };
 
 /**
@@ -256,6 +248,14 @@ export type PhaseMetrics = {
    * only `auto_grading_grade` is ever synced.
    */
   grade?: number;
+
+  /**
+   * What this phase was graded against.
+   *
+   * Absent when the phase has no config of its own, which is also when it has
+   * no grade.
+   */
+  requirements?: AutoGradingConfig;
 };
 
 export type StudentWithMetrics = Student & {

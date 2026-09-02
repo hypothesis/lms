@@ -2,6 +2,7 @@ import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
 
 import type { StudentWithMetrics } from '../../../api-types';
+import type { GradePhase } from '../GradeIndicator';
 import GradeIndicator from '../GradeIndicator';
 import type { OrderableActivityTableColumn } from '../OrderableActivityTable';
 import {
@@ -37,18 +38,16 @@ export const gradeColumn: OrderableActivityTableColumn<StudentsTableRow> = {
 export function renderAutoGradingField(
   row: StudentsTableRow,
   field: keyof StudentsTableRow,
-  { assignment, students, studentSyncStatuses }: RenderContext,
+  { assignment, studentSyncStatuses }: RenderContext,
+  /**
+   * The phases making up the grade, for a variant which has them. Without it
+   * the popover shows the assignment's own requirements as a single section.
+   */
+  phases?: GradePhase[],
 ): ComponentChildren {
   if (field !== 'current_grade') {
     return renderSharedField(row, field);
   }
-
-  // Read off the student rather than the row: a row holds one value per cell,
-  // and these are the requirements of every phase counted in the grade added
-  // together. Falls back to the assignment for a table without phases.
-  const requirements =
-    students?.find(({ h_userid }) => h_userid === row.h_userid)
-      ?.auto_grading_grade?.requirements ?? assignment?.auto_grading_config;
 
   return (
     <div
@@ -61,10 +60,16 @@ export function renderAutoGradingField(
       <GradeIndicator
         grade={row.current_grade ?? 0}
         lastGrade={row.last_grade}
-        annotations={row.annotations}
-        replies={row.replies}
+        phases={
+          phases ?? [
+            {
+              annotations: row.annotations,
+              replies: row.replies,
+              config: assignment?.auto_grading_config,
+            },
+          ]
+        }
         status={studentSyncStatuses[row.h_userid]}
-        config={requirements}
       />
     </div>
   );
