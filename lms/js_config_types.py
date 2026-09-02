@@ -65,6 +65,10 @@ class PhaseMetrics(TypedDict):
     """Informational only: there's no way to sync more than one grade per
     assignment to the LMS gradebook."""
 
+    requirements: NotRequired[AutoGradingConfig]
+    """What this phase was graded against. Absent when the phase has no config
+    of its own, which is also when it has no grade."""
+
 
 class CourseMetrics(TypedDict):
     assignments: int
@@ -93,10 +97,6 @@ class AutoGradingGrade(TypedDict):
     last_grade_date: datetime | None
     """Time when `last_grade` was synced to the LMS."""
 
-    requirements: AutoGradingConfig
-    """The requirements of the phases counted in the grade, added up. What the
-    dashboard compares the student's totals against, so a two-phase assignment
-    asking for two annotations each reads as four."""
 
 
 class APIStudent(TypedDict):

@@ -1,6 +1,7 @@
 import type { ComponentChildren } from 'preact';
 
 import type { StudentWithMetrics } from '../../../api-types';
+import type { GradePhase } from '../GradeIndicator';
 import { formatGrade } from '../GradeStatusChip';
 import type { OrderableActivityTableColumn } from '../OrderableActivityTable';
 import {
@@ -218,6 +219,33 @@ export function checkpointColumns(
 }
 
 /**
+ * The phases the final grade is made of, for its popover.
+ *
+ * Read off the student rather than the row: the popover needs each phase's own
+ * counts and requirements together, and a row holds one value per cell. Only
+ * the phases which contributed are listed, so an unstarted or ungraded one
+ * isn't shown as having failed its requirement.
+ */
+function gradePhases(
+  row: CheckpointRow,
+  { students }: RenderContext,
+): GradePhase[] {
+  const student = students?.find(({ h_userid }) => h_userid === row.h_userid);
+  const labels = new Map(
+    phasesOf(students ?? []).map(({ phase, label }) => [phase, label]),
+  );
+
+  return (student?.phase_metrics ?? [])
+    .filter(({ started, requirements }) => started && requirements)
+    .map(({ phase, metrics, requirements }) => ({
+      label: labels.get(phase),
+      annotations: metrics.annotations,
+      replies: metrics.replies,
+      config: requirements,
+    }));
+}
+
+/**
  * Render a cell of a checkpoint row.
  *
  * A metric of a phase is rendered here; everything else falls back to the
@@ -236,7 +264,12 @@ export function renderCheckpointField(
     const sharedField = field as keyof StudentsTableRow;
 
     return grades
-      ? renderAutoGradingField(row, sharedField, context)
+      ? renderAutoGradingField(
+          row,
+          sharedField,
+          context,
+          gradePhases(row, context),
+        )
       : renderSharedField(row, sharedField);
   }
 

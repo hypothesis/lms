@@ -12,13 +12,11 @@ from lms.js_config_types import (
     APIRoster,
     APIStudent,
     APIStudents,
-    AutoGradingConfig,
     AutoGradingGrade,
     PhaseMetrics,
     RosterEntry,
 )
 from lms.models import Assignment, LMSUser, RoleScope, RoleType
-from lms.models.assignment import AutoGradingConfig as AutoGradingConfigModel
 from lms.security import Permissions
 from lms.services import UserService
 from lms.services.auto_grading import AutoGradingService
@@ -327,13 +325,13 @@ class UserViews:
 
         for api_student in api_students:
             phases = api_student.get("phase_metrics") or []
-            counted = []
             for phase_metrics, config in zip(phases, configs, strict=False):
                 phase_metrics["grade"] = self.auto_grading_service.calculate_grade(
                     config, phase_metrics["metrics"]
                 )
-                if phase_metrics["started"]:
-                    counted.append(config)
+                # Sent alongside the grade so the dashboard can show how each
+                # phase reached it, rather than a total it cannot derive.
+                phase_metrics["requirements"] = config.asdict()
 
             auto_grading_grade: AutoGradingGrade = {
                 # Only the final grade is ever synced; the per-phase grades feed
@@ -343,9 +341,6 @@ class UserViews:
                 else self.auto_grading_service.calculate_grade(
                     assignment.auto_grading_config,
                     api_student["annotation_metrics"],
-                ),
-                "requirements": self._combined_requirements(
-                    counted or [assignment.auto_grading_config]
                 ),
                 "last_grade": None,
                 "last_grade_date": None,
@@ -357,27 +352,6 @@ class UserViews:
             api_student["auto_grading_grade"] = auto_grading_grade
 
         return api_students
-
-    @staticmethod
-    def _combined_requirements(
-        configs: list[AutoGradingConfigModel],
-    ) -> AutoGradingConfig:
-        """Add up what the counted phases ask for.
-
-        The totals are compared against this, so two phases wanting two
-        annotations each read as four. `grading_type` and
-        `activity_calculation` come from the first: they pick how the
-        requirement is worded, not how much of it there is.
-        """
-        requirements = configs[0].asdict()
-        requirements["required_annotations"] = sum(
-            config.required_annotations for config in configs
-        )
-        requirements["required_replies"] = sum(
-            config.required_replies or 0 for config in configs
-        )
-
-        return requirements
 
     @classmethod
     def _final_grade(cls, phases: list[PhaseMetrics]) -> float:

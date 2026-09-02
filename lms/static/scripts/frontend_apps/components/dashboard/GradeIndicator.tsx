@@ -59,13 +59,64 @@ function SectionTitle({ children }: { children: ComponentChildren }) {
   );
 }
 
+/** The requirements of one phase, under its own heading. */
+function PhaseSection({ label, annotations, replies, config }: GradePhase) {
+  const isCalculationSeparate = config?.activity_calculation === 'separate';
+  const requiredCombined = config
+    ? config.required_annotations + (config.required_replies ?? 0)
+    : 0;
+
+  return (
+    <>
+      {label && <SectionTitle>{label}</SectionTitle>}
+      {isCalculationSeparate && (
+        <AnnotationCount
+          actualAmount={annotations}
+          requiredAmount={config.required_annotations}
+        >
+          Annotations
+        </AnnotationCount>
+      )}
+      {isCalculationSeparate ? (
+        <AnnotationCount
+          actualAmount={replies}
+          requiredAmount={config.required_replies ?? 0}
+        >
+          Replies
+        </AnnotationCount>
+      ) : (
+        <AnnotationCount
+          actualAmount={annotations + replies}
+          requiredAmount={requiredCombined}
+        >
+          Annotations and replies
+        </AnnotationCount>
+      )}
+    </>
+  );
+}
+
+/**
+ * One section of the popover: what a phase asked for and what was done in it.
+ *
+ * An assignment without phases has a single unnamed one, which renders as the
+ * bare list of requirements it always did.
+ */
+export type GradePhase = {
+  label?: string;
+  annotations: number;
+  replies: number;
+  config?: AutoGradingConfig;
+};
+
 export type GradeIndicatorProps = {
   grade: number;
   lastGrade?: number | null;
-  annotations: number;
-  replies: number;
+
+  /** The phases the grade is made of, in display order. */
+  phases: GradePhase[];
+
   status?: StudentGradingSyncStatus;
-  config?: AutoGradingConfig;
 };
 
 /**
@@ -75,10 +126,8 @@ export type GradeIndicatorProps = {
 export default function GradeIndicator({
   grade,
   lastGrade,
-  annotations,
-  replies,
+  phases,
   status,
-  config,
 }: GradeIndicatorProps) {
   const [popoverVisible, setPopoverVisible] = useState(false);
   const showPopover = useCallback(() => setPopoverVisible(true), []);
@@ -87,11 +136,6 @@ export default function GradeIndicator({
 
   useKeyPress(['Escape'], hidePopover);
 
-  const isCalculationSeparate = config?.activity_calculation === 'separate';
-  const combined = annotations + replies;
-  const requiredCombined = config
-    ? config.required_annotations + (config.required_replies ?? 0)
-    : 0;
   // Checking typeof lastGrade to avoid number zero to be treated as false
   const hasLastGrade = typeof lastGrade === 'number';
   const gradeHasChanged = lastGrade !== grade;
@@ -144,29 +188,9 @@ export default function GradeIndicator({
               </>
             )}
             <SectionTitle>Grade calculation</SectionTitle>
-            {isCalculationSeparate && (
-              <AnnotationCount
-                actualAmount={annotations}
-                requiredAmount={config.required_annotations}
-              >
-                Annotations
-              </AnnotationCount>
-            )}
-            {isCalculationSeparate ? (
-              <AnnotationCount
-                actualAmount={replies}
-                requiredAmount={config.required_replies ?? 0}
-              >
-                Replies
-              </AnnotationCount>
-            ) : (
-              <AnnotationCount
-                actualAmount={combined}
-                requiredAmount={requiredCombined}
-              >
-                Annotations and replies
-              </AnnotationCount>
-            )}
+            {phases.map((phase, index) => (
+              <PhaseSection key={phase.label ?? index} {...phase} />
+            ))}
           </div>
         )}
       </div>
