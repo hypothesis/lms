@@ -98,7 +98,6 @@ class AutoGradingGrade(TypedDict):
     """Time when `last_grade` was synced to the LMS."""
 
 
-
 class APIStudent(TypedDict):
     h_userid: str
     """ID of the student in H."""

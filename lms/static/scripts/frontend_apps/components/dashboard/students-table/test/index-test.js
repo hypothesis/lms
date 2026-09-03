@@ -292,7 +292,7 @@ describe('students-table', () => {
           table.result.renderItem(table.result.rows[0], 'current_grade'),
         )
           .find('GradeIndicator')
-          .prop('config');
+          .prop('phases')[0].config;
 
       assert.equal(renderedConfig(), autoGradingAssignment.auto_grading_config);
 
@@ -361,11 +361,17 @@ describe('students-table', () => {
       assert.deepInclude(gradeIndicator.props(), {
         grade: 0.5,
         lastGrade: null,
-        annotations: 8,
-        replies: 3,
         status: 'finished',
-        config: autoGradingAssignment.auto_grading_config,
       });
+      // No phases, so the popover shows one unnamed section: the assignment's
+      // own requirements against the totals.
+      assert.deepEqual(gradeIndicator.prop('phases'), [
+        {
+          annotations: 8,
+          replies: 3,
+          config: autoGradingAssignment.auto_grading_config,
+        },
+      ]);
     });
 
     [
@@ -466,18 +472,38 @@ describe('students-table', () => {
   describe('checkpoint variants', () => {
     // Shape the API reports: one entry per grading phase, 1-based, with the
     // boundary `h` worked out from the reveals and the due date
+    // Each phase carries what it was graded against, which is what the final
+    // grade popover breaks down
+    const phaseRequirements = [
+      {
+        grading_type: 'all_or_nothing',
+        activity_calculation: 'cumulative',
+        required_annotations: 2,
+        required_replies: 1,
+      },
+      {
+        grading_type: 'all_or_nothing',
+        activity_calculation: 'cumulative',
+        required_annotations: 4,
+        required_replies: 2,
+      },
+    ];
     const phaseMetrics = [
       {
         phase: 1,
         ends_at: '2024-01-02T00:00:00',
+        started: true,
         metrics: { annotations: 5, replies: 1, last_activity: null },
         grade: 0.5,
+        requirements: phaseRequirements[0],
       },
       {
         phase: 2,
         ends_at: '2024-01-05T00:00:00',
+        started: true,
         metrics: { annotations: 3, replies: 2, last_activity: null },
         grade: 0.75,
+        requirements: phaseRequirements[1],
       },
     ];
     const student = {
@@ -708,10 +734,46 @@ describe('students-table', () => {
         renderItem(rows[0], 'current_grade'),
       ).find('GradeIndicator');
 
-      assert.deepInclude(gradeIndicator.props(), {
-        grade: 0.6,
-        config: gradedCheckpointAssignment.auto_grading_config,
-      });
+      assert.deepInclude(gradeIndicator.props(), { grade: 0.6 });
+      // A section per phase, each against its own requirements: that is how
+      // the grade was reached, which a total of the two could not show
+      assert.deepEqual(gradeIndicator.prop('phases'), [
+        {
+          label: 'Hidden Phase',
+          annotations: 5,
+          replies: 1,
+          config: phaseRequirements[0],
+        },
+        {
+          label: 'Revealed Phase',
+          annotations: 3,
+          replies: 2,
+          config: phaseRequirements[1],
+        },
+      ]);
+    });
+
+    it('leaves a phase out of the final grade popover when it did not count', () => {
+      // A phase which has not started, or has no requirements of its own, did
+      // not contribute: showing it would read as having failed it
+      const { rows, renderItem } = config(gradedCheckpointAssignment, [
+        {
+          ...student,
+          phase_metrics: [
+            phaseMetrics[0],
+            { ...phaseMetrics[1], started: false },
+          ],
+        },
+      ]);
+
+      const phases = mountItem(renderItem(rows[0], 'current_grade'))
+        .find('GradeIndicator')
+        .prop('phases');
+
+      assert.deepEqual(
+        phases.map(({ label }) => label),
+        ['Hidden Phase'],
+      );
     });
 
     describe('when the activity is not split into phases yet', () => {
