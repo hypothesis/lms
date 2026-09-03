@@ -1,8 +1,8 @@
 import type { ComponentChildren } from 'preact';
 
 import type { StudentWithMetrics } from '../../../api-types';
-import type { GradePhase } from '../GradeIndicator';
-import { formatGrade } from '../GradeStatusChip';
+import type { GradeContribution, GradePhase } from '../GradeIndicator';
+import GradeIndicator, { FinalGradeIndicator } from '../GradeIndicator';
 import type { OrderableActivityTableColumn } from '../OrderableActivityTable';
 import {
   gradeColumn,
@@ -55,7 +55,7 @@ export function metricKey(phase: number, metric: PhaseMetric): string {
 }
 
 /** Matches the fields {@link metricKey} generates, capturing the metric. */
-const PHASE_FIELD = new RegExp(`^phase_\\d+_(${PHASE_METRICS.join('|')})$`);
+const PHASE_FIELD = new RegExp(`^phase_(\\d+)_(${PHASE_METRICS.join('|')})$`);
 
 /**
  * Phases an assignment with checkpoints has at the very least.
@@ -229,6 +229,8 @@ export function checkpointColumns(
 function gradePhases(
   row: CheckpointRow,
   { students }: RenderContext,
+  /** Limit to one phase, for the breakdown of that phase's own grade. */
+  position?: number,
 ): GradePhase[] {
   const student = students?.find(({ h_userid }) => h_userid === row.h_userid);
   const labels = new Map(
@@ -236,13 +238,62 @@ function gradePhases(
   );
 
   return (student?.phase_metrics ?? [])
-    .filter(({ started, requirements }) => started && requirements)
+    .filter(({ phase, started, requirements }) => {
+      if (position !== undefined) {
+        return phase === position && requirements;
+      }
+
+      return started && requirements;
+    })
     .map(({ phase, metrics, requirements }) => ({
-      label: labels.get(phase),
+      // The heading names which phase a section is for, which the breakdown of
+      // a single one does not need: the cell being hovered says so already.
+      label: position === undefined ? labels.get(phase) : undefined,
       annotations: metrics.annotations,
       replies: metrics.replies,
       config: requirements,
     }));
+}
+
+/**
+ * What each phase contributed to the final grade, phases still to come
+ * included.
+ *
+ * A phase nobody has reached has no columns of its own, so this summary is the
+ * only place the reader can see one is still outstanding -- and so the only
+ * place that says the average is not over the whole assignment yet. Which
+ * phases the assignment has is the same assumption the headers make: see
+ * {@link MIN_PHASES}.
+ *
+ * Nothing is listed while the activity is not split at all, which is when the
+ * table displays the totals and this is the only grade there is.
+ */
+function gradeContributions(
+  row: CheckpointRow,
+  { students }: RenderContext,
+): GradeContribution[] {
+  const reported = phasesOf(students ?? []);
+  if (reported.length === 0) {
+    return [];
+  }
+
+  const student = students?.find(({ h_userid }) => h_userid === row.h_userid);
+  const byPhase = new Map(
+    (student?.phase_metrics ?? []).map(entry => [entry.phase, entry]),
+  );
+  const lastPhase = Math.max(MIN_PHASES, ...reported.map(({ phase }) => phase));
+
+  return Array.from({ length: lastPhase }, (_, index) => {
+    const entry = byPhase.get(index + 1);
+
+    return {
+      label: phaseLabel(index + 1, lastPhase),
+      // A phase which has not started, or which has no requirements of its
+      // own, contributed nothing and is shown as outstanding rather than as a
+      // zero -- the same phases `_final_grade` leaves out of the average.
+      grade: entry?.started && entry.requirements ? entry.grade : undefined,
+    };
+  });
 }
 
 /**
@@ -263,14 +314,30 @@ export function renderCheckpointField(
   if (!phaseMetric) {
     const sharedField = field as keyof StudentsTableRow;
 
-    return grades
-      ? renderAutoGradingField(
-          row,
-          sharedField,
-          context,
-          gradePhases(row, context),
-        )
-      : renderSharedField(row, sharedField);
+    if (grades && sharedField === 'current_grade') {
+      const contributions = gradeContributions(row, context);
+
+      // Without phases the table displays the totals, and the grade is the
+      // assignment's own requirements met once: the flat renderer explains it.
+      if (contributions.length === 0) {
+        return renderAutoGradingField(row, sharedField, context);
+      }
+
+      // Only this grade reaches the LMS, so it keeps the colour and the sync
+      // badge; the popover names what each phase contributed and their average.
+      return (
+        <div className="flex justify-end -my-0.5">
+          <FinalGradeIndicator
+            grade={row.current_grade ?? 0}
+            lastGrade={row.last_grade}
+            status={context.studentSyncStatuses[row.h_userid]}
+            phases={contributions}
+          />
+        </div>
+      );
+    }
+
+    return renderSharedField(row, sharedField);
   }
 
   const value = row[name];
@@ -278,15 +345,25 @@ export function renderCheckpointField(
     return '';
   }
 
-  return (
-    <div className="text-right">
-      {phaseMetric[1] === 'grade'
-        ? // Formatted the same way as the final grade of the row, so that a
-          // grade which is not a round percentage does not read as one
-          `${formatGrade(Number(value))}%`
-        : value}
-    </div>
-  );
+  const [, position, metric] = phaseMetric;
+
+  if (metric === 'grade') {
+    // The same indicator as the final grade, so hovering a phase's grade
+    // breaks it down the way hovering the final one breaks down every phase.
+    // `synced` is off: only the final grade reaches the LMS, so this one is
+    // grey and carries no badge.
+    return (
+      <div className="flex justify-end -my-0.5">
+        <GradeIndicator
+          grade={Number(value)}
+          phases={gradePhases(row, context, Number(position))}
+          synced={false}
+        />
+      </div>
+    );
+  }
+
+  return <div className="text-right">{value}</div>;
 }
 
 /**

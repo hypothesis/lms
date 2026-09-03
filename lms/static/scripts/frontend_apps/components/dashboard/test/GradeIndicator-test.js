@@ -2,7 +2,7 @@ import { checkAccessibility } from '@hypothesis/frontend-testing';
 import { mount } from '@hypothesis/frontend-testing';
 import { act } from 'preact/test-utils';
 
-import GradeIndicator from '../GradeIndicator';
+import GradeIndicator, { FinalGradeIndicator } from '../GradeIndicator';
 
 describe('GradeIndicator', () => {
   const defaultConfig = {
@@ -17,6 +17,7 @@ describe('GradeIndicator', () => {
     lastGrade,
     status,
     phases,
+    synced,
   } = {}) {
     return mount(
       <GradeIndicator
@@ -24,6 +25,7 @@ describe('GradeIndicator', () => {
         lastGrade={lastGrade}
         phases={phases ?? [{ annotations: 5, replies: 2, config }]}
         status={status}
+        synced={synced}
       />,
     );
   }
@@ -188,6 +190,91 @@ describe('GradeIndicator', () => {
       assert.equal(!!toggleButton.prop('aria-describedby'), popoverVisible);
       assert.equal(!!toggleButton.prop('aria-controls'), popoverVisible);
     });
+  });
+
+  describe('FinalGradeIndicator', () => {
+    function createFinalGrade({ grade = 0.3, phases, lastGrade, status } = {}) {
+      return mount(
+        <FinalGradeIndicator
+          grade={grade}
+          lastGrade={lastGrade}
+          status={status}
+          phases={
+            phases ?? [
+              { label: 'Hidden Phase', grade: 0.4 },
+              { label: 'Revealed Phase', grade: 0.2 },
+            ]
+          }
+        />,
+      );
+    }
+
+    function summaryRows(wrapper) {
+      return wrapper
+        .find('[data-testid="popover"]')
+        .find('div.flex.justify-between')
+        .map(row => row.text());
+    }
+
+    it('shows the grade as a coloured chip: this is the grade of record', () => {
+      const wrapper = createFinalGrade();
+      const chip = getToggleButton(wrapper).find('GradeStatusChip');
+
+      assert.equal(chip.text(), '30%');
+      assert.notOk(chip.prop('muted'));
+    });
+
+    it('names what each phase contributed, and their average', () => {
+      const wrapper = createFinalGrade();
+      openPopover(wrapper);
+
+      assert.deepEqual(summaryRows(wrapper), [
+        'Hidden Phase40%',
+        'Revealed Phase20%',
+        'Average30%',
+      ]);
+    });
+
+    it('lists a phase still to come without a grade', () => {
+      // Before the first reveal the average is only over the hidden phase, and
+      // the outstanding row is what says so: the number is not settled
+      const wrapper = createFinalGrade({
+        grade: 0.4,
+        phases: [
+          { label: 'Hidden Phase', grade: 0.4 },
+          { label: 'Revealed Phase' },
+        ],
+      });
+      openPopover(wrapper);
+
+      assert.deepEqual(summaryRows(wrapper), [
+        'Hidden Phase40%',
+        'Revealed Phase—',
+        'Average40%',
+      ]);
+    });
+
+    it('shows no average for an assignment which has no phases', () => {
+      const wrapper = createFinalGrade({ phases: [] });
+      openPopover(wrapper);
+
+      assert.deepEqual(summaryRows(wrapper), []);
+    });
+
+    it('keeps the sync badge: this is the grade the LMS gets', () => {
+      const wrapper = createFinalGrade({ lastGrade: null });
+
+      assert.isTrue(wrapper.exists('StudentStatusBadge'));
+    });
+  });
+
+  it('mutes the chip of a grade which is not synced', () => {
+    // Only the final grade reaches the LMS, so the colour is reserved for it
+    const wrapper = createComponent({ synced: false });
+
+    assert.isTrue(
+      getToggleButton(wrapper).find('GradeStatusChip').prop('muted'),
+    );
   });
 
   it(
