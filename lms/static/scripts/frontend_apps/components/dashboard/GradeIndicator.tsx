@@ -11,7 +11,7 @@ import type {
   AutoGradingConfig,
   StudentGradingSyncStatus,
 } from '../../api-types';
-import GradeStatusChip from './GradeStatusChip';
+import GradeStatusChip, { formatGrade } from './GradeStatusChip';
 import type { StudentStatusType } from './StudentStatusBadge';
 import StudentStatusBadge from './StudentStatusBadge';
 
@@ -117,18 +117,43 @@ export type GradeIndicatorProps = {
   phases: GradePhase[];
 
   status?: StudentGradingSyncStatus;
+
+  /**
+   * Whether this is the grade the LMS gets.
+   *
+   * A phase's own grade is informational -- only the final one is ever synced
+   * -- so it carries no sync state to report, and none of the colour which
+   * says how the assignment is going.
+   */
+  synced?: boolean;
 };
 
 /**
  * Includes a GradeStatusChip, together with a popover indicating why that is
  * the grade
  */
-export default function GradeIndicator({
+type GradeHoverProps = {
+  grade: number;
+  lastGrade?: number | null;
+  status?: StudentGradingSyncStatus;
+  synced?: boolean;
+
+  /** What the reader hovers: the grade, however it is displayed. */
+  trigger: ComponentChildren;
+
+  /** What the popover explains about it. */
+  children: ComponentChildren;
+};
+
+/** A grade, with a popover explaining it on hover or focus. */
+function GradeHover({
   grade,
   lastGrade,
-  phases,
   status,
-}: GradeIndicatorProps) {
+  synced = true,
+  trigger,
+  children,
+}: GradeHoverProps) {
   const [popoverVisible, setPopoverVisible] = useState(false);
   const showPopover = useCallback(() => setPopoverVisible(true), []);
   const hidePopover = useCallback(() => setPopoverVisible(false), []);
@@ -140,6 +165,9 @@ export default function GradeIndicator({
   const hasLastGrade = typeof lastGrade === 'number';
   const gradeHasChanged = lastGrade !== grade;
   const badgeType = ((): StudentStatusType | undefined => {
+    if (!synced) {
+      return undefined;
+    }
     if (status === 'in_progress') {
       return 'syncing';
     }
@@ -165,7 +193,7 @@ export default function GradeIndicator({
           aria-describedby={popoverVisible ? popoverId : undefined}
           aria-controls={popoverVisible ? popoverId : undefined}
         >
-          <GradeStatusChip grade={grade} />
+          {trigger}
         </button>
         {badgeType && <StudentStatusBadge type={badgeType} />}
       </div>
@@ -179,7 +207,7 @@ export default function GradeIndicator({
             )}
             data-testid="popover"
           >
-            {hasLastGrade && gradeHasChanged && (
+            {hasLastGrade && gradeHasChanged && synced && (
               <>
                 <SectionTitle>Previously synced grade</SectionTitle>
                 <div className="border-b px-3 py-2" data-testid="last-grade">
@@ -188,12 +216,121 @@ export default function GradeIndicator({
               </>
             )}
             <SectionTitle>Grade calculation</SectionTitle>
-            {phases.map((phase, index) => (
-              <PhaseSection key={phase.label ?? index} {...phase} />
-            ))}
+            {children}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+export default function GradeIndicator({
+  grade,
+  lastGrade,
+  phases,
+  status,
+  synced = true,
+}: GradeIndicatorProps) {
+  return (
+    <GradeHover
+      grade={grade}
+      lastGrade={lastGrade}
+      status={status}
+      synced={synced}
+      trigger={<GradeStatusChip grade={grade} muted={!synced} />}
+    >
+      {phases.map((phase, index) => (
+        <PhaseSection key={phase.label ?? index} {...phase} />
+      ))}
+    </GradeHover>
+  );
+}
+
+/**
+ * One line of the final grade's summary: what a phase, or the average, scored.
+ *
+ * A phase which has not started is greyed out and scores a dash rather than a
+ * zero: nothing was possible in it yet, so it has not failed its requirements.
+ */
+function SummaryRow({
+  children,
+  grade,
+  total = false,
+}: {
+  children: ComponentChildren;
+  grade?: number;
+  total?: boolean;
+}) {
+  const started = grade !== undefined;
+
+  return (
+    <div
+      className={classnames(
+        'flex justify-between items-center gap-x-3',
+        'border-b last:border-0 px-3 py-2.5',
+        { 'font-bold': total, 'text-grey-5': !started },
+      )}
+    >
+      <div>{children}</div>
+      <div>{started ? `${formatGrade(grade)}%` : '—'}</div>
+    </div>
+  );
+}
+
+/**
+ * What one phase contributed to the final grade.
+ *
+ * A phase still to come has no grade: it is listed all the same, because this
+ * summary is the only place the reader can see that the average does not cover
+ * the whole assignment yet.
+ */
+export type GradeContribution = {
+  label: string;
+  grade?: number;
+};
+
+export type FinalGradeIndicatorProps = {
+  grade: number;
+  lastGrade?: number | null;
+  status?: StudentGradingSyncStatus;
+
+  /** The phases the grade is the average of, in display order. */
+  phases: GradeContribution[];
+};
+
+/**
+ * The grade the LMS gets, and what each phase contributed to it.
+ *
+ * The only coloured grade on the row: it is the one the gradebook receives, and
+ * the phases it averages are shown in grey.
+ *
+ * Every phase is listed, the ones still to come included, which is what keeps
+ * the average from reading as a settled one: before the first reveal it sits
+ * under a phase with no grade of its own yet.
+ */
+export function FinalGradeIndicator({
+  grade,
+  lastGrade,
+  status,
+  phases,
+}: FinalGradeIndicatorProps) {
+  return (
+    <GradeHover
+      grade={grade}
+      lastGrade={lastGrade}
+      status={status}
+      trigger={<GradeStatusChip grade={grade} />}
+    >
+      {phases.map(({ label, grade: phaseGrade }) => (
+        <SummaryRow key={label} grade={phaseGrade}>
+          {label}
+        </SummaryRow>
+      ))}
+      {phases.length > 0 && (
+        <SummaryRow grade={grade} total>
+          Average
+        </SummaryRow>
+      )}
+    </GradeHover>
   );
 }

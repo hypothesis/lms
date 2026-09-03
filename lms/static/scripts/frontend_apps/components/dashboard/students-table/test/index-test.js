@@ -2,6 +2,7 @@ import { formatDateTime } from '@hypothesis/frontend-shared';
 import { mockImportedComponents, mount } from '@hypothesis/frontend-testing';
 
 import { $imports as autoGradingImports } from '../auto-grading';
+import { $imports as checkpointImports } from '../checkpoint';
 import {
   VARIANT_MODULES,
   assignmentSyncsGrades,
@@ -34,16 +35,18 @@ describe('students-table', () => {
   beforeEach(() => {
     wrappers = [];
 
-    // Only `GradeIndicator` is mocked, so that the props it receives can be
-    // asserted on. `FormattedDate` and `StudentStatusBadge` come from the
+    // Only the grade indicators are mocked, so that the props they receive can
+    // be asserted on. `FormattedDate` and `StudentStatusBadge` come from the
     // shared field renderer, and are left alone so that their output can be
     // asserted.
     autoGradingImports.$mock(mockImportedComponents());
+    checkpointImports.$mock(mockImportedComponents());
   });
 
   afterEach(() => {
     wrappers.forEach(wrapper => wrapper.unmount());
     autoGradingImports.$restore();
+    checkpointImports.$restore();
   });
 
   /**
@@ -611,20 +614,35 @@ describe('students-table', () => {
       );
     });
 
-    it('formats the grade of a phase like the final grade of the row', () => {
-      // A grade which is not a round percentage must not read as one: rounding
-      // 0.999 to "100%" would show a student who missed the requirement as
-      // having met it
-      const { rows, renderItem } = config(gradedCheckpointAssignment, [
+    it('breaks down the grade of a phase on its own', () => {
+      const { rows, renderItem } = config(gradedCheckpointAssignment);
+
+      const gradeIndicator = mountItem(
+        renderItem(rows[0], 'phase_1_grade'),
+      ).find('GradeIndicator');
+
+      // Hovering a phase's grade breaks that phase down, the way hovering the
+      // final grade breaks down every phase. No heading: the cell says which.
+      assert.deepInclude(gradeIndicator.props(), { grade: 0.5, synced: false });
+      assert.deepEqual(gradeIndicator.prop('phases'), [
         {
-          ...student,
-          phase_metrics: [{ ...phaseMetrics[0], grade: 1 / 3 }],
+          label: undefined,
+          annotations: 5,
+          replies: 1,
+          config: phaseRequirements[0],
         },
       ]);
+    });
 
-      assert.equal(
-        mountItem(renderItem(rows[0], 'phase_1_grade')).text(),
-        '33.33%',
+    it('does not offer a phase grade for syncing', () => {
+      // Only the final grade reaches the LMS, so a phase's grade carries no
+      // sync state: no badge, and nothing about a previous sync
+      const { rows, renderItem } = config(gradedCheckpointAssignment);
+
+      assert.isFalse(
+        mountItem(renderItem(rows[0], 'phase_2_grade'))
+          .find('GradeIndicator')
+          .prop('synced'),
       );
     });
 
@@ -687,10 +705,6 @@ describe('students-table', () => {
     [
       { field: 'phase_1_annotations', expectedValue: '5' },
       { field: 'phase_2_replies', expectedValue: '2' },
-      // A grade is displayed as a percentage, the way the grade column of the
-      // auto-grading variant is
-      { field: 'phase_1_grade', expectedValue: '50%' },
-      { field: 'phase_2_grade', expectedValue: '75%' },
       // A field every variant has in common falls back to the shared renderer
       { field: 'display_name', expectedValue: 'a' },
       {
@@ -732,30 +746,24 @@ describe('students-table', () => {
 
       const gradeIndicator = mountItem(
         renderItem(rows[0], 'current_grade'),
-      ).find('GradeIndicator');
+      ).find('FinalGradeIndicator');
 
-      assert.deepInclude(gradeIndicator.props(), { grade: 0.6 });
-      // A section per phase, each against its own requirements: that is how
-      // the grade was reached, which a total of the two could not show
+      // The synced grade, with its sync state and every phase it averages
+      assert.deepInclude(gradeIndicator.props(), {
+        grade: 0.6,
+        lastGrade: null,
+      });
+      // A line per phase, naming what it scored: that is how the grade was
+      // reached, which the total on its own could not show
       assert.deepEqual(gradeIndicator.prop('phases'), [
-        {
-          label: 'Hidden Phase',
-          annotations: 5,
-          replies: 1,
-          config: phaseRequirements[0],
-        },
-        {
-          label: 'Revealed Phase',
-          annotations: 3,
-          replies: 2,
-          config: phaseRequirements[1],
-        },
+        { label: 'Hidden Phase', grade: 0.5 },
+        { label: 'Revealed Phase', grade: 0.75 },
       ]);
     });
 
-    it('leaves a phase out of the final grade popover when it did not count', () => {
-      // A phase which has not started, or has no requirements of its own, did
-      // not contribute: showing it would read as having failed it
+    it('lists a phase which did not count without a grade', () => {
+      // A phase which has not started contributed nothing, and is listed as
+      // outstanding rather than as a zero it did not score
       const { rows, renderItem } = config(gradedCheckpointAssignment, [
         {
           ...student,
@@ -767,13 +775,31 @@ describe('students-table', () => {
       ]);
 
       const phases = mountItem(renderItem(rows[0], 'current_grade'))
-        .find('GradeIndicator')
+        .find('FinalGradeIndicator')
         .prop('phases');
 
-      assert.deepEqual(
-        phases.map(({ label }) => label),
-        ['Hidden Phase'],
-      );
+      assert.deepEqual(phases, [
+        { label: 'Hidden Phase', grade: 0.5 },
+        { label: 'Revealed Phase', grade: undefined },
+      ]);
+    });
+
+    it('names the phase the API has not reported yet', () => {
+      // Until the checkpoint is revealed nobody has been active in the last
+      // phase, so it has no columns; the popover is the only place it shows,
+      // and it is what keeps the average from reading as the final one
+      const { rows, renderItem } = config(gradedCheckpointAssignment, [
+        { ...student, phase_metrics: [phaseMetrics[0]] },
+      ]);
+
+      const phases = mountItem(renderItem(rows[0], 'current_grade'))
+        .find('FinalGradeIndicator')
+        .prop('phases');
+
+      assert.deepEqual(phases, [
+        { label: 'Hidden Phase', grade: 0.5 },
+        { label: 'Revealed Phase', grade: undefined },
+      ]);
     });
 
     describe('when the activity is not split into phases yet', () => {
@@ -813,6 +839,19 @@ describe('students-table', () => {
             'no column declares a group, so the flat table is used',
           );
         });
+      });
+
+      it('explains the grade with the assignment requirements', () => {
+        // The row shows the totals, so the grade is those requirements met
+        // once rather than an average of anything
+        const { rows, renderItem } = config(gradedCheckpointAssignment, [
+          student,
+        ]);
+
+        const wrapper = mountItem(renderItem(rows[0], 'current_grade'));
+
+        assert.isFalse(wrapper.exists('FinalGradeIndicator'));
+        assert.isTrue(wrapper.exists('GradeIndicator'));
       });
 
       it('displays only the phases which are reported', () => {
