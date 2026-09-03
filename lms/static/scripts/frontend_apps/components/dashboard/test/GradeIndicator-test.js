@@ -16,14 +16,15 @@ describe('GradeIndicator', () => {
     config = defaultConfig,
     lastGrade,
     status,
-    phases,
     synced,
   } = {}) {
     return mount(
       <GradeIndicator
         grade={80}
         lastGrade={lastGrade}
-        phases={phases ?? [{ annotations: 5, replies: 2, config }]}
+        annotations={5}
+        replies={2}
+        config={config}
         status={status}
         synced={synced}
       />,

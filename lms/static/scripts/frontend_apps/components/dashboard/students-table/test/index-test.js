@@ -295,7 +295,7 @@ describe('students-table', () => {
           table.result.renderItem(table.result.rows[0], 'current_grade'),
         )
           .find('GradeIndicator')
-          .prop('phases')[0].config;
+          .prop('config');
 
       assert.equal(renderedConfig(), autoGradingAssignment.auto_grading_config);
 
@@ -366,15 +366,12 @@ describe('students-table', () => {
         lastGrade: null,
         status: 'finished',
       });
-      // No phases, so the popover shows one unnamed section: the assignment's
-      // own requirements against the totals.
-      assert.deepEqual(gradeIndicator.prop('phases'), [
-        {
-          annotations: 8,
-          replies: 3,
-          config: autoGradingAssignment.auto_grading_config,
-        },
-      ]);
+      // The popover lists the assignment's own requirements against the totals
+      assert.deepInclude(gradeIndicator.props(), {
+        annotations: 8,
+        replies: 3,
+        config: autoGradingAssignment.auto_grading_config,
+      });
     });
 
     [
@@ -621,17 +618,15 @@ describe('students-table', () => {
         renderItem(rows[0], 'phase_1_grade'),
       ).find('GradeIndicator');
 
-      // Hovering a phase's grade breaks that phase down, the way hovering the
-      // final grade breaks down every phase. No heading: the cell says which.
-      assert.deepInclude(gradeIndicator.props(), { grade: 0.5, synced: false });
-      assert.deepEqual(gradeIndicator.prop('phases'), [
-        {
-          label: undefined,
-          annotations: 5,
-          replies: 1,
-          config: phaseRequirements[0],
-        },
-      ]);
+      // Hovering a phase's grade lists that phase's own requirements against
+      // its own counts, not the totals the flat table would show
+      assert.deepInclude(gradeIndicator.props(), {
+        grade: 0.5,
+        synced: false,
+        annotations: 5,
+        replies: 1,
+        config: phaseRequirements[0],
+      });
     });
 
     it('does not offer a phase grade for syncing', () => {
