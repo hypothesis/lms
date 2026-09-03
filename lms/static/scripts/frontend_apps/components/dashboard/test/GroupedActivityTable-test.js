@@ -56,11 +56,21 @@ describe('GroupedActivityTable', () => {
     return row.filterWhere(cell => cell.prop('aria-hidden') !== true);
   }
 
+  /** Data cells of the header row at `index`. */
+  function headerCells(wrapper, index) {
+    return dataCells(wrapper.find('thead tr').at(index).find('th'));
+  }
+
   /** Text of every data cell of the header row at `index`. */
   function headerRow(wrapper, index) {
-    return dataCells(wrapper.find('thead tr').at(index).find('th')).map(cell =>
-      cell.text(),
-    );
+    return headerCells(wrapper, index).map(cell => cell.text());
+  }
+
+  /** Text of the data cell at `column` of every body row. */
+  function columnText(wrapper, column) {
+    return wrapper
+      .find('tbody tr')
+      .map(row => dataCells(row.find('td')).at(column).text());
   }
 
   it('displays a header spanning the columns of each group', () => {
@@ -73,9 +83,7 @@ describe('GroupedActivityTable', () => {
       'Revealed Phase',
     ]);
     assert.deepEqual(
-      dataCells(wrapper.find('thead tr').at(0).find('th')).map(cell =>
-        cell.prop('colSpan'),
-      ),
+      headerCells(wrapper, 0).map(cell => cell.prop('colSpan')),
       [1, 1, 1],
     );
   });
@@ -85,11 +93,7 @@ describe('GroupedActivityTable', () => {
 
     // `TableCell` forces `text-left` on header cells, so the alignment has to
     // live on a wrapper inside the cell
-    assert.isTrue(
-      dataCells(wrapper.find('thead tr').at(0).find('th'))
-        .at(1)
-        .exists('div.text-center'),
-    );
+    assert.isTrue(headerCells(wrapper, 0).at(1).exists('div.text-center'));
   });
 
   it('spans a group over every column which declares it', () => {
@@ -111,9 +115,7 @@ describe('GroupedActivityTable', () => {
 
     assert.deepEqual(headerRow(wrapper, 0), ['', 'Hidden Phase']);
     assert.deepEqual(
-      dataCells(wrapper.find('thead tr').at(0).find('th')).map(cell =>
-        cell.prop('colSpan'),
-      ),
+      headerCells(wrapper, 0).map(cell => cell.prop('colSpan')),
       [1, 2],
     );
   });
@@ -203,12 +205,7 @@ describe('GroupedActivityTable', () => {
   it('orders rows by the default field', () => {
     const wrapper = createComponent();
 
-    assert.deepEqual(
-      wrapper
-        .find('tbody tr')
-        .map(row => dataCells(row.find('td')).at(0).text()),
-      ['a', 'b', 'c'],
-    );
+    assert.deepEqual(columnText(wrapper, 0), ['a', 'b', 'c']);
   });
 
   [
@@ -224,12 +221,7 @@ describe('GroupedActivityTable', () => {
         wrapper.find('thead tr').at(1).find('button').at(1).simulate('click');
       }
 
-      assert.deepEqual(
-        wrapper
-          .find('tbody tr')
-          .map(row => dataCells(row.find('td')).at(1).text()),
-        expectedOrder,
-      );
+      assert.deepEqual(columnText(wrapper, 1), expectedOrder);
     });
   });
 
@@ -238,12 +230,7 @@ describe('GroupedActivityTable', () => {
 
     // Order by a column of a group...
     wrapper.find('thead tr').at(1).find('button').at(1).simulate('click');
-    assert.deepEqual(
-      wrapper
-        .find('tbody tr')
-        .map(row => dataCells(row.find('td')).at(1).text()),
-      ['8', '5', '3'],
-    );
+    assert.deepEqual(columnText(wrapper, 1), ['8', '5', '3']);
 
     // ...and then drop it, the way a variant does when the data behind a window
     // goes away. Ordering by a field no column holds would sort nothing and
@@ -259,18 +246,8 @@ describe('GroupedActivityTable', () => {
       ],
     });
 
-    assert.deepEqual(
-      wrapper
-        .find('tbody tr')
-        .map(row => dataCells(row.find('td')).at(0).text()),
-      ['a', 'b', 'c'],
-    );
-    assert.equal(
-      dataCells(wrapper.find('thead tr').at(1).find('th'))
-        .at(0)
-        .prop('aria-sort'),
-      'ascending',
-    );
+    assert.deepEqual(columnText(wrapper, 0), ['a', 'b', 'c']);
+    assert.equal(headerCells(wrapper, 1).at(0).prop('aria-sort'), 'ascending');
   });
 
   it('names a grouped column after its group for assistive technology', () => {
@@ -293,17 +270,8 @@ describe('GroupedActivityTable', () => {
   it('marks the ordered column for assistive technology', () => {
     const wrapper = createComponent();
 
-    assert.equal(
-      dataCells(wrapper.find('thead tr').at(1).find('th'))
-        .at(0)
-        .prop('aria-sort'),
-      'ascending',
-    );
-    assert.isUndefined(
-      dataCells(wrapper.find('thead tr').at(1).find('th'))
-        .at(1)
-        .prop('aria-sort'),
-    );
+    assert.equal(headerCells(wrapper, 1).at(0).prop('aria-sort'), 'ascending');
+    assert.isUndefined(headerCells(wrapper, 1).at(1).prop('aria-sort'));
   });
 
   it('shows a spinner instead of the rows while loading', () => {

@@ -59,8 +59,15 @@ function SectionTitle({ children }: { children: ComponentChildren }) {
   );
 }
 
-/** The requirements of one phase, under its own heading. */
-function PhaseSection({ label, annotations, replies, config }: GradePhase) {
+/** The activity a grade was calculated from, and the config it was graded by. */
+type RequirementsProps = {
+  annotations: number;
+  replies: number;
+  config?: AutoGradingConfig;
+};
+
+/** What the grade was calculated from, against what it needed. */
+function Requirements({ annotations, replies, config }: RequirementsProps) {
   const isCalculationSeparate = config?.activity_calculation === 'separate';
   const requiredCombined = config
     ? config.required_annotations + (config.required_replies ?? 0)
@@ -68,7 +75,6 @@ function PhaseSection({ label, annotations, replies, config }: GradePhase) {
 
   return (
     <>
-      {label && <SectionTitle>{label}</SectionTitle>}
       {isCalculationSeparate && (
         <AnnotationCount
           actualAmount={annotations}
@@ -96,46 +102,26 @@ function PhaseSection({ label, annotations, replies, config }: GradePhase) {
   );
 }
 
-/**
- * One section of the popover: what a phase asked for and what was done in it.
- *
- * An assignment without phases has a single unnamed one, which renders as the
- * bare list of requirements it always did.
- */
-export type GradePhase = {
-  label?: string;
-  annotations: number;
-  replies: number;
-  config?: AutoGradingConfig;
-};
-
-export type GradeIndicatorProps = {
-  grade: number;
-  lastGrade?: number | null;
-
-  /** The phases the grade is made of, in display order. */
-  phases: GradePhase[];
-
-  status?: StudentGradingSyncStatus;
-
-  /**
-   * Whether this is the grade the LMS gets.
-   *
-   * A phase's own grade is informational -- only the final one is ever synced
-   * -- so it carries no sync state to report, and none of the colour which
-   * says how the assignment is going.
-   */
-  synced?: boolean;
-};
-
-/**
- * Includes a GradeStatusChip, together with a popover indicating why that is
- * the grade
- */
-type GradeHoverProps = {
+/** A grade the table displays, whichever indicator displays it. */
+type GradeProps = {
   grade: number;
   lastGrade?: number | null;
   status?: StudentGradingSyncStatus;
+};
+
+export type GradeIndicatorProps = GradeProps &
+  RequirementsProps & {
+    /**
+     * Whether this is the grade the LMS gets.
+     *
+     * A phase's own grade is informational -- only the final one is ever
+     * synced -- so it carries no sync state to report, and none of the colour
+     * which says how the assignment is going.
+     */
+    synced?: boolean;
+  };
+
+type GradeHoverProps = GradeProps & {
   synced?: boolean;
 
   /** What the reader hovers: the grade, however it is displayed. */
@@ -224,10 +210,13 @@ function GradeHover({
   );
 }
 
+/** A grade, with a popover listing the requirements behind it. */
 export default function GradeIndicator({
   grade,
   lastGrade,
-  phases,
+  annotations,
+  replies,
+  config,
   status,
   synced = true,
 }: GradeIndicatorProps) {
@@ -239,9 +228,11 @@ export default function GradeIndicator({
       synced={synced}
       trigger={<GradeStatusChip grade={grade} muted={!synced} />}
     >
-      {phases.map((phase, index) => (
-        <PhaseSection key={phase.label ?? index} {...phase} />
-      ))}
+      <Requirements
+        annotations={annotations}
+        replies={replies}
+        config={config}
+      />
     </GradeHover>
   );
 }
@@ -289,11 +280,7 @@ export type GradeContribution = {
   grade?: number;
 };
 
-export type FinalGradeIndicatorProps = {
-  grade: number;
-  lastGrade?: number | null;
-  status?: StudentGradingSyncStatus;
-
+export type FinalGradeIndicatorProps = GradeProps & {
   /** The phases the grade is the average of, in display order. */
   phases: GradeContribution[];
 };

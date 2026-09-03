@@ -1,7 +1,7 @@
 import type { ComponentChildren } from 'preact';
 
-import type { StudentWithMetrics } from '../../../api-types';
-import type { GradeContribution, GradePhase } from '../GradeIndicator';
+import type { PhaseMetrics, StudentWithMetrics } from '../../../api-types';
+import type { GradeContribution } from '../GradeIndicator';
 import GradeIndicator, { FinalGradeIndicator } from '../GradeIndicator';
 import type { OrderableActivityTableColumn } from '../OrderableActivityTable';
 import {
@@ -219,40 +219,20 @@ export function checkpointColumns(
 }
 
 /**
- * The phases the final grade is made of, for its popover.
+ * What the API reported for this row's student, by phase.
  *
- * Read off the student rather than the row: the popover needs each phase's own
- * counts and requirements together, and a row holds one value per cell. Only
- * the phases which contributed are listed, so an unstarted or ungraded one
- * isn't shown as having failed its requirement.
+ * Read off the student rather than the row: a phase's counts and requirements
+ * are needed together, and a row holds one value per cell.
  */
-function gradePhases(
+function phaseMetricsOf(
   row: CheckpointRow,
-  { students }: RenderContext,
-  /** Limit to one phase, for the breakdown of that phase's own grade. */
-  position?: number,
-): GradePhase[] {
+  students: StudentWithMetrics[] | undefined,
+): Map<number, PhaseMetrics> {
   const student = students?.find(({ h_userid }) => h_userid === row.h_userid);
-  const labels = new Map(
-    phasesOf(students ?? []).map(({ phase, label }) => [phase, label]),
+
+  return new Map(
+    (student?.phase_metrics ?? []).map(entry => [entry.phase, entry]),
   );
-
-  return (student?.phase_metrics ?? [])
-    .filter(({ phase, started, requirements }) => {
-      if (position !== undefined) {
-        return phase === position && requirements;
-      }
-
-      return started && requirements;
-    })
-    .map(({ phase, metrics, requirements }) => ({
-      // The heading names which phase a section is for, which the breakdown of
-      // a single one does not need: the cell being hovered says so already.
-      label: position === undefined ? labels.get(phase) : undefined,
-      annotations: metrics.annotations,
-      replies: metrics.replies,
-      config: requirements,
-    }));
 }
 
 /**
@@ -277,10 +257,7 @@ function gradeContributions(
     return [];
   }
 
-  const student = students?.find(({ h_userid }) => h_userid === row.h_userid);
-  const byPhase = new Map(
-    (student?.phase_metrics ?? []).map(entry => [entry.phase, entry]),
-  );
+  const byPhase = phaseMetricsOf(row, students);
   const lastPhase = Math.max(MIN_PHASES, ...reported.map(({ phase }) => phase));
 
   return Array.from({ length: lastPhase }, (_, index) => {
@@ -348,15 +325,19 @@ export function renderCheckpointField(
   const [, position, metric] = phaseMetric;
 
   if (metric === 'grade') {
-    // The same indicator as the final grade, so hovering a phase's grade
-    // breaks it down the way hovering the final one breaks down every phase.
+    const entry = phaseMetricsOf(row, context.students).get(Number(position));
+
+    // The same indicator as the flat table's grade, so hovering a phase's
+    // grade lists its requirements the way hovering an ungrouped one does.
     // `synced` is off: only the final grade reaches the LMS, so this one is
     // grey and carries no badge.
     return (
       <div className="flex justify-end -my-0.5">
         <GradeIndicator
           grade={Number(value)}
-          phases={gradePhases(row, context, Number(position))}
+          annotations={entry?.metrics.annotations ?? 0}
+          replies={entry?.metrics.replies ?? 0}
+          config={entry?.requirements}
           synced={false}
         />
       </div>

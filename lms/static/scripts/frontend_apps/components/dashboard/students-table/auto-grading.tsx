@@ -2,7 +2,6 @@ import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
 
 import type { StudentWithMetrics } from '../../../api-types';
-import type { GradePhase } from '../GradeIndicator';
 import GradeIndicator from '../GradeIndicator';
 import type { OrderableActivityTableColumn } from '../OrderableActivityTable';
 import {
@@ -39,11 +38,6 @@ export function renderAutoGradingField(
   row: StudentsTableRow,
   field: keyof StudentsTableRow,
   { assignment, studentSyncStatuses }: RenderContext,
-  /**
-   * The phases making up the grade, for a variant which has them. Without it
-   * the popover shows the assignment's own requirements as a single section.
-   */
-  phases?: GradePhase[],
 ): ComponentChildren {
   if (field !== 'current_grade') {
     return renderSharedField(row, field);
@@ -60,15 +54,9 @@ export function renderAutoGradingField(
       <GradeIndicator
         grade={row.current_grade ?? 0}
         lastGrade={row.last_grade}
-        phases={
-          phases ?? [
-            {
-              annotations: row.annotations,
-              replies: row.replies,
-              config: assignment?.auto_grading_config,
-            },
-          ]
-        }
+        annotations={row.annotations}
+        replies={row.replies}
+        config={assignment?.auto_grading_config}
         status={studentSyncStatuses[row.h_userid]}
       />
     </div>
