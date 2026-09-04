@@ -8,6 +8,7 @@ import {
 import { act } from 'preact/test-utils';
 
 import { Config } from '../../config';
+import RealAutoGradingConfigurator from '../AutoGradingConfigurator';
 import FilePickerApp, {
   loadFilePickerConfig,
   $imports,
@@ -100,6 +101,73 @@ describe('FilePickerApp', () => {
     });
   }
 
+  function setDueDate(wrapper, date) {
+    interact(wrapper, () => {
+      wrapper.find('DueDateSelector').first().props().onChange(date);
+    });
+  }
+
+  /** Tick or untick "Optional: Assignment Due Date". */
+  function toggleDueDate(wrapper, enabled) {
+    interact(wrapper, () => {
+      wrapper
+        .find('Checkbox[data-testid="due-date-toggle"]')
+        .props()
+        .onChange({ target: { checked: enabled } });
+    });
+  }
+
+  /**
+   * Stand in for `DueDateSelector`'s `validate`.
+   *
+   * `DueDateSelector` is mocked here, so the real fields — and the checks
+   * the real component runs over them — never exist. The mock still
+   * receives `selectorRef`, so populating the handle decides what the
+   * parent hears when it validates.
+   */
+  function setDueDateValidity(wrapper, valid) {
+    const { selectorRef } = wrapper.find('DueDateSelector').first().props();
+    selectorRef.current = { validate: sinon.stub().returns(valid) };
+    return selectorRef.current;
+  }
+
+  /** Pick "Single grade" or "Paced grades" in the real configurator. */
+  /** Tick or untick "Enable automatic participation grading". */
+  function toggleAutoGrading(wrapper, enabled) {
+    interact(wrapper, () => {
+      wrapper
+        .find('Checkbox[data-testid="auto-grading-toggle"]')
+        .props()
+        .onChange({ target: { checked: enabled } });
+    });
+  }
+
+  function setGradingMode(wrapper, mode) {
+    interact(wrapper, () => {
+      wrapper
+        .find('[data-testid="grading-mode-radio-group"]')
+        .first()
+        .props()
+        .onChange(mode);
+    });
+  }
+
+  /**
+   * Stand in for `AutoGradingConfigurator`'s `validate`.
+   *
+   * The configurator is mocked here, so the real goal inputs — and the check
+   * over every phase they belong to — never exist. The mock still receives
+   * `configuratorRef`, so populating the handle decides what the app sees.
+   */
+  function setAutoGradingValidity(wrapper, valid) {
+    const { configuratorRef } = wrapper
+      .find('AutoGradingConfigurator')
+      .first()
+      .props();
+    configuratorRef.current = { validate: sinon.stub().returns(valid) };
+    return configuratorRef.current;
+  }
+
   function clickContinueButton(wrapper) {
     interact(wrapper, () => {
       wrapper.find('Button[data-testid="save-button"]').props().onClick();
@@ -144,29 +212,6 @@ describe('FilePickerApp', () => {
       });
     }
 
-    // Commented out while the due-date step is skipped (see
-    // `goToNextWorkflowStep`). Restore alongside the step.
-    //
-    // function setDueDate(wrapper, date) {
-    //   interact(wrapper, () => {
-    //     wrapper.find('DueDateSelector').first().props().onChange(date);
-    //   });
-    // }
-    //
-    // /**
-    //  * Stand in for `DueDateSelector`'s `validate`.
-    //  *
-    //  * `DueDateSelector` is mocked here, so the real fields — and the checks
-    //  * the real component runs over them — never exist. The mock still
-    //  * receives `selectorRef`, so populating the handle decides what the
-    //  * parent hears when it validates the step.
-    //  */
-    // function setDueDateValidity(wrapper, valid) {
-    //   const { selectorRef } = wrapper.find('DueDateSelector').first().props();
-    //   selectorRef.current = { validate: sinon.stub().returns(valid) };
-    //   return selectorRef.current;
-    // }
-    //
     // /**
     //  * Local `datetime-local` string (`YYYY-MM-DDTHH:MM`) `days` from now
     //  * (negative for the past).
@@ -789,6 +834,357 @@ describe('FilePickerApp', () => {
       checkFormFields(wrapper, {
         content: { type: 'url', url },
         autoGradingConfig,
+      });
+    });
+
+    it('does not submit while a grading phase has no goal', () => {
+      // Only the selected phase has its inputs mounted, so the form's own
+      // `reportValidity` cannot see the rest: without this the phase would
+      // save a goal of zero, which the proportional grade divides by.
+      fakeConfig.assignment = {
+        auto_grading_config: [
+          {
+            grading_type: 'scaled',
+            activity_calculation: 'cumulative',
+            required_annotations: 2,
+          },
+          {
+            grading_type: 'scaled',
+            activity_calculation: 'cumulative',
+            required_annotations: 0,
+          },
+        ],
+        checkpoint_enabled: true,
+        document: { url: 'https://example.com' },
+      };
+      fakeConfig.filePicker.autoGradingEnabled = true;
+
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+      const handle = setAutoGradingValidity(wrapper, false);
+      clickContinueButton(wrapper);
+
+      assert.called(handle.validate);
+      assert.notCalled(onSubmit);
+    });
+
+    it('keeps every grading phase when editing a paced assignment', () => {
+      // The assignment's phases are only known from `checkpoint_enabled`: the
+      // workflow that would otherwise pick the type is skipped when editing,
+      // and sending back fewer phases than it has deletes the rest.
+      const phases = [
+        {
+          grading_type: 'scaled',
+          activity_calculation: 'cumulative',
+          required_annotations: 2,
+        },
+        {
+          grading_type: 'scaled',
+          activity_calculation: 'cumulative',
+          required_annotations: 5,
+        },
+      ];
+      const url = 'https://example.com';
+
+      fakeConfig.assignment = {
+        auto_grading_config: phases,
+        checkpoint_enabled: true,
+        document: { url },
+      };
+      fakeConfig.filePicker.autoGradingEnabled = true;
+
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      checkFormFields(wrapper, {
+        content: { type: 'url', url },
+        autoGradingConfig: phases,
+        checkpointEnabled: true,
+      });
+    });
+
+    it('does not turn an assignment into a checkpoint one by editing it', () => {
+      // The type comes from the assignment, never from the workflow's default
+      // for new ones: `checkpoint_enabled` is a flag the backend can only turn
+      // on, so reading it wrong here converts the assignment for good.
+      const url = 'https://example.com';
+
+      fakeConfig.assignment = {
+        auto_grading_config: null,
+        checkpoint_enabled: false,
+        document: { url },
+      };
+      fakeConfig.filePicker.assignmentTypes = ['hide_and_reveal', 'reading'];
+
+      const wrapper = renderFilePicker();
+
+      checkFormFields(wrapper, {
+        content: { type: 'url', url },
+        checkpointEnabled: false,
+      });
+    });
+
+    context('due date of a paced assignment', () => {
+      // The due date lives inside the auto-grading block, so the configurator
+      // has to be the real one for its `pacedControls` slot to render.
+      beforeEach(() => {
+        $imports.$mock({
+          './AutoGradingConfigurator': {
+            default: RealAutoGradingConfigurator,
+          },
+        });
+
+        fakeConfig.assignment = {
+          auto_grading_config: [
+            {
+              grading_type: 'scaled',
+              activity_calculation: 'cumulative',
+              required_annotations: 2,
+            },
+            {
+              grading_type: 'scaled',
+              activity_calculation: 'cumulative',
+              required_annotations: 5,
+            },
+          ],
+          checkpoint_enabled: true,
+          document: { url: 'https://example.com' },
+        };
+        fakeConfig.filePicker.autoGradingEnabled = true;
+      });
+
+      it('offers no due date fields until they are asked for', () => {
+        const wrapper = renderFilePicker();
+
+        assert.isTrue(
+          wrapper.exists('Checkbox[data-testid="due-date-toggle"]'),
+        );
+        assert.isFalse(wrapper.exists('DueDateSelector'));
+      });
+
+      it('sends the due date once one is picked', () => {
+        const wrapper = renderFilePicker({
+          onSubmit: sinon.stub().callsFake(e => e.preventDefault()),
+        });
+
+        toggleDueDate(wrapper, true);
+        setDueDate(wrapper, '2026-10-14T23:59');
+
+        assert.equal(
+          wrapper.find('FilePickerFormFields').prop('dueDate'),
+          new Date('2026-10-14T23:59').toISOString(),
+        );
+      });
+
+      it('drops the due date when it is turned off again', () => {
+        const wrapper = renderFilePicker();
+
+        toggleDueDate(wrapper, true);
+        setDueDate(wrapper, '2026-10-14T23:59');
+        toggleDueDate(wrapper, false);
+
+        // Left set, it would be sent by a field nobody can see any more.
+        assert.isFalse(wrapper.exists('DueDateSelector'));
+        assert.isNull(wrapper.find('FilePickerFormFields').prop('dueDate'));
+      });
+
+      it('starts from the due date the assignment already has', () => {
+        fakeConfig.assignment.due_date = '2026-10-14T23:59:00+00:00';
+
+        const wrapper = renderFilePicker();
+
+        assert.isTrue(wrapper.exists('DueDateSelector'));
+        assert.equal(
+          wrapper.find('FilePickerFormFields').prop('dueDate'),
+          new Date('2026-10-14T23:59:00+00:00').toISOString(),
+        );
+      });
+
+      it('stops sending the due date when the grades stop being paced', () => {
+        const wrapper = renderFilePicker();
+
+        toggleDueDate(wrapper, true);
+        setDueDate(wrapper, '2026-10-14T23:59');
+        setGradingMode(wrapper, 'single');
+
+        // Nothing to keep: this assignment arrived without a date, so the one
+        // entered here is only reachable through the control that a single
+        // grade takes away.
+        assert.isNull(wrapper.find('FilePickerFormFields').prop('dueDate'));
+      });
+
+      it('keeps the saved due date when the grades stop being paced', () => {
+        // Ticking Single grade says how the grade is computed, not that the
+        // deadline is gone. The checkbox stays ticked to say so, disabled.
+        fakeConfig.assignment.auto_grading_config = [
+          {
+            grading_type: 'scaled',
+            activity_calculation: 'cumulative',
+            required_annotations: 1,
+          },
+          {
+            grading_type: 'scaled',
+            activity_calculation: 'cumulative',
+            required_annotations: 3,
+          },
+        ];
+        fakeConfig.assignment.due_date = '2026-10-14T23:59:00+00:00';
+
+        const wrapper = renderFilePicker();
+        setGradingMode(wrapper, 'single');
+
+        assert.equal(
+          wrapper.find('FilePickerFormFields').prop('dueDate'),
+          new Date('2026-10-14T23:59:00+00:00').toISOString(),
+        );
+        assert.isTrue(
+          wrapper
+            .find('Checkbox[data-testid="due-date-toggle"]')
+            .first()
+            .prop('checked'),
+        );
+      });
+
+      it('brings the due date back when the grades are paced again', () => {
+        const wrapper = renderFilePicker();
+
+        toggleDueDate(wrapper, true);
+        setDueDate(wrapper, '2026-10-14T23:59');
+        setGradingMode(wrapper, 'single');
+        setGradingMode(wrapper, 'paced');
+
+        assert.equal(
+          wrapper.find('FilePickerFormFields').prop('dueDate'),
+          new Date('2026-10-14T23:59').toISOString(),
+        );
+      });
+
+      it('stops sending a new due date when auto grading is turned off', () => {
+        const wrapper = renderFilePicker();
+
+        toggleDueDate(wrapper, true);
+        setDueDate(wrapper, '2026-10-14T23:59');
+        toggleAutoGrading(wrapper, false);
+
+        // The whole block goes with it, controls included, so the mode left
+        // in state is not something the instructor can still see: a date
+        // still being sent is one they can neither find nor remove.
+        assert.isFalse(wrapper.exists('DueDateSelector'));
+        assert.isNull(wrapper.find('FilePickerFormFields').prop('dueDate'));
+      });
+
+      it('keeps the saved due date when auto grading is turned off', () => {
+        // Turning auto grading off is not choosing Single grade: there is no
+        // control on screen to say anything about the date, and the date is
+        // not an auto-grading property -- the student toolbar shows it for
+        // every checkpoint assignment.
+        fakeConfig.assignment.due_date = '2026-10-14T23:59:00+00:00';
+
+        const wrapper = renderFilePicker();
+        toggleAutoGrading(wrapper, false);
+
+        assert.equal(
+          wrapper.find('FilePickerFormFields').prop('dueDate'),
+          new Date('2026-10-14T23:59:00+00:00').toISOString(),
+        );
+      });
+
+      it('keeps the saved due date where the install offers no auto grading', () => {
+        // Sakai. The block is never rendered, so nothing here was chosen.
+        fakeConfig.assignment.due_date = '2026-10-14T23:59:00+00:00';
+        fakeConfig.filePicker.autoGradingEnabled = false;
+
+        const wrapper = renderFilePicker();
+
+        assert.equal(
+          wrapper.find('FilePickerFormFields').prop('dueDate'),
+          new Date('2026-10-14T23:59:00+00:00').toISOString(),
+        );
+      });
+
+      it('keeps the due date of an assignment stored with a single grade', () => {
+        // The mode is inferred from how many configs were stored, so a single
+        // one reads back as Single grade. The date is still not editable here
+        // -- only paced grades stop counting at it -- but an edit that never
+        // touched it must hand it back rather than delete it.
+        fakeConfig.assignment.auto_grading_config = {
+          grading_type: 'scaled',
+          activity_calculation: 'cumulative',
+          required_annotations: 2,
+        };
+        fakeConfig.assignment.due_date = '2026-10-14T23:59:00+00:00';
+
+        const wrapper = renderFilePicker();
+
+        assert.isFalse(wrapper.exists('DueDateSelector'));
+        assert.equal(
+          wrapper.find('FilePickerFormFields').prop('dueDate'),
+          new Date('2026-10-14T23:59:00+00:00').toISOString(),
+        );
+      });
+
+      it('offers no due date where there is no checkpoint to pace', () => {
+        // Nothing to pace without two phases, so the mode radio and the date
+        // control are both absent and no date can be entered here.
+        // `toAPIConfig` collapses to a single config too, whatever the mode
+        // says, so the two stay in step.
+        fakeConfig.assignment.checkpoint_enabled = false;
+
+        const wrapper = renderFilePicker();
+
+        assert.isFalse(
+          wrapper.exists('Checkbox[data-testid="due-date-toggle"]'),
+        );
+        assert.isNull(wrapper.find('FilePickerFormFields').prop('dueDate'));
+      });
+
+      it('leaves a saved due date alone where there is no checkpoint', () => {
+        // Inert on a plain reading -- only a checkpoint assignment buckets by
+        // phase or shows a toolbar date -- but still not this edit's to
+        // delete, and there is no control here to delete it from.
+        fakeConfig.assignment.checkpoint_enabled = false;
+        fakeConfig.assignment.due_date = '2026-10-14T23:59:00+00:00';
+
+        const wrapper = renderFilePicker();
+
+        assert.equal(
+          wrapper.find('FilePickerFormFields').prop('dueDate'),
+          new Date('2026-10-14T23:59:00+00:00').toISOString(),
+        );
+      });
+
+      it('lets a due date which has already passed stand when editing', () => {
+        // Held to "must be in the future" it would fail the check that runs on
+        // submit, blocking every unrelated edit to the assignment.
+        fakeConfig.assignment.due_date = '2020-01-01T10:00:00+00:00';
+
+        const wrapper = renderFilePicker();
+        const selector = wrapper.find('DueDateSelector').first();
+
+        // The earliest selectable value is the date already saved, so that one
+        // is still valid. Anything before it is not.
+        assert.equal(selector.prop('min'), selector.prop('dueDate'));
+      });
+
+      it('still asks for a future date when the saved one has not passed', () => {
+        fakeConfig.assignment.due_date = '2099-01-01T10:00:00+00:00';
+
+        const wrapper = renderFilePicker();
+        const selector = wrapper.find('DueDateSelector').first();
+
+        assert.notEqual(selector.prop('min'), selector.prop('dueDate'));
+      });
+
+      it('does not submit while the selector reports an invalid due date', () => {
+        const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+        const wrapper = renderFilePicker({ onSubmit });
+
+        toggleDueDate(wrapper, true);
+        const handle = setDueDateValidity(wrapper, false);
+        clickContinueButton(wrapper);
+
+        assert.called(handle.validate);
+        assert.notCalled(onSubmit);
       });
     });
 
