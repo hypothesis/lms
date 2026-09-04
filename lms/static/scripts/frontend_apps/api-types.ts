@@ -312,8 +312,14 @@ export type AutoGradingConfig = {
    */
   required_annotations: number;
 
-  /** Required number of replies if activityCalculation is 'separate' */
-  required_replies?: number;
+  /**
+   * Required number of replies if activityCalculation is 'separate'.
+   *
+   * `null` when it does not apply: `AutoGradingConfig.asdict()` sends the key
+   * either way, so a cumulative config carries an explicit nothing rather than
+   * leaving it out.
+   */
+  required_replies?: number | null;
 };
 
 /**
