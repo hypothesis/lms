@@ -94,13 +94,12 @@ describe('FilePickerFormFields', () => {
     assert.equal(configField.prop('value'), JSON.stringify(autoGradingConfig));
   });
 
-  it('omits checkpoint fields when `checkpointEnabled` is false', () => {
-    const formFields = createComponent({ dueDate: '2026-09-01T12:00:00.000Z' });
+  it('omits `checkpoint_enabled` when `checkpointEnabled` is false', () => {
+    const formFields = createComponent();
 
     assert.isFalse(
       formFields.find('input[name="checkpoint_enabled"]').exists(),
     );
-    assert.isFalse(formFields.find('input[name="due_date"]').exists());
   });
 
   it('renders `checkpoint_enabled` when `checkpointEnabled` is set', () => {
@@ -109,6 +108,11 @@ describe('FilePickerFormFields', () => {
     const field = formFields.find('input[name="checkpoint_enabled"]');
     assert.isTrue(field.exists());
     assert.equal(field.prop('value'), 'true');
+  });
+
+  it('omits `due_date` when no due date is set', () => {
+    const formFields = createComponent({ checkpointEnabled: true });
+
     assert.isFalse(formFields.find('input[name="due_date"]').exists());
   });
 
@@ -121,5 +125,18 @@ describe('FilePickerFormFields', () => {
     const field = formFields.find('input[name="due_date"]');
     assert.isTrue(field.exists());
     assert.equal(field.prop('value'), '2026-09-01T12:00:00.000Z');
+  });
+
+  it('renders `due_date` independently of `checkpointEnabled`', () => {
+    // No field is how the backend is told to clear the date, so dropping it
+    // here would delete a date the caller means to keep.
+    const formFields = createComponent({
+      dueDate: '2026-09-01T12:00:00.000Z',
+    });
+
+    assert.equal(
+      formFields.find('input[name="due_date"]').prop('value'),
+      '2026-09-01T12:00:00.000Z',
+    );
   });
 });

@@ -3,6 +3,8 @@ import {
   Button,
   Card,
   CardActions,
+  Checkbox,
+  CheckboxCheckedFilledIcon,
   InfoIcon,
   CardContent,
   CardHeader,
@@ -34,8 +36,16 @@ import { truncateURL } from '../utils/format';
 import { useUniqueId } from '../utils/hooks';
 import type { AssignmentType } from './AssignmentTypeSelector';
 import AssignmentTypeSelector from './AssignmentTypeSelector';
-import type { AutoGradingConfig } from './AutoGradingConfigurator';
-import AutoGradingConfigurator from './AutoGradingConfigurator';
+import type {
+  AutoGradingConfig,
+  AutoGradingConfiguratorHandle,
+  GradingPhase,
+} from './AutoGradingConfigurator';
+import AutoGradingConfigurator, {
+  defaultAutoGradingConfig,
+  fromAPIConfig,
+  toAPIConfig,
+} from './AutoGradingConfigurator';
 import type { CheckpointType } from './CheckpointSelector';
 import CheckpointSelector from './CheckpointSelector';
 import ContentSelector from './ContentSelector';
@@ -201,7 +211,8 @@ function PanelLabel({
 }
 
 type DeepLinkingAPIData = Record<string, unknown> & {
-  auto_grading_config: APIAutoGradingConfig | null;
+  // One config for a single grade; one per grading phase for paced grades.
+  auto_grading_config: APIAutoGradingConfig | APIAutoGradingConfig[] | null;
 };
 
 /**
@@ -250,26 +261,13 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     () => {
       const assignmentAutoGradingConfig = assignment?.auto_grading_config;
       if (!assignmentAutoGradingConfig) {
-        return {
-          enabled: false,
-          grading_type: 'scaled',
-          activity_calculation: 'cumulative',
-          required_annotations: 1,
-        };
+        return defaultAutoGradingConfig();
       }
 
       // Initialize with the assignment's auto-grading config if it exists
-      return {
-        enabled: true,
-        ...assignmentAutoGradingConfig,
-      };
+      return fromAPIConfig(assignmentAutoGradingConfig);
     },
   );
-  // The auto-grading config as expected by the backend
-  const autoGradingConfigToSave: APIAutoGradingConfig | null = useMemo(() => {
-    const { enabled, ...rest } = autoGradingConfig;
-    return autoGradingEnabled && enabled ? rest : null;
-  }, [autoGradingConfig, autoGradingEnabled]);
 
   // Flag indicating if we are editing content that was previously selected.
   const [editingContent, setEditingContent] = useState(false);
@@ -283,31 +281,145 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   const canReturnToAssignment = isEditing && !!editing;
 
   // Type of assignment being created, chosen in the first ("assignment-type")
-  // step of the workflow. Defaults to the first available type so it is always
-  // one the backend actually offers. Only relevant when `enableTypeWorkflow`.
-  const [assignmentType, setAssignmentType] = useState<AssignmentType>(
-    availableAssignmentTypes[0] ?? 'reading',
-  );
+  // step of the workflow. Only relevant when `enableTypeWorkflow`.
+  //
+  // When editing there is no workflow to choose it in, so it comes from the
+  // assignment and from nowhere else -- the default below is for assignments
+  // that do not exist yet, and falling through to it would answer "what type
+  // is this assignment?" with "whichever this install offers first".
+  //
+  // Getting this wrong on an edit is not cosmetic in either direction. The
+  // type says how many grading phases there are, and saving fewer than the
+  // assignment has deletes the rest; it also drives `checkpoint_enabled`,
+  // which the backend can only ever turn on, so an edit that reads the type
+  // wrong converts the assignment for good.
+  const [assignmentType, setAssignmentType] = useState<AssignmentType>(() => {
+    if (assignment) {
+      return assignment.checkpoint_enabled ? 'hide_and_reveal' : 'reading';
+    }
+
+    // The first type the backend offers, so it is always one it accepts.
+    return availableAssignmentTypes[0] ?? 'reading';
+  });
   // Checkpoint configuration for "Hide & Reveal" assignments.
   const [checkpointType, setCheckpointType] =
     useState<CheckpointType>('manual');
-  const [dueDate, setDueDate] = useState<string | null>(null);
+  // The date the assignment already carries, if any, in the selector's local
+  // `YYYY-MM-DDTHH:MM` form. What the picker is given is what it sends back, so
+  // starting empty would clear a date the assignment already has. The backend
+  // sends UTC; the selector works in local time.
+  const savedDueDate = assignment?.due_date
+    ? localDateTime(new Date(assignment.due_date))
+    : null;
+  // The same date in the UTC ISO form the backend speaks, for handing back
+  // unchanged when the instructor was never shown a control over it.
+  const savedDueDateISO = assignment?.due_date
+    ? new Date(assignment.due_date).toISOString()
+    : null;
+  const [dueDate, setDueDate] = useState<string | null>(savedDueDate);
+  // The due date is optional, and "none yet" and "not wanted" look the same in
+  // `dueDate`, so whether the fields are on is its own state.
+  const [dueDateEnabled, setDueDateEnabled] = useState(!!assignment?.due_date);
   // The due date is optional, but when set it must be complete and in the
   // future. The fields — and the checks over them — live in `DueDateSelector`;
   // this handle triggers them before leaving the due-date step, and the
   // selector presents any error itself. The value is a local
   // `YYYY-MM-DDTHH:MM` string, converted to UTC on submit.
   const dueDateSelectorRef = useRef<DueDateSelectorHandle | null>(null);
+  // Only the selected phase's goal inputs are mounted, so the form's own
+  // `reportValidity` cannot see the others. This handle checks them all.
+  const autoGradingRef = useRef<AutoGradingConfiguratorHandle | null>(null);
   // Recomputed on each render rather than memoized on mount, so "now" cannot go
   // stale while the picker sits open.
-  const minDueDate = localDateTime(new Date());
+  const now = localDateTime(new Date());
+  // An assignment being edited can have a due date that has already passed, and
+  // holding it to "must be in the future" would block every unrelated edit:
+  // `validate` runs on submit, so a date it rejects is a date that stops the
+  // whole save. The date already saved is therefore allowed to stand; anything
+  // earlier than it still isn't. `YYYY-MM-DDTHH:MM` strings compare
+  // lexicographically, so this is a plain string comparison.
+  const minDueDate = savedDueDate && savedDueDate < now ? savedDueDate : now;
 
   // A checkpoint ("Hide & Reveal") assignment is being created when the
   // instructor picked that type in the workflow. This drives the
   // `checkpoint_enabled` field the backend persists.
   const checkpointEnabled = assignmentType === 'hide_and_reveal';
+
+  // Whether the due-date control is on screen at all. `pacedControls` goes
+  // inside the auto-grading block, which is mounted only when the install
+  // offers auto grading and the instructor turned it on, and inside the
+  // configurator's own "there is more than one phase to pace" check. The mode
+  // is deliberately not part of this: with a single grade the control is still
+  // rendered, disabled, saying why the date does not apply.
+  const dueDateControlShown =
+    autoGradingEnabled && autoGradingConfig.enabled && checkpointEnabled;
+
+  // Whether the assignment is graded phase by phase. The due date only applies
+  // then -- a single grade counts the whole assignment, so there is nothing
+  // for a date to cut off.
+  const pacedGrades = dueDateControlShown && autoGradingConfig.mode === 'paced';
+
   // UTC ISO string for the backend. Both submit paths send this same value.
-  const dueDateISO = dueDate ? new Date(dueDate).toISOString() : null;
+  //
+  // The backend takes what the picker sends as the whole truth: no field means
+  // no date. So the date follows the control, and the two cases where it is
+  // not editable are not the same case:
+  //
+  // With a single grade, nothing is sent. The date has no meaning there, and
+  // the instructor is looking at the control while it says so -- clearing it
+  // is an answer to something they can see. Gated rather than cleared, so
+  // switching back to Paced grades brings the date back; the phase goals
+  // behave the same way.
+  //
+  // With no control on screen at all -- auto grading off, or an install that
+  // does not offer it -- the date the assignment came in with is handed back
+  // untouched. There is no mode to honour here, only state nobody chose, and
+  // the date is not an auto-grading property: `enable_toolbar_checkpoint` and
+  // `enable_student_checkpoint` publish it for every checkpoint assignment. An
+  // edit about a document URL should not take it off the students' toolbars.
+  const dueDateISO = dueDateControlShown
+    ? pacedGrades && dueDate
+      ? new Date(dueDate).toISOString()
+      : null
+    : savedDueDateISO;
+
+  const toggleDueDate = (enabled: boolean) => {
+    setDueDateEnabled(enabled);
+    // Turning it off drops the date: a hidden field still being sent is how a
+    // due date nobody can see ends up on the assignment.
+    if (!enabled) {
+      setDueDate(null);
+    }
+  };
+
+  // Spelled out here rather than read from anywhere: the assignment doesn't
+  // exist yet, so nothing else knows how many phases it will be graded in. One
+  // checkpoint means two phases; more checkpoints would only make this list
+  // longer.
+  const gradingPhases: GradingPhase[] = checkpointEnabled
+    ? [
+        {
+          label: 'Checkpoint',
+          description: 'Applies to activity before the Checkpoint',
+        },
+        {
+          label: dueDate ? 'Due Date' : 'Assignment end',
+          description: 'Applies to activity after the Checkpoint',
+        },
+      ]
+    : [];
+
+  // The auto-grading config as expected by the backend
+  const autoGradingConfigToSave:
+    | APIAutoGradingConfig
+    | APIAutoGradingConfig[]
+    | null = useMemo(
+    () =>
+      autoGradingEnabled && autoGradingConfig.enabled
+        ? toAPIConfig(autoGradingConfig, gradingPhases.length)
+        : null,
+    [autoGradingConfig, autoGradingEnabled, gradingPhases.length],
+  );
   // Current sub-step of the assignment-type workflow. When the workflow isn't
   // enabled we start as `done` so it is skipped entirely.
   const [workflowStep, setWorkflowStep] = useState<WorkflowStep>(
@@ -448,6 +560,26 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     async (content: Content) => {
       // Validate form fields which are shown on the details screen.
       if (!formRef.current?.reportValidity()) {
+        return;
+      }
+
+      // Only the selected grading phase has its goal inputs mounted, so
+      // `reportValidity` above checked one phase out of however many there
+      // are. This switches to the first phase left without a goal and reports
+      // it there. Left unchecked, a phase would save a goal of zero, which the
+      // proportional grade then divides by.
+      if (autoGradingRef.current && !autoGradingRef.current.validate()) {
+        return;
+      }
+
+      // A half-entered due date leaves `dueDate` null, indistinguishable from
+      // the legal "left blank", and a complete one can have fallen into the
+      // past. Only the selector can tell; it shows the reason itself. The time
+      // field is a custom listbox, so `reportValidity` above does not see it.
+      if (
+        dueDateSelectorRef.current &&
+        !dueDateSelectorRef.current.validate()
+      ) {
         return;
       }
 
@@ -744,6 +876,42 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                           <AutoGradingConfigurator
                             config={autoGradingConfig}
                             onChange={setAutoGradingConfig}
+                            configuratorRef={autoGradingRef}
+                            gradingPhases={gradingPhases}
+                            pacedControls={
+                              <div className="space-y-2">
+                                <Checkbox
+                                  checked={dueDateEnabled && pacedGrades}
+                                  disabled={!pacedGrades}
+                                  checkedIcon={CheckboxCheckedFilledIcon}
+                                  data-testid="due-date-toggle"
+                                  onChange={e =>
+                                    toggleDueDate(
+                                      (e.target as HTMLInputElement).checked,
+                                    )
+                                  }
+                                >
+                                  Optional: Assignment Due Date
+                                </Checkbox>
+                                {!pacedGrades && (
+                                  <p
+                                    className="text-stone-500 ml-7"
+                                    data-testid="due-date-unavailable"
+                                  >
+                                    Available with Paced grades, which stops
+                                    counting at the date.
+                                  </p>
+                                )}
+                                {pacedGrades && dueDateEnabled && (
+                                  <DueDateSelector
+                                    dueDate={dueDate}
+                                    onChange={setDueDate}
+                                    min={minDueDate}
+                                    selectorRef={dueDateSelectorRef}
+                                  />
+                                )}
+                              </div>
+                            }
                           />
                         </>
                       )}

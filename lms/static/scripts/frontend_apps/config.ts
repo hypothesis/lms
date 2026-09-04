@@ -97,7 +97,23 @@ export type SpeedGraderConfig = { submissionParams: object };
  */
 export type AssignmentConfig = {
   group_set_id: string | null;
-  auto_grading_config?: AutoGradingConfig;
+
+  /**
+   * One config for an assignment graded as a whole, one per grading phase for
+   * a paced one.
+   */
+  auto_grading_config?: AutoGradingConfig | AutoGradingConfig[];
+
+  /**
+   * Whether the assignment has checkpoints, and so can be graded phase by
+   * phase. Independent from auto grading, which the instructor can turn on
+   * while editing.
+   */
+  checkpoint_enabled?: boolean;
+
+  /** The assignment's due date as a UTC ISO string, if it has one. */
+  due_date?: string | null;
+
   document: {
     url: string;
   };
