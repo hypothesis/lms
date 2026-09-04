@@ -6,6 +6,7 @@ import pytest
 from h_matchers import Any
 from pyramid import testing
 
+from lms.services.assignment import _MAX_CHAIN_DEPTH
 from lms.validation import (
     BasicLTILaunchSchema,
     ConfigureAssignmentSchema,
@@ -268,6 +269,73 @@ class TestConfigureAssignmentSchema:
 
     def test_with_invalid_json(self, pyramid_request, schema):
         pyramid_request.params["auto_grading_config"] = "{]"
+
+        with pytest.raises(ValidationError):
+            schema.parse()
+
+    def test_with_one_auto_grading_config_per_phase(
+        self, pyramid_request, schema, auto_grading_config
+    ):
+        second_phase = dict(auto_grading_config, required_annotations=3)
+        pyramid_request.params["auto_grading_config"] = json.dumps(
+            [auto_grading_config, second_phase]
+        )
+
+        data = schema.parse()
+
+        assert data["auto_grading_config"] == [auto_grading_config, second_phase]
+
+    def test_with_an_invalid_auto_grading_config_among_the_phases(
+        self, pyramid_request, schema, auto_grading_config
+    ):
+        pyramid_request.params["auto_grading_config"] = json.dumps(
+            [auto_grading_config, dict(auto_grading_config, required_annotations=-1)]
+        )
+
+        with pytest.raises(ValidationError):
+            schema.parse()
+
+    def test_it_reports_which_phase_was_rejected(
+        self, pyramid_request, schema, auto_grading_config
+    ):
+        # The whole list is one field, so without the index the client is told
+        # some config is wrong but not which one to fix.
+        pyramid_request.params["auto_grading_config"] = json.dumps(
+            [auto_grading_config, dict(auto_grading_config, required_annotations=-1)]
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            schema.parse()
+
+        # The offending phase is keyed by its index in the list.
+        assert list(exc_info.value.messages["form"]["auto_grading_config"]) == [1]
+
+    def test_with_more_phases_than_can_be_stored(
+        self, pyramid_request, schema, auto_grading_config
+    ):
+        # Left to `AssignmentService` this is a `ValueError` at launch time,
+        # by which point the configs are a custom param the LMS is holding.
+        pyramid_request.params["auto_grading_config"] = json.dumps(
+            [auto_grading_config] * (_MAX_CHAIN_DEPTH + 1)
+        )
+
+        with pytest.raises(ValidationError):
+            schema.parse()
+
+    def test_with_as_many_phases_as_can_be_stored(
+        self, pyramid_request, schema, auto_grading_config
+    ):
+        phases = [auto_grading_config] * _MAX_CHAIN_DEPTH
+        pyramid_request.params["auto_grading_config"] = json.dumps(phases)
+
+        data = schema.parse()
+
+        assert data["auto_grading_config"] == phases
+
+    def test_with_no_phases_at_all(self, pyramid_request, schema):
+        # The backend reads an empty list as "no auto grading" and deletes the
+        # config, which `None` already says.
+        pyramid_request.params["auto_grading_config"] = json.dumps([])
 
         with pytest.raises(ValidationError):
             schema.parse()

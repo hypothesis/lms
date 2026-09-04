@@ -51,7 +51,7 @@ from lms.security import Permissions
 from lms.services import JWTService, UserService
 from lms.validation import DeepLinkingLTILaunchSchema
 from lms.validation._base import JSONPyramidRequestSchema
-from lms.validation._lti_launch_params import AutoGradingConfigSchema
+from lms.validation._lti_launch_params import AutoGradingConfigsField
 
 
 @view_config(
@@ -125,9 +125,7 @@ class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
 
     title = fields.Str(required=False, allow_none=True)
     assignment_gradable_max_points = fields.Float(required=False, allow_none=True)
-    auto_grading_config = fields.Nested(
-        AutoGradingConfigSchema, required=False, allow_none=True
-    )
+    auto_grading_config = AutoGradingConfigsField(required=False, allow_none=True)
     checkpoint_enabled = fields.Bool(required=False, load_default=False)
     # ISO 8601 string, normalised to naive UTC on persist.
     due_date = fields.Str(required=False, allow_none=True)

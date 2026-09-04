@@ -554,6 +554,26 @@ class AssignmentService:
             ).all()
         )
 
+    def get_auto_grading_config_data(
+        self, assignment: Assignment
+    ) -> dict | list[dict] | None:
+        """Return the assignment's auto-grading config the way the frontend sends it.
+
+        One dict for an assignment graded as a whole, one per phase for a paced
+        one, and None for an assignment without auto grading. Mirroring what the
+        file picker sends means an assignment with a single phase reads back
+        exactly as it did before paced grades existed.
+        """
+        configs = self.get_auto_grading_configs(assignment)
+
+        if not configs:
+            return None
+
+        if len(configs) == 1:
+            return configs[0].asdict()
+
+        return [config.asdict() for config in configs]
+
     def _update_auto_grading_config(
         self, assignment: Assignment, auto_grading_config: dict | list[dict] | None
     ) -> None:

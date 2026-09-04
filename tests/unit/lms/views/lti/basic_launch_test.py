@@ -113,7 +113,7 @@ class TestBasicLaunchViews:
             data={
                 "old_url": assignment.document_url,
                 "old_group_set_id": assignment.extra.get.return_value,
-                "old_auto_grading_configuration": assignment.auto_grading_config.asdict.return_value,
+                "old_auto_grading_configuration": assignment_service.get_auto_grading_config_data.return_value,
             },
         )
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
@@ -208,7 +208,6 @@ class TestBasicLaunchViews:
         context.js_config.enable_error_dialog_mode(sentinel.error_code)
         assert not response
 
-    @pytest.mark.parametrize("with_auto_grading", [True, False])
     def test_reconfigure_assignment_config(
         self,
         svc,
@@ -217,15 +216,12 @@ class TestBasicLaunchViews:
         assignment_service,
         course_service,
         has_permission,
-        with_auto_grading,
     ):
         has_permission.return_value = True
         pyramid_request.lti_params = mock.create_autospec(
             LTIParams, spec_set=True, instance=True
         )
         assignment = assignment_service.get_assignment.return_value
-        if not with_auto_grading:
-            assignment.auto_grading_config = None
 
         response = svc.reconfigure_assignment_config()
 
@@ -238,21 +234,16 @@ class TestBasicLaunchViews:
             course=course_service.get_from_launch.return_value,
             assignment=assignment,
         )
-        expected = {
-            "assignment": {
-                "group_set_id": assignment.extra.get.return_value,
-                "document": {"url": assignment.document_url},
-            },
+        # Both halves come from `enable_file_picker_mode`, which builds the
+        # same assignment config the deep-linking file picker is given.
+        assert response == {
+            "assignment": context.js_config.enable_file_picker_mode.return_value[
+                "assignment"
+            ],
             "filePicker": context.js_config.enable_file_picker_mode.return_value[
                 "filePicker"
             ],
         }
-        if with_auto_grading:
-            expected["assignment"]["auto_grading_config"] = (
-                assignment.auto_grading_config.asdict.return_value
-            )
-
-        assert response == expected
 
     @pytest.fixture
     def has_permission(self, pyramid_request):
