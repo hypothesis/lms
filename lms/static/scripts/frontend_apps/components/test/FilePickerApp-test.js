@@ -1007,9 +1007,42 @@ describe('FilePickerApp', () => {
         setDueDate(wrapper, '2026-10-14T23:59');
         setGradingMode(wrapper, 'single');
 
-        // The control reads as unavailable with a single grade, so a date
-        // still being sent is one the instructor can neither see nor remove.
+        // Nothing to keep: this assignment arrived without a date, so the one
+        // entered here is only reachable through the control that a single
+        // grade takes away.
         assert.isNull(wrapper.find('FilePickerFormFields').prop('dueDate'));
+      });
+
+      it('keeps the saved due date when the grades stop being paced', () => {
+        // Ticking Single grade says how the grade is computed, not that the
+        // deadline is gone. The checkbox stays ticked to say so, disabled.
+        fakeConfig.assignment.auto_grading_config = [
+          {
+            grading_type: 'scaled',
+            activity_calculation: 'cumulative',
+            required_annotations: 1,
+          },
+          {
+            grading_type: 'scaled',
+            activity_calculation: 'cumulative',
+            required_annotations: 3,
+          },
+        ];
+        fakeConfig.assignment.due_date = '2026-10-14T23:59:00+00:00';
+
+        const wrapper = renderFilePicker();
+        setGradingMode(wrapper, 'single');
+
+        assert.equal(
+          wrapper.find('FilePickerFormFields').prop('dueDate'),
+          new Date('2026-10-14T23:59:00+00:00').toISOString(),
+        );
+        assert.isTrue(
+          wrapper
+            .find('Checkbox[data-testid="due-date-toggle"]')
+            .first()
+            .prop('checked'),
+        );
       });
 
       it('brings the due date back when the grades are paced again', () => {
@@ -1069,11 +1102,11 @@ describe('FilePickerApp', () => {
         );
       });
 
-      it('sends no due date for an assignment stored with a single grade', () => {
+      it('keeps the due date of an assignment stored with a single grade', () => {
         // The mode is inferred from how many configs were stored, so a single
-        // one reads back as Single grade — where the date does not apply, and
-        // where the control is on screen saying so, so clearing it answers
-        // something the instructor can see.
+        // one reads back as Single grade. The date is still not editable here
+        // -- only paced grades stop counting at it -- but an edit that never
+        // touched it must hand it back rather than delete it.
         fakeConfig.assignment.auto_grading_config = {
           grading_type: 'scaled',
           activity_calculation: 'cumulative',
@@ -1084,7 +1117,10 @@ describe('FilePickerApp', () => {
         const wrapper = renderFilePicker();
 
         assert.isFalse(wrapper.exists('DueDateSelector'));
-        assert.isNull(wrapper.find('FilePickerFormFields').prop('dueDate'));
+        assert.equal(
+          wrapper.find('FilePickerFormFields').prop('dueDate'),
+          new Date('2026-10-14T23:59:00+00:00').toISOString(),
+        );
       });
 
       it('offers no due date where there is no checkpoint to pace', () => {

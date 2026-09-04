@@ -361,24 +361,15 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
 
   // UTC ISO string for the backend. Both submit paths send this same value.
   //
-  // The backend takes what the picker sends as the whole truth: no field means
-  // no date. So the date follows the control, and the two cases where it is
-  // not editable are not the same case:
-  //
-  // With a single grade, nothing is sent. The date has no meaning there, and
-  // the instructor is looking at the control while it says so -- clearing it
-  // is an answer to something they can see. Gated rather than cleared, so
-  // switching back to Paced grades brings the date back; the phase goals
-  // behave the same way.
-  //
-  // With no control on screen at all -- auto grading off, or an install that
-  // does not offer it -- the date the assignment came in with is handed back
-  // untouched. There is no mode to honour here, only state nobody chose, and
-  // the date is not an auto-grading property: `enable_toolbar_checkpoint` and
-  // `enable_student_checkpoint` publish it for every checkpoint assignment. An
-  // edit about a document URL should not take it off the students' toolbars.
-  const dueDateISO = dueDateControlShown
-    ? pacedGrades && dueDate
+  // `due_date` missing from the submission clears the column unconditionally
+  // (`AssignmentService.update_assignment`), so the only date that may go
+  // unsent is one the instructor asked to remove. With paced grades the control
+  // is live and `dueDate` is the whole answer, `null` included. Otherwise it is
+  // handed back untouched: neither auto grading being off nor a single grade is
+  // a decision about the date, which `enable_toolbar_checkpoint` and
+  // `enable_student_checkpoint` publish for every checkpoint assignment.
+  const dueDateISO = pacedGrades
+    ? dueDate
       ? new Date(dueDate).toISOString()
       : null
     : savedDueDateISO;
@@ -881,7 +872,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                             pacedControls={
                               <div className="space-y-2">
                                 <Checkbox
-                                  checked={dueDateEnabled && pacedGrades}
+                                  checked={dueDateEnabled}
                                   disabled={!pacedGrades}
                                   checkedIcon={CheckboxCheckedFilledIcon}
                                   data-testid="due-date-toggle"
