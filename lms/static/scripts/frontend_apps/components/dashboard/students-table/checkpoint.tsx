@@ -60,22 +60,17 @@ const PHASE_FIELD = new RegExp(`^phase_(\\d+)_(${PHASE_METRICS.join('|')})$`);
 /**
  * Phases an assignment with checkpoints has at the very least.
  *
- * A checkpoint splits the activity in two, and the MVP has exactly one, so an
- * assignment which reports any phase has two. This is what keeps the last phase
- * from being guessed wrong while nobody has been active in it yet: the day after
- * a reveal, the API only reports phase 1, and calling that one the revealed
- * phase would be wrong.
+ * Belt and braces rather than a workaround: h aggregates each phase separately
+ * and emits a row for every one of them, zeros included, so a student who
+ * reports any phase reports all of them and {@link phasesOf} already sees the
+ * last. This only does anything if that contract narrows -- were h to report
+ * just the phases with activity, the phase which closes at the due date would
+ * disappear until somebody annotated in it, and the one before it would get
+ * labelled as the revealed phase.
  *
- * ⚠️ This makes the labels correct for **one** checkpoint and only that. With
- * two, the API reports phases 1 and 2 until somebody is active in the third, and
- * phase 2 gets labelled as the revealed one. There is no way around it from
- * here: the API reports the position of a phase and never how many the
- * assignment has.
- *
- * @todo Two things fix this for good, both on the API: reporting the phases of
- * the assignment (the per-phase auto-grading configs already exist in the
- * backend), or reporting an entry per defined phase for every student, zeros
- * included.
+ * ⚠️ It is the labels rather than the count which put the ceiling at one
+ * checkpoint: h buckets into exactly two phases. Raising that is h's side, and
+ * `max(...reported)` picks up the extra phases on its own.
  */
 const MIN_PHASES = 2;
 
@@ -117,8 +112,9 @@ function phasesOf(students: StudentWithMetrics[]): CheckpointPhase[] {
   }
 
   const ordered = [...positions].sort((a, b) => a - b);
-  // The API only reports the phases a student was active in, so the highest one
-  // reported is not necessarily the last one the assignment has.
+  // Every phase h reports for anybody, so the highest is already the last: it
+  // reports a phase per bucket, not one per phase with activity. See
+  // MIN_PHASES for why there is a floor under it anyway.
   const lastPhase = Math.max(MIN_PHASES, ...ordered);
 
   return ordered.map(phase => ({
@@ -239,11 +235,10 @@ function phaseMetricsOf(
  * What each phase contributed to the final grade, phases still to come
  * included.
  *
- * A phase nobody has reached has no columns of its own, so this summary is the
- * only place the reader can see one is still outstanding -- and so the only
- * place that says the average is not over the whole assignment yet. Which
- * phases the assignment has is the same assumption the headers make: see
- * {@link MIN_PHASES}.
+ * A phase which has not started is listed without a grade. Its columns are
+ * already on the row showing zeros, because h reports the phase from the
+ * outset; what is only visible here is that it contributed nothing, and so
+ * that the average does not cover the whole assignment yet.
  *
  * Nothing is listed while the activity is not split at all, which is when the
  * table displays the totals and this is the only grade there is.
