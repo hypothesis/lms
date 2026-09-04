@@ -295,6 +295,31 @@ class TestAssignmentService:
 
         assert svc.get_auto_grading_configs(assignment) == [config]
 
+    def test_get_auto_grading_config_data_without_a_config(self, svc):
+        assignment = factories.Assignment(auto_grading_config=None)
+
+        assert svc.get_auto_grading_config_data(assignment) is None
+
+    def test_get_auto_grading_config_data_with_one_phase(self, svc, db_session):
+        config = factories.AutoGradingConfig()
+        assignment = factories.Assignment(auto_grading_config=config)
+        db_session.flush()
+
+        # A single phase reads back as one config, the shape assignments had
+        # before paced grades existed.
+        assert svc.get_auto_grading_config_data(assignment) == config.asdict()
+
+    def test_get_auto_grading_config_data_with_several_phases(self, svc, db_session):
+        first, second = factories.AutoGradingConfig.create_batch(2)
+        second.previous_config = first
+        assignment = factories.Assignment(auto_grading_config=first)
+        db_session.flush()
+
+        assert svc.get_auto_grading_config_data(assignment) == [
+            first.asdict(),
+            second.asdict(),
+        ]
+
     def test_get_auto_grading_configs_stops_at_the_chain_depth_bound(
         self, svc, db_session
     ):
