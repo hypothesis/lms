@@ -14,13 +14,13 @@ describe('GroupedActivityTable', () => {
     {
       field: 'checkpoint_annotations',
       label: 'Annotations',
-      group: 'Checkpoint',
+      group: 'Hidden Phase',
       initialOrderDirection: 'descending',
     },
     {
       field: 'due_date_annotations',
       label: 'Annotations',
-      group: 'Due Date',
+      group: 'Revealed Phase',
       initialOrderDirection: 'descending',
     },
   ];
@@ -51,26 +51,39 @@ describe('GroupedActivityTable', () => {
     return wrapper;
   }
 
-  /** Text of every cell of the header row at `index`. */
+  /** Cells of `row` which hold data, with the gutters between groups dropped. */
+  function dataCells(row) {
+    return row.filterWhere(cell => cell.prop('aria-hidden') !== true);
+  }
+
+  /** Data cells of the header row at `index`. */
+  function headerCells(wrapper, index) {
+    return dataCells(wrapper.find('thead tr').at(index).find('th'));
+  }
+
+  /** Text of every data cell of the header row at `index`. */
   function headerRow(wrapper, index) {
+    return headerCells(wrapper, index).map(cell => cell.text());
+  }
+
+  /** Text of the data cell at `column` of every body row. */
+  function columnText(wrapper, column) {
     return wrapper
-      .find('thead tr')
-      .at(index)
-      .find('th')
-      .map(cell => cell.text());
+      .find('tbody tr')
+      .map(row => dataCells(row.find('td')).at(column).text());
   }
 
   it('displays a header spanning the columns of each group', () => {
     const wrapper = createComponent();
 
     // The ungrouped column keeps an empty header, so both rows stay aligned
-    assert.deepEqual(headerRow(wrapper, 0), ['', 'Checkpoint', 'Due Date']);
+    assert.deepEqual(headerRow(wrapper, 0), [
+      '',
+      'Hidden Phase',
+      'Revealed Phase',
+    ]);
     assert.deepEqual(
-      wrapper
-        .find('thead tr')
-        .at(0)
-        .find('th')
-        .map(cell => cell.prop('colSpan')),
+      headerCells(wrapper, 0).map(cell => cell.prop('colSpan')),
       [1, 1, 1],
     );
   });
@@ -80,9 +93,7 @@ describe('GroupedActivityTable', () => {
 
     // `TableCell` forces `text-left` on header cells, so the alignment has to
     // live on a wrapper inside the cell
-    assert.isTrue(
-      wrapper.find('thead tr').at(0).find('th').at(1).exists('div.text-center'),
-    );
+    assert.isTrue(headerCells(wrapper, 0).at(1).exists('div.text-center'));
   });
 
   it('spans a group over every column which declares it', () => {
@@ -92,25 +103,52 @@ describe('GroupedActivityTable', () => {
         {
           field: 'checkpoint_annotations',
           label: 'Annotations',
-          group: 'Checkpoint',
+          group: 'Hidden Phase',
         },
         {
           field: 'due_date_annotations',
           label: 'Replies',
-          group: 'Checkpoint',
+          group: 'Hidden Phase',
         },
       ],
     });
 
-    assert.deepEqual(headerRow(wrapper, 0), ['', 'Checkpoint']);
+    assert.deepEqual(headerRow(wrapper, 0), ['', 'Hidden Phase']);
     assert.deepEqual(
-      wrapper
-        .find('thead tr')
-        .at(0)
-        .find('th')
-        .map(cell => cell.prop('colSpan')),
+      headerCells(wrapper, 0).map(cell => cell.prop('colSpan')),
       [1, 2],
     );
+  });
+
+  it('separates each group with a gutter column', () => {
+    const wrapper = createComponent();
+
+    // The Student column is in no group, so of the three columns only the two
+    // grouped ones open a group: a gutter before each, in every row.
+    const gutters = row => row.map(cell => cell.prop('aria-hidden') === true);
+    const expected = [false, true, false, true, false];
+
+    assert.deepEqual(
+      gutters(wrapper.find('thead tr').at(0).find('th')),
+      expected,
+    );
+    assert.deepEqual(
+      gutters(wrapper.find('thead tr').at(1).find('th')),
+      expected,
+    );
+    assert.deepEqual(
+      gutters(wrapper.find('tbody tr').at(0).find('td')),
+      expected,
+    );
+  });
+
+  it('sizes the gutters without making them sortable', () => {
+    const wrapper = createComponent();
+
+    // One `col` per gutter on top of one per column, and no sort control in
+    // the gutters: they hold no data to order by.
+    assert.equal(wrapper.find('colgroup col').length, 5);
+    assert.equal(wrapper.find('thead tr').at(1).find('button').length, 3);
   });
 
   it('does not display a group row when no column declares a group', () => {
@@ -167,10 +205,7 @@ describe('GroupedActivityTable', () => {
   it('orders rows by the default field', () => {
     const wrapper = createComponent();
 
-    assert.deepEqual(
-      wrapper.find('tbody tr').map(row => row.find('td').at(0).text()),
-      ['a', 'b', 'c'],
-    );
+    assert.deepEqual(columnText(wrapper, 0), ['a', 'b', 'c']);
   });
 
   [
@@ -186,10 +221,7 @@ describe('GroupedActivityTable', () => {
         wrapper.find('thead tr').at(1).find('button').at(1).simulate('click');
       }
 
-      assert.deepEqual(
-        wrapper.find('tbody tr').map(row => row.find('td').at(1).text()),
-        expectedOrder,
-      );
+      assert.deepEqual(columnText(wrapper, 1), expectedOrder);
     });
   });
 
@@ -198,10 +230,7 @@ describe('GroupedActivityTable', () => {
 
     // Order by a column of a group...
     wrapper.find('thead tr').at(1).find('button').at(1).simulate('click');
-    assert.deepEqual(
-      wrapper.find('tbody tr').map(row => row.find('td').at(1).text()),
-      ['8', '5', '3'],
-    );
+    assert.deepEqual(columnText(wrapper, 1), ['8', '5', '3']);
 
     // ...and then drop it, the way a variant does when the data behind a window
     // goes away. Ordering by a field no column holds would sort nothing and
@@ -212,19 +241,13 @@ describe('GroupedActivityTable', () => {
         {
           field: 'due_date_annotations',
           label: 'Annotations',
-          group: 'Due Date',
+          group: 'Revealed Phase',
         },
       ],
     });
 
-    assert.deepEqual(
-      wrapper.find('tbody tr').map(row => row.find('td').at(0).text()),
-      ['a', 'b', 'c'],
-    );
-    assert.equal(
-      wrapper.find('thead tr').at(1).find('th').at(0).prop('aria-sort'),
-      'ascending',
-    );
+    assert.deepEqual(columnText(wrapper, 0), ['a', 'b', 'c']);
+    assert.equal(headerCells(wrapper, 1).at(0).prop('aria-sort'), 'ascending');
   });
 
   it('names a grouped column after its group for assistive technology', () => {
@@ -239,21 +262,16 @@ describe('GroupedActivityTable', () => {
 
     assert.deepEqual(labels, [
       undefined,
-      'Checkpoint Annotations',
-      'Due Date Annotations',
+      'Hidden Phase Annotations',
+      'Revealed Phase Annotations',
     ]);
   });
 
   it('marks the ordered column for assistive technology', () => {
     const wrapper = createComponent();
 
-    assert.equal(
-      wrapper.find('thead tr').at(1).find('th').at(0).prop('aria-sort'),
-      'ascending',
-    );
-    assert.isUndefined(
-      wrapper.find('thead tr').at(1).find('th').at(1).prop('aria-sort'),
-    );
+    assert.equal(headerCells(wrapper, 1).at(0).prop('aria-sort'), 'ascending');
+    assert.isUndefined(headerCells(wrapper, 1).at(1).prop('aria-sort'));
   });
 
   it('shows a spinner instead of the rows while loading', () => {

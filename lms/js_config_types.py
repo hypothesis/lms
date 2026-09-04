@@ -65,6 +65,10 @@ class PhaseMetrics(TypedDict):
     """Informational only: there's no way to sync more than one grade per
     assignment to the LMS gradebook."""
 
+    requirements: NotRequired[AutoGradingConfig]
+    """What this phase was graded against. Absent when the phase has no config
+    of its own, which is also when it has no grade."""
+
 
 class CourseMetrics(TypedDict):
     assignments: int
