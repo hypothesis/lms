@@ -589,10 +589,10 @@ describe('students-table', () => {
       );
     });
 
-    it('does not call the first phase the due date before anyone reaches the next', () => {
-      // The day after a reveal nobody has activity in the phase which closes at
-      // the due date, so the API only reports phase 1. An assignment with a
-      // checkpoint always has a phase after it
+    it('assumes a checkpointed assignment has a phase after the first', () => {
+      // h reports a row per phase whether or not it has activity, so this is
+      // not a payload it sends: it pins MIN_PHASES, which keeps the labels
+      // right if that ever narrows to only the phases with activity
       const { columns } = config(checkpointAssignment, [
         {
           ...student,
