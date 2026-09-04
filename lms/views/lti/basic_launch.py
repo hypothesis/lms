@@ -106,23 +106,14 @@ class BasicLaunchViews:
         js_config = self._configure_js_for_file_picker(
             assignment, route="edit_assignment"
         )
-        assignment_config = {
-            # Info about the assignment's current configuration
-            "assignment": {
-                "group_set_id": assignment.extra.get("group_set_id"),
-                "document": {
-                    "url": assignment.document_url,
-                },
-            },
+        return {
+            # Info about the assignment's current configuration. Built by
+            # `enable_file_picker_mode`, the same as for the deep-linking file
+            # picker: the frontend reads one shape either way.
+            "assignment": js_config["assignment"],
             # Data needed to re-configure it
             "filePicker": js_config["filePicker"],
         }
-        if auto_grading_config := assignment.auto_grading_config:
-            assignment_config["assignment"]["auto_grading_config"] = (
-                auto_grading_config.asdict()
-            )
-
-        return assignment_config
 
     @view_config(
         route_name="configure_assignment",
@@ -164,9 +155,9 @@ class BasicLaunchViews:
                 data={
                     "old_url": assignment.document_url,
                     "old_group_set_id": assignment.extra.get("group_set_id"),
-                    "old_auto_grading_configuration": assignment.auto_grading_config.asdict()
-                    if assignment.auto_grading_config
-                    else None,
+                    "old_auto_grading_configuration": self.assignment_service.get_auto_grading_config_data(
+                        assignment
+                    ),
                 },
             )
         )
