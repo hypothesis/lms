@@ -120,9 +120,7 @@ class TestFilePickerMode:
             sentinel.form_action, sentinel.form_fields, course
         )
 
-        assert (
-            js_config.asdict()["filePicker"]["phasedAutoGradingEnabled"] == expected
-        )
+        assert js_config.asdict()["filePicker"]["phasedAutoGradingEnabled"] == expected
 
     def test_it_does_not_set_assignment_config_for_a_create(self, js_config, course):
         js_config.enable_file_picker_mode(

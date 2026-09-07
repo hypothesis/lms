@@ -254,7 +254,9 @@ class TestUserViews:
             auto_grading_config=first_config,
         )
         assignment.course.application_instance.settings.set(
-            "hypothesis", "phased_auto_grading", True
+            "hypothesis",
+            "phased_auto_grading",
+            True,  # noqa: FBT003
         )
         db_session.flush()
         dashboard_service.get_request_assignment.return_value = assignment
@@ -384,7 +386,9 @@ class TestUserViews:
             auto_grading_config=first_config,
         )
         assignment.course.application_instance.settings.set(
-            "hypothesis", "phased_auto_grading", True
+            "hypothesis",
+            "phased_auto_grading",
+            True,  # noqa: FBT003
         )
         db_session.flush()
         dashboard_service.get_request_assignment.return_value = assignment
@@ -443,7 +447,9 @@ class TestUserViews:
             document_uri="https://example.com/reading",
         )
         assignment.course.application_instance.settings.set(
-            "hypothesis", "phased_auto_grading", True
+            "hypothesis",
+            "phased_auto_grading",
+            True,  # noqa: FBT003
         )
         db_session.flush()
         dashboard_service.get_request_assignment.return_value = assignment
