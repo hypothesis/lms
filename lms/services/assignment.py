@@ -6,6 +6,7 @@ from sqlalchemy import Select, func, literal, or_, select, text
 from sqlalchemy.orm import Session
 
 from lms.models import (
+    MAX_AUTO_GRADING_PHASES,
     Assignment,
     AssignmentGrouping,
     AssignmentMembership,
@@ -26,13 +27,6 @@ from lms.services.document_uri import (
 from lms.services.upsert import bulk_upsert
 
 LOG = logging.getLogger(__name__)
-
-#: How deep `get_auto_grading_configs` will walk. Not a limit on grading
-#: phases: nothing enforces one, and this must stay well above any chain the
-#: writer can produce or reads would silently truncate. It exists only because
-#: a cycle can be created by hand, and the walk carries a `phase` column that
-#: differs on every iteration, so UNION would not deduplicate its way out.
-_MAX_CHAIN_DEPTH = 20
 
 
 class AssignmentService:
@@ -543,7 +537,7 @@ class AssignmentService:
         chain = chain.union_all(
             select(AutoGradingConfig.id, chain.c.phase + 1)
             .join(chain, AutoGradingConfig.previous_config_id == chain.c.id)
-            .where(chain.c.phase < _MAX_CHAIN_DEPTH)
+            .where(chain.c.phase < MAX_AUTO_GRADING_PHASES)
         )
 
         return list(
@@ -588,12 +582,12 @@ class AssignmentService:
         else:
             phases = list(auto_grading_config)
 
-        if len(phases) > _MAX_CHAIN_DEPTH:
+        if len(phases) > MAX_AUTO_GRADING_PHASES:
             # Writing a longer chain than the read side follows would leave the
             # tail unreachable: it is never returned, so it is never relinked
             # or deleted either.
             msg = (
-                f"An assignment cannot have more than {_MAX_CHAIN_DEPTH}"
+                f"An assignment cannot have more than {MAX_AUTO_GRADING_PHASES}"
                 f" auto-grading phases, got {len(phases)}"
             )
             raise ValueError(msg)

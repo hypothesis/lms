@@ -6,7 +6,7 @@ import pytest
 from h_matchers import Any
 from pyramid import testing
 
-from lms.services.assignment import _MAX_CHAIN_DEPTH
+from lms.models import MAX_AUTO_GRADING_PHASES
 from lms.validation import (
     BasicLTILaunchSchema,
     ConfigureAssignmentSchema,
@@ -316,7 +316,7 @@ class TestConfigureAssignmentSchema:
         # Left to `AssignmentService` this is a `ValueError` at launch time,
         # by which point the configs are a custom param the LMS is holding.
         pyramid_request.params["auto_grading_config"] = json.dumps(
-            [auto_grading_config] * (_MAX_CHAIN_DEPTH + 1)
+            [auto_grading_config] * (MAX_AUTO_GRADING_PHASES + 1)
         )
 
         with pytest.raises(ValidationError):
@@ -325,7 +325,7 @@ class TestConfigureAssignmentSchema:
     def test_with_as_many_phases_as_can_be_stored(
         self, pyramid_request, schema, auto_grading_config
     ):
-        phases = [auto_grading_config] * _MAX_CHAIN_DEPTH
+        phases = [auto_grading_config] * MAX_AUTO_GRADING_PHASES
         pyramid_request.params["auto_grading_config"] = json.dumps(phases)
 
         data = schema.parse()
