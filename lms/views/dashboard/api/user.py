@@ -141,6 +141,7 @@ class UserViews:
             ]
 
         request_h_userids = self.request.parsed_params.get("h_userids")
+        assert assignment.course  # noqa: S101
         # A checkpointed assignment is graded per phase, so ask h to bucket the
         # counts. It needs `document_uri` to find the checkpoint whose reveals
         # delimit them, and `due_date` to close the last one.
