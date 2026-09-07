@@ -230,6 +230,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     editing,
     filePicker: {
       autoGradingEnabled,
+      phasedAutoGradingEnabled,
       assignmentTypes,
       deepLinkingAPI,
       formAction,
@@ -382,18 +383,19 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   // exist yet, so nothing else knows how many phases it will be graded in. One
   // checkpoint means two phases; more checkpoints would only make this list
   // longer.
-  const gradingPhases: GradingPhase[] = checkpointEnabled
-    ? [
-        {
-          label: 'Checkpoint',
-          description: 'Applies to activity before the Checkpoint',
-        },
-        {
-          label: dueDate ? 'Due Date' : 'Assignment end',
-          description: 'Applies to activity after the Checkpoint',
-        },
-      ]
-    : [];
+  const gradingPhases: GradingPhase[] =
+    checkpointEnabled && phasedAutoGradingEnabled
+      ? [
+          {
+            label: 'Checkpoint',
+            description: 'Applies to activity before the Checkpoint',
+          },
+          {
+            label: dueDate ? 'Due Date' : 'Assignment end',
+            description: 'Applies to activity after the Checkpoint',
+          },
+        ]
+      : [];
 
   // The auto-grading config as expected by the backend
   const autoGradingConfigToSave:

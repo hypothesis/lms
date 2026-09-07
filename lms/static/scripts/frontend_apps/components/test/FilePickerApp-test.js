@@ -858,6 +858,7 @@ describe('FilePickerApp', () => {
         document: { url: 'https://example.com' },
       };
       fakeConfig.filePicker.autoGradingEnabled = true;
+      fakeConfig.filePicker.phasedAutoGradingEnabled = true;
 
       const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
       const wrapper = renderFilePicker({ onSubmit });
@@ -892,6 +893,7 @@ describe('FilePickerApp', () => {
         document: { url },
       };
       fakeConfig.filePicker.autoGradingEnabled = true;
+      fakeConfig.filePicker.phasedAutoGradingEnabled = true;
 
       const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
       const wrapper = renderFilePicker({ onSubmit });
@@ -899,6 +901,39 @@ describe('FilePickerApp', () => {
       checkFormFields(wrapper, {
         content: { type: 'url', url },
         autoGradingConfig: phases,
+        checkpointEnabled: true,
+      });
+    });
+
+    it('collapses a paced assignment to its first phase when the install has not opted into pacing', () => {
+      const phases = [
+        {
+          grading_type: 'scaled',
+          activity_calculation: 'cumulative',
+          required_annotations: 2,
+        },
+        {
+          grading_type: 'scaled',
+          activity_calculation: 'cumulative',
+          required_annotations: 5,
+        },
+      ];
+      const url = 'https://example.com';
+
+      fakeConfig.assignment = {
+        auto_grading_config: phases,
+        checkpoint_enabled: true,
+        document: { url },
+      };
+      fakeConfig.filePicker.autoGradingEnabled = true;
+      fakeConfig.filePicker.phasedAutoGradingEnabled = false;
+
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      checkFormFields(wrapper, {
+        content: { type: 'url', url },
+        autoGradingConfig: phases[0],
         checkpointEnabled: true,
       });
     });
@@ -951,6 +986,7 @@ describe('FilePickerApp', () => {
           document: { url: 'https://example.com' },
         };
         fakeConfig.filePicker.autoGradingEnabled = true;
+        fakeConfig.filePicker.phasedAutoGradingEnabled = true;
       });
 
       it('offers no due date fields until they are asked for', () => {
