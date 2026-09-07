@@ -1,6 +1,7 @@
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.application_instance import ApplicationInstance, ApplicationSettings
 from lms.models.assignment import (
+    MAX_AUTO_GRADING_PHASES,
     Assignment,
     AutoGradingCalculation,
     AutoGradingConfig,

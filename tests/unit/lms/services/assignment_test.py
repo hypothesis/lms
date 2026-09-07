@@ -6,6 +6,7 @@ from h_matchers import Any
 from sqlalchemy import select
 
 from lms.models import (
+    MAX_AUTO_GRADING_PHASES,
     AssignmentGrouping,
     AssignmentMembership,
     AutoGradingConfig,
@@ -13,11 +14,7 @@ from lms.models import (
     RoleScope,
     RoleType,
 )
-from lms.services.assignment import (
-    _MAX_CHAIN_DEPTH,
-    AssignmentService,
-    factory,
-)
+from lms.services.assignment import AssignmentService, factory
 from tests import factories
 
 
@@ -333,7 +330,7 @@ class TestAssignmentService:
 
         configs = svc.get_auto_grading_configs(assignment)
 
-        assert len(configs) == _MAX_CHAIN_DEPTH
+        assert len(configs) == MAX_AUTO_GRADING_PHASES
 
     def test_update_assignment_rejects_more_phases_than_the_chain_bound(
         self, svc, pyramid_request, course, misc_plugin
@@ -351,7 +348,8 @@ class TestAssignmentService:
                 None,
                 course,
                 auto_grading_config=[
-                    {"required_annotations": 1} for _ in range(_MAX_CHAIN_DEPTH + 1)
+                    {"required_annotations": 1}
+                    for _ in range(MAX_AUTO_GRADING_PHASES + 1)
                 ],
             )
 

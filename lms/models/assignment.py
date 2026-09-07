@@ -10,6 +10,10 @@ from lms.db import Base, varchar_enum
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.grouping import Course, Grouping
 
+#: The most grading phases an assignment can have, and how deep
+#: `get_auto_grading_configs` walks: a longer chain would have an unreachable tail.
+MAX_AUTO_GRADING_PHASES = 20
+
 
 class AutoGradingType(StrEnum):
     ALL_OR_NOTHING = "all_or_nothing"
