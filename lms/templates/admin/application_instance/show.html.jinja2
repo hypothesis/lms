@@ -136,6 +136,7 @@
                             <legend class="label has-text-centered">Grading settings</legend>
                             {{ settings_checkbox("Use alternative parameter for LTI1.3 grading", "hypothesis", "lti_13_sourcedid_for_grading", default=False) }}
                             {{ tri_state_settings_checkbox("Prompt for gradable on creation", fields[Settings.HYPOTHESIS_PROMPT_FOR_GRADABLE]) }}
+                            {{ tri_state_settings_checkbox("Phased auto-grading (Paced Social annotation)", fields[Settings.HYPOTHESIS_PHASED_AUTO_GRADING]) }}
                         </fieldset>
  
                         <fieldset class="box">

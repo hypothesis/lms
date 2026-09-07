@@ -400,6 +400,10 @@ class JSConfig:
                     # Enable auto grading everywhere except in Sakai
                     "autoGradingEnabled": self._application_instance.tool_consumer_info_product_family_code
                     != "sakai",
+                    # Whether this install can grade an assignment phase by
+                    # phase. An instance can already have Hide & Reveal without
+                    # having opted into this.
+                    "phasedAutoGradingEnabled": self._application_instance.settings.phased_auto_grading_enabled,
                     # The "content item selection" that we submit to Canvas's
                     # content_item_return_url is actually an LTI launch URL with
                     # the selected document URL or file_id as a query parameter. To

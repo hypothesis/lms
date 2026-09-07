@@ -71,6 +71,7 @@ class ApplicationSettings(JSONSettings):
         HYPOTHESIS_PDF_IMAGE_ANNOTATION = "hypothesis.pdf_image_annotation"
         HYPOTHESIS_PROMPT_FOR_GRADABLE = "hypothesis.prompt_for_gradable"
         HYPOTHESIS_HIDE_AND_REVEAL = "hypothesis.hide_and_reveal"
+        HYPOTHESIS_PHASED_AUTO_GRADING = "hypothesis.phased_auto_grading"
 
     fields: Mapping[Settings, JSONSetting] = {
         Settings.BLACKBOARD_FILES_ENABLED: JSONSetting(
@@ -188,7 +189,19 @@ class ApplicationSettings(JSONSettings):
             SettingFormat.TRI_STATE,
             default=True,
         ),
+        Settings.HYPOTHESIS_PHASED_AUTO_GRADING: JSONSetting(
+            Settings.HYPOTHESIS_PHASED_AUTO_GRADING,
+            SettingFormat.TRI_STATE,
+            default=False,
+        ),
     }
+
+    @property
+    def phased_auto_grading_enabled(self) -> bool:
+        """Whether this instance can grade an assignment phase by phase."""
+        return bool(
+            self.get_setting(self.fields[self.Settings.HYPOTHESIS_PHASED_AUTO_GRADING])
+        )
 
 
 class ApplicationInstance(CreatedUpdatedMixin, Base):

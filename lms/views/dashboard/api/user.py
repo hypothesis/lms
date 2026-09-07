@@ -144,7 +144,11 @@ class UserViews:
         # A checkpointed assignment is graded per phase, so ask h to bucket the
         # counts. It needs `document_uri` to find the checkpoint whose reveals
         # delimit them, and `due_date` to close the last one.
-        use_phases = bool(assignment.checkpoint_enabled and assignment.document_uri)
+        use_phases = bool(
+            assignment.checkpoint_enabled
+            and assignment.document_uri
+            and assignment.course.application_instance.settings.phased_auto_grading_enabled
+        )
         stats = self.h_api.get_annotation_counts(
             assignment_groupings_authority_provided_ids,
             group_by="user_phase" if use_phases else "user",
