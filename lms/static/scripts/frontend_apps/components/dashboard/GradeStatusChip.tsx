@@ -6,6 +6,9 @@ export type GradeStatusChipProps = {
    * color combination.
    */
   grade: number;
+
+  /** Render the grade in grey, whatever it is. */
+  muted?: boolean;
 };
 
 /**
@@ -31,21 +34,29 @@ export function formatGrade(grade: number): string {
  *  0.1-0.49 - light red
  *  0        - bright red
  *  other    - grey
+ *
+ * A muted chip is grey at any grade, for one which is not the grade of record.
  */
-export default function GradeStatusChip({ grade }: GradeStatusChipProps) {
+export default function GradeStatusChip({
+  grade,
+  muted = false,
+}: GradeStatusChipProps) {
   const gradeIsInvalid = grade < 0 || grade > 1;
+  const isGrey = muted || gradeIsInvalid;
 
   return (
     <div
       className={classnames(
         'rounded inline-block font-bold px-2 py-0.5 cursor-default',
         {
-          'bg-green-dark text-white': grade === 1,
-          'bg-green-light text-green-dark': grade >= 0.8 && grade < 1,
-          'bg-yellow-light text-yellow-dark': grade >= 0.5 && grade < 0.8,
-          'bg-red-light text-red-dark': grade > 0 && grade < 0.5,
-          'bg-red-dark text-white': grade === 0,
-          'bg-grey-3 text-grey-7': gradeIsInvalid,
+          'bg-green-dark text-white': !isGrey && grade === 1,
+          'bg-green-light text-green-dark':
+            !isGrey && grade >= 0.8 && grade < 1,
+          'bg-yellow-light text-yellow-dark':
+            !isGrey && grade >= 0.5 && grade < 0.8,
+          'bg-red-light text-red-dark': !isGrey && grade > 0 && grade < 0.5,
+          'bg-red-dark text-white': !isGrey && grade === 0,
+          'bg-grey-3 text-grey-7': isGrey,
         },
       )}
     >

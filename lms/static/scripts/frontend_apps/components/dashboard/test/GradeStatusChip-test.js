@@ -4,8 +4,8 @@ import { mount } from '@hypothesis/frontend-testing';
 import GradeStatusChip from '../GradeStatusChip';
 
 describe('GradeStatusChip', () => {
-  function renderComponent(grade) {
-    return mount(<GradeStatusChip grade={grade} />);
+  function renderComponent(grade, muted) {
+    return mount(<GradeStatusChip grade={grade} muted={muted} />);
   }
 
   [
@@ -28,6 +28,14 @@ describe('GradeStatusChip', () => {
       const wrapper = renderComponent(grade);
       assert.equal(wrapper.text(), `${grade * 100}`);
     });
+  });
+
+  it('renders a muted grade in grey, keeping the percentage', () => {
+    const wrapper = renderComponent(1, true);
+
+    assert.equal(wrapper.text(), '100%');
+    assert.isTrue(wrapper.find('div').hasClass('bg-grey-3'));
+    assert.isFalse(wrapper.find('div').hasClass('bg-green-dark'));
   });
 
   it(
@@ -60,6 +68,10 @@ describe('GradeStatusChip', () => {
       {
         name: '150',
         content: () => renderComponent(1.5),
+      },
+      {
+        name: 'muted',
+        content: () => renderComponent(0.8, true),
       },
     ]),
   );

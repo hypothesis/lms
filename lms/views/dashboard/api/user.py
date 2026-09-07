@@ -329,6 +329,9 @@ class UserViews:
                 phase_metrics["grade"] = self.auto_grading_service.calculate_grade(
                     config, phase_metrics["metrics"]
                 )
+                # Sent alongside the grade so the dashboard can show how each
+                # phase reached it, rather than a total it cannot derive.
+                phase_metrics["requirements"] = config.asdict()
 
             auto_grading_grade: AutoGradingGrade = {
                 # Only the final grade is ever synced; the per-phase grades feed
