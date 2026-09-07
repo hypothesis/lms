@@ -304,18 +304,13 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   // Checkpoint configuration for "Hide & Reveal" assignments.
   const [checkpointType, setCheckpointType] =
     useState<CheckpointType>('manual');
-  // The date the assignment already carries, if any, in the selector's local
-  // `YYYY-MM-DDTHH:MM` form. What the picker is given is what it sends back, so
-  // starting empty would clear a date the assignment already has. The backend
-  // sends UTC; the selector works in local time.
-  const savedDueDate = assignment?.due_date
-    ? localDateTime(new Date(assignment.due_date))
-    : null;
-  // The same date in the UTC ISO form the backend speaks, for handing back
-  // unchanged when the instructor was never shown a control over it.
-  const savedDueDateISO = assignment?.due_date
-    ? new Date(assignment.due_date).toISOString()
-    : null;
+  // The date the assignment already carries, if any. What the picker is given
+  // is what it sends back, so starting empty would clear a date it already has.
+  const savedDate = assignment?.due_date ? new Date(assignment.due_date) : null;
+  // The selector works in local time; the backend speaks UTC ISO, which is also
+  // the form to hand back unchanged when no control over it was ever shown.
+  const savedDueDate = savedDate && localDateTime(savedDate);
+  const savedDueDateISO = savedDate?.toISOString() ?? null;
   const [dueDate, setDueDate] = useState<string | null>(savedDueDate);
   // The due date is optional, and "none yet" and "not wanted" look the same in
   // `dueDate`, so whether the fields are on is its own state.

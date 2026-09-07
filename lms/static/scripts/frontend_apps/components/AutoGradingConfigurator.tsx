@@ -189,8 +189,9 @@ export function fromAPIConfig(
     grading_type: first.grading_type,
     activity_calculation: first.activity_calculation,
     // The first phase is the closest thing to a whole-assignment goal there
-    // is, so it seeds the other mode instead of leaving it at the default.
-    single: goals[0],
+    // is, so it seeds the other mode instead of leaving it at the default. A
+    // copy, because the two are edited independently.
+    single: { ...goals[0] },
     phases: goals,
   };
 }
