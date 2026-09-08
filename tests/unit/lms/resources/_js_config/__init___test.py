@@ -100,8 +100,10 @@ class TestFilePickerMode:
         assert "assignment" not in js_config.asdict()
 
     def test_it_sets_assignment_config_when_editing(
-        self, js_config, course, assignment
+        self, js_config, course, assignment, assignment_service
     ):
+        assignment_service.get_auto_grading_config_data.return_value = None
+
         js_config.enable_file_picker_mode(
             sentinel.form_action, sentinel.form_fields, course, assignment=assignment
         )
@@ -109,22 +111,41 @@ class TestFilePickerMode:
         assert js_config.asdict()["assignment"] == {
             "group_set_id": assignment.extra.get("group_set_id"),
             "document": {"url": assignment.document_url},
+            "checkpoint_enabled": assignment.checkpoint_enabled,
+            "due_date": None,
         }
 
-    def test_it_sets_auto_grading_config_when_editing_an_auto_graded_assignment(
-        self, js_config, course
+    def test_it_sends_the_due_date_when_editing_an_assignment_with_one(
+        self, js_config, course, assignment_service
     ):
+        assignment_service.get_auto_grading_config_data.return_value = None
+        # Naive: the column is naive UTC.
         assignment = factories.Assignment(
-            auto_grading_config=factories.AutoGradingConfig()
+            due_date=datetime(2026, 10, 14, 23, 59)  # noqa: DTZ001
         )
 
         js_config.enable_file_picker_mode(
             sentinel.form_action, sentinel.form_fields, course, assignment=assignment
         )
 
+        # UTC, so the browser doesn't read the naive column as local time.
+        assert (
+            js_config.asdict()["assignment"]["due_date"] == "2026-10-14T23:59:00+00:00"
+        )
+
+    def test_it_sets_auto_grading_config_when_editing_an_auto_graded_assignment(
+        self, js_config, course, assignment, assignment_service
+    ):
+        js_config.enable_file_picker_mode(
+            sentinel.form_action, sentinel.form_fields, course, assignment=assignment
+        )
+
+        assignment_service.get_auto_grading_config_data.assert_called_once_with(
+            assignment
+        )
         assert (
             js_config.asdict()["assignment"]["auto_grading_config"]
-            == assignment.auto_grading_config.asdict()
+            == assignment_service.get_auto_grading_config_data.return_value
         )
 
     @pytest.mark.parametrize(

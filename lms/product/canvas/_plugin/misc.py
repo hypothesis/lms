@@ -62,9 +62,12 @@ class CanvasMiscPlugin(MiscPlugin):
         deep_linked_config = self.get_deep_linked_assignment_configuration(request)
 
         if auto_grading_config := deep_linked_config.get("auto_grading_config"):
-            # Auto grading is a complex structure, deserialize it beforehand
+            # Auto grading is a complex structure, deserialize it beforehand.
+            # One config for an assignment graded as a whole, one per grading
+            # phase for a paced one -- whichever the file picker sent.
             assignment_config["auto_grading_config"] = cast(
-                "AutoGradingConfig", json.loads(auto_grading_config)
+                "AutoGradingConfig | list[AutoGradingConfig]",
+                json.loads(auto_grading_config),
             )
 
         if deep_linked_config.get("checkpoint_enabled") in ("true", True):

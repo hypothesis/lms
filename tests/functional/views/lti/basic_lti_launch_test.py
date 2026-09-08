@@ -138,6 +138,58 @@ class TestBasicLTILaunch:
         assert assignment.auto_grading_config.previous_config_id is None
         assert db_session.query(AutoGradingConfig).count() == 1
 
+    def test_basic_lti_launch_persists_a_config_chain_for_paced_grades(
+        self, do_lti_launch, db_session, lti_params, sign_lti_params
+    ):
+        post_params = sign_lti_params(
+            dict(
+                lti_params,
+                url="https://paced-grades.com/document.pdf",
+                auto_grading_config=json.dumps(
+                    [
+                        {
+                            "activity_calculation": "cumulative",
+                            "grading_type": "scaled",
+                            "required_annotations": 2,
+                        },
+                        {
+                            "activity_calculation": "cumulative",
+                            "grading_type": "scaled",
+                            "required_annotations": 5,
+                        },
+                    ]
+                ),
+                tool_consumer_info_product_family_code="canvas",
+            )
+        )
+
+        # Launched twice on purpose. The second launch reads the stored chain
+        # back and writes it out again, which is where a read that only follows
+        # the head would drop every phase after the first: the surplus is
+        # deleted rather than relinked.
+        do_lti_launch(post_params=post_params, status=200)
+        do_lti_launch(post_params=post_params, status=200)
+
+        assignment = (
+            db_session.query(Assignment)
+            .filter_by(document_url="https://paced-grades.com/document.pdf")
+            .one()
+        )
+        # `Assignment.auto_grading_config` points at the first phase; the ones
+        # after it follow by `previous_config_id`, in grading-phase order.
+        first_phase = assignment.auto_grading_config
+        second_phase = (
+            db_session.query(AutoGradingConfig)
+            .filter_by(previous_config_id=first_phase.id)
+            .one()
+        )
+
+        assert first_phase.previous_config_id is None
+        assert first_phase.required_annotations == 2
+        assert second_phase.required_annotations == 5
+        # Relaunching reuses the rows rather than appending to the chain.
+        assert db_session.query(AutoGradingConfig).count() == 2
+
     @pytest.fixture
     def assignment(self, db_session, application_instance, lti_params):
         assignment = Assignment(

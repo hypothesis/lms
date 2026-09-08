@@ -22,8 +22,11 @@ export type FilePickerFormFieldsProps = {
   /** Assignment title chosen by the user, if supported by the current LMS. */
   title: string | null;
 
-  /** Auto-grading configuration for assignments where it is enabled */
-  autoGradingConfig: AutoGradingConfig | null;
+  /**
+   * Auto-grading configuration for assignments where it is enabled: one config
+   * for a single grade, one per grading phase for paced grades.
+   */
+  autoGradingConfig: AutoGradingConfig | AutoGradingConfig[] | null;
 
   /** Whether this is a "Hide & Reveal" assignment. */
   checkpointEnabled: boolean;
@@ -67,11 +70,15 @@ export default function FilePickerFormFields({
         />
       )}
       {checkpointEnabled && (
-        <>
-          <input type="hidden" name="checkpoint_enabled" value="true" />
-          {dueDate && <input type="hidden" name="due_date" value={dueDate} />}
-        </>
+        <input type="hidden" name="checkpoint_enabled" value="true" />
       )}
+      {/* Emitted on its own rather than alongside `checkpoint_enabled`. The
+          caller decides whether a date applies -- and only ever passes one for
+          a checkpoint assignment -- so a second check here would be either
+          redundant or, once other kinds of assignment carry a date, a silent
+          way to drop it. The deep-linking path sends `due_date` on the same
+          terms: whatever it was handed. */}
+      {dueDate && <input type="hidden" name="due_date" value={dueDate} />}
     </>
   );
 }

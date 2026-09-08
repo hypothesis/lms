@@ -33,7 +33,25 @@ class TestDeepLinkingFieldsRequestSchema:
                     "required_replies": 2,
                 },
                 "extra_params": {},
-            }
+            },
+            {
+                "content": {"type": "url", "url": "https://example.com"},
+                "content_item_return_url": "return_url",
+                # One config per grading phase, for a paced assignment.
+                "auto_grading_config": [
+                    {
+                        "grading_type": "scaled",
+                        "activity_calculation": "cumulative",
+                        "required_annotations": 2,
+                    },
+                    {
+                        "grading_type": "scaled",
+                        "activity_calculation": "cumulative",
+                        "required_annotations": 5,
+                    },
+                ],
+                "extra_params": {},
+            },
         ],
     )
     def test_valid_payloads(self, payload):
@@ -58,7 +76,25 @@ class TestDeepLinkingFieldsRequestSchema:
                     "required_replies": 2,
                 },
                 "extra_params": {},
-            }
+            },
+            {
+                "content": {"type": "url", "url": "https://example.com"},
+                "content_item_return_url": "return_url",
+                # A bad config is a bad config wherever it sits in the list.
+                "auto_grading_config": [
+                    {
+                        "grading_type": "scaled",
+                        "activity_calculation": "cumulative",
+                        "required_annotations": 2,
+                    },
+                    {
+                        "grading_type": "RANDOM",
+                        "activity_calculation": "cumulative",
+                        "required_annotations": 5,
+                    },
+                ],
+                "extra_params": {},
+            },
         ],
     )
     def test_invalid_payloads(self, payload):
@@ -380,6 +416,10 @@ class TestDeepLinkingFieldsView:
             (
                 {"auto_grading_config": {"key": "value"}},
                 {"auto_grading_config": '{"key": "value"}'},
+            ),
+            (
+                {"auto_grading_config": [{"key": "value"}, {"key": "other"}]},
+                {"auto_grading_config": '[{"key": "value"}, {"key": "other"}]'},
             ),
             ({"checkpoint_enabled": True}, {"checkpoint_enabled": "true"}),
             (
