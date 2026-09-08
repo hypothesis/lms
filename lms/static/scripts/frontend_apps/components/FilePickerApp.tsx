@@ -867,7 +867,17 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                             pacedControls={
                               <div className="space-y-2">
                                 <Checkbox
-                                  checked={dueDateEnabled}
+                                  // While the control is live this is what
+                                  // was asked for, date not picked yet
+                                  // included. Once it isn't, it is whether a
+                                  // date will actually be saved: a single
+                                  // grade drops one entered here, and a tick
+                                  // would claim a deadline that is not coming.
+                                  checked={
+                                    pacedGrades
+                                      ? dueDateEnabled
+                                      : dueDateISO !== null
+                                  }
                                   disabled={!pacedGrades}
                                   checkedIcon={CheckboxCheckedFilledIcon}
                                   data-testid="due-date-toggle"
