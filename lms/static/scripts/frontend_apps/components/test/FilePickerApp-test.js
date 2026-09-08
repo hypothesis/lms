@@ -1011,6 +1011,14 @@ describe('FilePickerApp', () => {
         // entered here is only reachable through the control that a single
         // grade takes away.
         assert.isNull(wrapper.find('FilePickerFormFields').prop('dueDate'));
+        // And the checkbox says so, rather than claiming a deadline the
+        // assignment is not getting.
+        assert.isFalse(
+          wrapper
+            .find('Checkbox[data-testid="due-date-toggle"]')
+            .first()
+            .prop('checked'),
+        );
       });
 
       it('keeps the saved due date when the grades stop being paced', () => {
