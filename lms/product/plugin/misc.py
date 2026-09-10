@@ -153,8 +153,9 @@ class MiscPlugin:
             document_url=assignment.document_url,
             group_set_id=assignment.extra.get("group_set_id"),
         )
-        if auto_grading_config := assignment.auto_grading_config:
-            config["auto_grading_config"] = auto_grading_config.asdict()
+        # `auto_grading_config` is left out on purpose: only the head of the
+        # chain is reachable from here, and the service reads the whole of it
+        # when this key is absent. See `AssignmentService.get_assignment_for_launch`.
 
         if assignment.checkpoint_enabled:
             config["checkpoint_enabled"] = True
