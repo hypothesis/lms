@@ -50,9 +50,12 @@ class TestMiscPlugin:
 
         assert result["document_url"] == sentinel.document_url
 
-    def test_get_assignment_configuration_with_auto_grading_in_existing_db_assignment(
+    def test_get_assignment_configuration_omits_the_stored_auto_grading_config(
         self, plugin, pyramid_request
     ):
+        # Only the head of the chain is reachable here, and reporting it would
+        # be indistinguishable from a launch carrying a new single-phase
+        # config. Saying nothing is what lets the service tell them apart.
         assignment = factories.Assignment(
             auto_grading_config=factories.AutoGradingConfig()
         )
@@ -60,7 +63,7 @@ class TestMiscPlugin:
 
         result = plugin.get_assignment_configuration(pyramid_request, assignment, None)
 
-        assert result["auto_grading_config"] == assignment.auto_grading_config.asdict()
+        assert "auto_grading_config" not in result
 
     def test_get_assignment_configuration_with_auto_grading_in_deep_linked_configuration(
         self, plugin, get_deep_linked_assignment_configuration
