@@ -454,7 +454,7 @@ class TestDeepLinkingFieldsView:
         pyramid_request,
         assignment_service,
         db_session,
-        LTIEvent,  # noqa: ARG002, N803
+        LTIEvent,  # noqa: ARG002
         jwt_service,  # noqa: ARG002
         application_instance,
     ):
@@ -488,7 +488,7 @@ class TestDeepLinkingFieldsView:
         pyramid_request,
         assignment_service,
         db_session,
-        LTIEvent,  # noqa: ARG002, N803
+        LTIEvent,  # noqa: ARG002
         jwt_service,  # noqa: ARG002
         application_instance,  # noqa: ARG002
     ):
@@ -508,7 +508,7 @@ class TestDeepLinkingFieldsView:
         views,
         pyramid_request,
         assignment_service,
-        LTIEvent,  # noqa: ARG002, N803
+        LTIEvent,  # noqa: ARG002
         jwt_service,  # noqa: ARG002
         application_instance,
     ):
@@ -525,7 +525,7 @@ class TestDeepLinkingFieldsView:
         self,
         views,
         assignment_service,
-        LTIEvent,  # noqa: ARG002, N803
+        LTIEvent,  # noqa: ARG002
         jwt_service,  # noqa: ARG002
         application_instance,  # noqa: ARG002
     ):
