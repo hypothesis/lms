@@ -636,6 +636,26 @@ class TestAssignmentService:
         assert assignment.is_gradable == misc_plugin.is_assignment_gradable.return_value
         assert assignment.course_id == course.id
 
+    def test_set_auto_grading_config(self, svc, db_session):
+        # Configuring an assignment isn't a launch everywhere, so the grading
+        # config can be stored without rewriting the rest of the assignment.
+        assignment = factories.Assignment(
+            auto_grading_config=factories.AutoGradingConfig(required_annotations=1)
+        )
+        db_session.flush()
+
+        svc.set_auto_grading_config(
+            assignment,
+            {
+                "grading_type": "scaled",
+                "activity_calculation": "cumulative",
+                "required_annotations": 9,
+            },
+        )
+
+        (config,) = svc.get_auto_grading_configs(assignment)
+        assert config.required_annotations == 9
+
     def test_get_assignment_for_launch_keeps_the_whole_config_chain(
         self,
         pyramid_request,

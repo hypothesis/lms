@@ -449,37 +449,16 @@ class TestDeepLinkingFieldsView:
             DeepLinkingFieldsViews(pyramid_request).file_picker_to_form_fields_v13()
 
     def test_it_stores_the_auto_grading_config_of_the_assignment_being_edited(
-        self,
-        views,
-        pyramid_request,
-        assignment_service,
-        db_session,
-        LTIEvent,  # noqa: ARG002
-        jwt_service,  # noqa: ARG002
-        application_instance,
+        self, views, pyramid_request, assignment_service, editable_assignment
     ):
-        pyramid_request.lti_user = factories.LTIUser(
-            application_instance=application_instance,
-            application_instance_id=application_instance.id,
-            effective_lti_roles=[
-                Role(
-                    value="Instructor", scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
-                )
-            ],
-        )
-        assignment = factories.Assignment(
-            course=factories.Course(application_instance=application_instance)
-        )
-        db_session.flush()
-        assignment_service.get_by_id.return_value = assignment
-        pyramid_request.parsed_params["assignment_id"] = assignment.id
+        pyramid_request.parsed_params["assignment_id"] = editable_assignment.id
         config = {"grading_type": "scaled", "required_annotations": 9}
         pyramid_request.parsed_params["auto_grading_config"] = config
 
         views.file_picker_to_form_fields_v13()
 
         assignment_service.set_auto_grading_config.assert_called_once_with(
-            assignment, config
+            editable_assignment, config
         )
 
     def test_it_doesnt_store_the_config_of_another_installs_assignment(
@@ -487,17 +466,29 @@ class TestDeepLinkingFieldsView:
         views,
         pyramid_request,
         assignment_service,
+        instructor,  # noqa: ARG002
         db_session,
-        LTIEvent,  # noqa: ARG002
-        jwt_service,  # noqa: ARG002
-        application_instance,  # noqa: ARG002
     ):
-        # The id comes from the browser, so an instructor could name any
-        # assignment in the DB.
+        # The id reaches us through the browser, so an instructor could name
+        # any assignment in the DB.
         assignment = factories.Assignment(course=factories.Course())
         db_session.flush()
         assignment_service.get_by_id.return_value = assignment
         pyramid_request.parsed_params["assignment_id"] = assignment.id
+
+        views.file_picker_to_form_fields_v13()
+
+        assignment_service.set_auto_grading_config.assert_not_called()
+
+    def test_it_stores_nothing_for_an_assignment_that_isnt_there(
+        self,
+        views,
+        pyramid_request,
+        assignment_service,
+        instructor,  # noqa: ARG002
+    ):
+        assignment_service.get_by_id.return_value = None
+        pyramid_request.parsed_params["assignment_id"] = sentinel.assignment_id
 
         views.file_picker_to_form_fields_v13()
 
@@ -508,9 +499,9 @@ class TestDeepLinkingFieldsView:
         views,
         pyramid_request,
         assignment_service,
+        application_instance,
         LTIEvent,  # noqa: ARG002
         jwt_service,  # noqa: ARG002
-        application_instance,
     ):
         pyramid_request.lti_user = factories.LTIUser(
             roles="Learner", application_instance=application_instance
@@ -532,6 +523,41 @@ class TestDeepLinkingFieldsView:
         views.file_picker_to_form_fields_v13()
 
         assignment_service.set_auto_grading_config.assert_not_called()
+
+    @pytest.fixture
+    def instructor(
+        self,
+        pyramid_request,
+        application_instance,
+        LTIEvent,  # noqa: ARG002
+        jwt_service,  # noqa: ARG002
+    ):
+        """Make the caller an instructor of `application_instance`."""
+        pyramid_request.lti_user = factories.LTIUser(
+            application_instance=application_instance,
+            application_instance_id=application_instance.id,
+            effective_lti_roles=[
+                Role(
+                    value="Instructor", scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
+                )
+            ],
+        )
+        return pyramid_request.lti_user
+
+    @pytest.fixture
+    def editable_assignment(
+        self,
+        instructor,  # noqa: ARG002
+        application_instance,
+        assignment_service,
+        db_session,
+    ):
+        assignment = factories.Assignment(
+            course=factories.Course(application_instance=application_instance)
+        )
+        db_session.flush()
+        assignment_service.get_by_id.return_value = assignment
+        return assignment
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
