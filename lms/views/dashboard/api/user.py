@@ -16,7 +16,13 @@ from lms.js_config_types import (
     PhaseMetrics,
     RosterEntry,
 )
-from lms.models import Assignment, LMSUser, RoleScope, RoleType
+from lms.models import (
+    Assignment,
+    AutoGradingConfig,
+    LMSUser,
+    RoleScope,
+    RoleType,
+)
 from lms.security import Permissions
 from lms.services import UserService
 from lms.services.auto_grading import AutoGradingService
@@ -141,10 +147,21 @@ class UserViews:
             ]
 
         request_h_userids = self.request.parsed_params.get("h_userids")
-        # A checkpointed assignment is graded per phase, so ask h to bucket the
+        assert assignment.course  # noqa: S101
+        auto_grading_configs = self.assignment_service.get_auto_grading_configs(
+            assignment
+        )
+        # A checkpointed assignment graded per phase, so ask h to bucket the
         # counts. It needs `document_uri` to find the checkpoint whose reveals
         # delimit them, and `due_date` to close the last one.
-        use_phases = bool(assignment.checkpoint_enabled and assignment.document_uri)
+        # One config means a single grade over the whole assignment; none means
+        # ungraded, whose phases are still worth counting separately.
+        use_phases = bool(
+            assignment.checkpoint_enabled
+            and assignment.document_uri
+            and assignment.course.application_instance.settings.phased_auto_grading_enabled
+            and len(auto_grading_configs) != 1
+        )
         stats = self.h_api.get_annotation_counts(
             assignment_groupings_authority_provided_ids,
             group_by="user_phase" if use_phases else "user",
@@ -203,7 +220,9 @@ class UserViews:
             students.append(api_student)
 
         if assignment.auto_grading_config:
-            students = self._add_auto_grading_data(assignment, students)
+            students = self._add_auto_grading_data(
+                assignment, students, auto_grading_configs
+            )
 
         return APIRoster(students=students, last_updated=roster_last_updated)
 
@@ -314,14 +333,16 @@ class UserViews:
         ]
 
     def _add_auto_grading_data(
-        self, assignment: Assignment, api_students: list[RosterEntry]
-    ) -> list[RosterEntry]:
-        """Augment APIStudent with auto-grading data."""
-        last_sync_grades = self.auto_grading_service.get_last_grades(assignment)
+        self,
+        assignment: Assignment,
+        api_students: list[RosterEntry],
         # Phase N is graded against the config at position N. A shorter chain
         # leaves the later phases ungraded, which `zip` does by stopping at the
         # shorter side.
-        configs = self.assignment_service.get_auto_grading_configs(assignment)
+        configs: list[AutoGradingConfig],
+    ) -> list[RosterEntry]:
+        """Augment APIStudent with auto-grading data."""
+        last_sync_grades = self.auto_grading_service.get_last_grades(assignment)
 
         for api_student in api_students:
             phases = api_student.get("phase_metrics") or []

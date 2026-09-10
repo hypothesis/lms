@@ -400,6 +400,10 @@ class JSConfig:
                     # Enable auto grading everywhere except in Sakai
                     "autoGradingEnabled": self._application_instance.tool_consumer_info_product_family_code
                     != "sakai",
+                    # Whether this install can grade an assignment phase by
+                    # phase. An instance can already have Hide & Reveal without
+                    # having opted into this.
+                    "phasedAutoGradingEnabled": self._application_instance.settings.phased_auto_grading_enabled,
                     # The "content item selection" that we submit to Canvas's
                     # content_item_return_url is actually an LTI launch URL with
                     # the selected document URL or file_id as a query parameter. To
@@ -468,7 +472,7 @@ class JSConfig:
 
         return types
 
-    def add_deep_linking_api(self):
+    def add_deep_linking_api(self, assignment=None):
         """
         Add the details of the "DeepLinking API" in LMS where we support deep linking.
 
@@ -485,6 +489,11 @@ class JSConfig:
                 "context_id": self._request.lti_params["context_id"],
             },
         }
+        if assignment:
+            # An edit rather than a create. Sent so the configuration can be
+            # stored when the instructor saves, rather than waiting for a
+            # launch to bring it back to us.
+            config["data"]["assignment_id"] = assignment.id
         if self._application_instance.lti_version == "1.3.0":
             config["path"] = self._request.route_path(
                 "lti.v13.deep_linking.form_fields"

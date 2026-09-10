@@ -200,6 +200,12 @@ class TestApplicationSettings:
                 "hypothesis.hide_and_reveal",
                 SettingFormat.TRI_STATE,
             ),
+            (
+                "hypothesis",
+                "phased_auto_grading",
+                "hypothesis.phased_auto_grading",
+                SettingFormat.TRI_STATE,
+            ),
         ]
 
 

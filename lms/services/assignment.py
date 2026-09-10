@@ -258,9 +258,12 @@ class AssignmentService:
         document_url = assignment_config.get("document_url")
         group_set_id = assignment_config.get("group_set_id")
         auto_grading_config = assignment_config.get("auto_grading_config")
-        if source := assignment or historical_assignment:
-            # The plugin only sees the head of the chain. Passing that single
-            # phase back to update_assignment would delete the rest.
+        if "auto_grading_config" not in assignment_config and (
+            source := assignment or historical_assignment
+        ):
+            # The launch carried no configuration of its own, so the stored one
+            # stands. Read as the whole chain rather than the head the plugin
+            # can see: one phase passed back would delete the others.
             auto_grading_config = [
                 config.asdict() for config in self.get_auto_grading_configs(source)
             ] or None
@@ -567,6 +570,17 @@ class AssignmentService:
             return configs[0].asdict()
 
         return [config.asdict() for config in configs]
+
+    def set_auto_grading_config(
+        self, assignment: Assignment, auto_grading_config: dict | list[dict] | None
+    ) -> None:
+        """Store an assignment's grading config on its own.
+
+        For LMSes where configuring an assignment is not a launch: a launch
+        would rewrite the document, the checkpoint and the due date too, none
+        of which the caller is in a position to have decided.
+        """
+        self._update_auto_grading_config(assignment, auto_grading_config)
 
     def _update_auto_grading_config(
         self, assignment: Assignment, auto_grading_config: dict | list[dict] | None
