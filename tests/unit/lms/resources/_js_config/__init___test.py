@@ -927,6 +927,24 @@ class TestAddDeepLinkingAPI:
             },
         }
 
+    def test_it_sends_the_assignment_id_when_editing(
+        self, js_config, pyramid_request, db_session
+    ):
+        # The picker echoes this data back when the instructor saves, which is
+        # how the grading config gets stored without waiting for a launch.
+        pyramid_request.lti_params.update(
+            {"content_item_return_url": sentinel.content_item_return_url}
+        )
+        assignment = factories.Assignment()
+        db_session.flush()
+
+        js_config.add_deep_linking_api(assignment)
+
+        config = js_config.asdict()
+        assert config["filePicker"]["deepLinkingAPI"]["data"]["assignment_id"] == (
+            assignment.id
+        )
+
 
 class TestEnableErrorDialogMode:
     def test_it(self, js_config, LTIEvent, EventService, pyramid_request):
