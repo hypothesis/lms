@@ -571,6 +571,17 @@ class AssignmentService:
 
         return [config.asdict() for config in configs]
 
+    def set_auto_grading_config(
+        self, assignment: Assignment, auto_grading_config: dict | list[dict] | None
+    ) -> None:
+        """Store an assignment's grading config on its own.
+
+        For LMSes where configuring an assignment is not a launch: a launch
+        would rewrite the document, the checkpoint and the due date too, none
+        of which the caller is in a position to have decided.
+        """
+        self._update_auto_grading_config(assignment, auto_grading_config)
+
     def _update_auto_grading_config(
         self, assignment: Assignment, auto_grading_config: dict | list[dict] | None
     ) -> None:

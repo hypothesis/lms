@@ -472,7 +472,7 @@ class JSConfig:
 
         return types
 
-    def add_deep_linking_api(self):
+    def add_deep_linking_api(self, assignment=None):
         """
         Add the details of the "DeepLinking API" in LMS where we support deep linking.
 
@@ -489,6 +489,11 @@ class JSConfig:
                 "context_id": self._request.lti_params["context_id"],
             },
         }
+        if assignment:
+            # An edit rather than a create. Sent so the configuration can be
+            # stored when the instructor saves, rather than waiting for a
+            # launch to bring it back to us.
+            config["data"]["assignment_id"] = assignment.id
         if self._application_instance.lti_version == "1.3.0":
             config["path"] = self._request.route_path(
                 "lti.v13.deep_linking.form_fields"

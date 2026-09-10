@@ -7,6 +7,7 @@ from freezegun import freeze_time
 from h_matchers import Any
 from pyramid.testing import DummyRequest
 
+from lms.models.lti_role import Role, RoleScope, RoleType
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.validation import ValidationError
@@ -446,6 +447,91 @@ class TestDeepLinkingFieldsView:
 
         with pytest.raises(ValueError):  # noqa: PT011
             DeepLinkingFieldsViews(pyramid_request).file_picker_to_form_fields_v13()
+
+    def test_it_stores_the_auto_grading_config_of_the_assignment_being_edited(
+        self,
+        views,
+        pyramid_request,
+        assignment_service,
+        db_session,
+        LTIEvent,  # noqa: ARG002, N803
+        jwt_service,  # noqa: ARG002
+        application_instance,
+    ):
+        pyramid_request.lti_user = factories.LTIUser(
+            application_instance=application_instance,
+            application_instance_id=application_instance.id,
+            effective_lti_roles=[
+                Role(
+                    value="Instructor", scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
+                )
+            ],
+        )
+        assignment = factories.Assignment(
+            course=factories.Course(application_instance=application_instance)
+        )
+        db_session.flush()
+        assignment_service.get_by_id.return_value = assignment
+        pyramid_request.parsed_params["assignment_id"] = assignment.id
+        config = {"grading_type": "scaled", "required_annotations": 9}
+        pyramid_request.parsed_params["auto_grading_config"] = config
+
+        views.file_picker_to_form_fields_v13()
+
+        assignment_service.set_auto_grading_config.assert_called_once_with(
+            assignment, config
+        )
+
+    def test_it_doesnt_store_the_config_of_another_installs_assignment(
+        self,
+        views,
+        pyramid_request,
+        assignment_service,
+        db_session,
+        LTIEvent,  # noqa: ARG002, N803
+        jwt_service,  # noqa: ARG002
+        application_instance,  # noqa: ARG002
+    ):
+        # The id comes from the browser, so an instructor could name any
+        # assignment in the DB.
+        assignment = factories.Assignment(course=factories.Course())
+        db_session.flush()
+        assignment_service.get_by_id.return_value = assignment
+        pyramid_request.parsed_params["assignment_id"] = assignment.id
+
+        views.file_picker_to_form_fields_v13()
+
+        assignment_service.set_auto_grading_config.assert_not_called()
+
+    def test_it_doesnt_store_the_config_for_a_student(
+        self,
+        views,
+        pyramid_request,
+        assignment_service,
+        LTIEvent,  # noqa: ARG002, N803
+        jwt_service,  # noqa: ARG002
+        application_instance,
+    ):
+        pyramid_request.lti_user = factories.LTIUser(
+            roles="Learner", application_instance=application_instance
+        )
+        pyramid_request.parsed_params["assignment_id"] = sentinel.assignment_id
+
+        views.file_picker_to_form_fields_v13()
+
+        assignment_service.set_auto_grading_config.assert_not_called()
+
+    def test_it_stores_nothing_when_not_editing(
+        self,
+        views,
+        assignment_service,
+        LTIEvent,  # noqa: ARG002, N803
+        jwt_service,  # noqa: ARG002
+        application_instance,  # noqa: ARG002
+    ):
+        views.file_picker_to_form_fields_v13()
+
+        assignment_service.set_auto_grading_config.assert_not_called()
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):

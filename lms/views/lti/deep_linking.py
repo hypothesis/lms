@@ -114,7 +114,7 @@ def deep_linking_launch(context, request):
         ),
     )
 
-    context.js_config.add_deep_linking_api()
+    context.js_config.add_deep_linking_api(assignment)
     return {}
 
 
@@ -125,6 +125,9 @@ class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
 
     title = fields.Str(required=False, allow_none=True)
     assignment_gradable_max_points = fields.Float(required=False, allow_none=True)
+    # Present when editing. Comes from the client, so it is authorized before
+    # anything is written against it.
+    assignment_id = fields.Int(required=False, allow_none=True)
     auto_grading_config = AutoGradingConfigsField(required=False, allow_none=True)
     checkpoint_enabled = fields.Bool(required=False, load_default=False)
     # ISO 8601 string, normalised to naive UTC on persist.
@@ -152,6 +155,37 @@ class DeepLinkingFieldsViews:
         self.request = request
         self.misc_plugin: MiscPlugin = request.product.plugin.misc
 
+    def _store_auto_grading_config(self) -> None:
+        """Save the grading config of the assignment being edited.
+
+        Where configuring an assignment isn't a launch, nothing else brings the
+        instructor's choice back to us until somebody opens the assignment --
+        so until then the file picker, and the grades, read the previous one.
+
+        Only the grading config: the rest of what the picker sends is the LMS's
+        to confirm on the next launch, and writing it here would record a
+        document or a due date the LMS may never adopt.
+        """
+        assignment_id = self.request.parsed_params.get("assignment_id")
+        if not assignment_id or not self.request.lti_user.is_instructor:
+            return
+
+        assignment_service = self.request.find_service(name="assignment")
+        assignment = assignment_service.get_by_id(assignment_id)
+        # The id reaches us through the browser, so it says nothing about who
+        # may write to it. Scope it to the caller the way the reveal API does.
+        if (
+            not assignment
+            or not assignment.course
+            or assignment.course.application_instance_id
+            != self.request.lti_user.application_instance_id
+        ):
+            return
+
+        assignment_service.set_auto_grading_config(
+            assignment, self.request.parsed_params.get("auto_grading_config")
+        )
+
     @view_config(
         route_name="lti.v13.deep_linking.form_fields",
         schema=LTI13DeepLinkingFieldsRequestSchema,
@@ -160,6 +194,7 @@ class DeepLinkingFieldsViews:
         application_instance = self.request.lti_user.application_instance
 
         assignment_configuration = self._get_assignment_configuration(self.request)
+        self._store_auto_grading_config()
 
         content_item = {
             "type": "ltiResourceLink",
@@ -234,6 +269,7 @@ class DeepLinkingFieldsViews:
         See https://www.imsglobal.org/specs/lticiv1p0/specification.
         """
         assignment_configuration = self._get_assignment_configuration(self.request)
+        self._store_auto_grading_config()
         self.request.registry.notify(
             LTIEvent.from_request(
                 request=self.request,
