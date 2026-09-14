@@ -144,6 +144,9 @@ class TestUserViews:
             group_by="user",
             resource_link_ids=[assignment.resource_link_id],
             h_userids=sentinel.h_userids,
+            # Not a checkpointed assignment: no phases to bucket by.
+            document_uri=None,
+            due_date=None,
         )
         expected = {
             "students": [
@@ -154,7 +157,7 @@ class TestUserViews:
                     "display_name": student.display_name,
                     "annotation_metrics": {
                         "annotations": 4,
-                        "replies": sentinel.replies,
+                        "replies": 3,
                         "last_activity": datetime(2024, 1, 1),  # noqa: DTZ001
                     },
                 },
@@ -184,6 +187,184 @@ class TestUserViews:
             "last_updated": None,
         }
         assert response == expected
+
+    def test_students_metrics_sums_the_phases_of_a_checkpointed_assignment(
+        self,
+        views,
+        pyramid_request,
+        h_api,
+        student,
+        dashboard_service,
+        assignment_service,
+        auto_grading_service,
+        db_session,
+    ):
+        pyramid_request.parsed_params = {
+            "h_userids": sentinel.h_userids,
+            "assignment_id": sentinel.assignment_id,
+        }
+        first_config, second_config = factories.AutoGradingConfig.create_batch(2)
+        assignment = factories.Assignment(
+            course=factories.Course(),
+            checkpoint_enabled=True,
+            document_uri="https://example.com/reading",
+            due_date=datetime(2024, 2, 1),  # noqa: DTZ001
+            # Points at the head of the chain, which is what gates the
+            # per-phase grades.
+            auto_grading_config=first_config,
+        )
+        db_session.flush()
+        dashboard_service.get_request_assignment.return_value = assignment
+        dashboard_service.get_assignment_roster.return_value = (
+            None,
+            select(User).where(User.id == student.id).add_columns(True),  # noqa: FBT003
+        )
+        assignment_service.get_auto_grading_configs.return_value = [
+            first_config,
+            second_config,
+        ]
+        # One row per phase, which is what group_by "user_phase" returns.
+        h_api.get_annotation_counts.return_value = [
+            {
+                "display_name": student.display_name,
+                "userid": student.h_userid,
+                "phase": 1,
+                "ends_at": "2024-01-15",
+                "annotations": 2,
+                "page_notes": 1,
+                "replies": 4,
+                "last_activity": "2024-01-10",
+            },
+            {
+                "display_name": student.display_name,
+                "userid": student.h_userid,
+                "phase": 2,
+                "ends_at": None,
+                "annotations": 3,
+                "page_notes": 0,
+                "replies": 1,
+                "last_activity": "2024-01-20",
+            },
+        ]
+
+        response = views.students_metrics()
+
+        h_api.get_annotation_counts.assert_called_once_with(
+            [g.authority_provided_id for g in assignment.groupings],
+            group_by="user_phase",
+            resource_link_ids=[assignment.resource_link_id],
+            h_userids=sentinel.h_userids,
+            document_uri="https://example.com/reading",
+            due_date=assignment.due_date,
+        )
+
+        (api_student,) = response["students"]
+        # The overall figures are the phases added up: annotations fold in page
+        # notes (2+1 and 3+0), replies are 4+1, and the last activity is the
+        # latest of the two.
+        assert api_student["annotation_metrics"] == {
+            "annotations": 6,
+            "replies": 5,
+            "last_activity": datetime(2024, 1, 20),  # noqa: DTZ001
+        }
+        assert api_student["phase_metrics"] == [
+            {
+                "phase": 1,
+                "ends_at": datetime(2024, 1, 15),  # noqa: DTZ001
+                "metrics": {
+                    "annotations": 3,
+                    "replies": 4,
+                    "last_activity": datetime(2024, 1, 10),  # noqa: DTZ001
+                },
+                "grade": auto_grading_service.calculate_grade.return_value,
+            },
+            {
+                "phase": 2,
+                # The checkpoint hasn't been revealed, or there's no due date:
+                # either way this phase hasn't closed.
+                "ends_at": None,
+                "metrics": {
+                    "annotations": 3,
+                    "replies": 1,
+                    "last_activity": datetime(2024, 1, 20),  # noqa: DTZ001
+                },
+                "grade": auto_grading_service.calculate_grade.return_value,
+            },
+        ]
+        # Each phase is graded against the config at its own position, not the
+        # same one twice.
+        auto_grading_service.calculate_grade.assert_has_calls(
+            [
+                call(first_config, api_student["phase_metrics"][0]["metrics"]),
+                call(second_config, api_student["phase_metrics"][1]["metrics"]),
+            ]
+        )
+
+    def test_students_metrics_zero_fills_the_phases_h_reports_nothing_for(
+        self,
+        views,
+        pyramid_request,
+        h_api,
+        student,
+        dashboard_service,
+        assignment_service,
+        db_session,
+    ):
+        pyramid_request.parsed_params = {
+            "h_userids": sentinel.h_userids,
+            "assignment_id": sentinel.assignment_id,
+        }
+        assignment = factories.Assignment(
+            course=factories.Course(),
+            checkpoint_enabled=True,
+            document_uri="https://example.com/reading",
+        )
+        db_session.flush()
+        dashboard_service.get_request_assignment.return_value = assignment
+        dashboard_service.get_assignment_roster.return_value = (
+            None,
+            select(User).where(User.id == student.id).add_columns(True),  # noqa: FBT003
+        )
+        # No configs, so the phase count can only come from h.
+        assignment_service.get_auto_grading_configs.return_value = []
+        h_api.get_annotation_counts.return_value = [
+            {
+                "display_name": None,
+                "userid": None,
+                "phase": phase,
+                "ends_at": None,
+                "annotations": 7,
+                "page_notes": 0,
+                "replies": 2,
+                "last_activity": "2024-01-10",
+            }
+            for phase in (1, 2)
+        ]
+
+        response = views.students_metrics()
+
+        (api_student,) = response["students"]
+        # One zeroed entry per phase h reported.
+        assert api_student["phase_metrics"] == [
+            {
+                "phase": 1,
+                "ends_at": None,
+                "metrics": {
+                    "annotations": 0,
+                    "replies": 0,
+                    "last_activity": None,
+                },
+            },
+            {
+                "phase": 2,
+                "ends_at": None,
+                "metrics": {
+                    "annotations": 0,
+                    "replies": 0,
+                    "last_activity": None,
+                },
+            },
+        ]
 
     @pytest.mark.parametrize("with_last_grade", [True, False])
     def test_students_metrics_with_auto_grading(
@@ -247,6 +428,9 @@ class TestUserViews:
             group_by="user",
             resource_link_ids=[assignment.resource_link_id],
             h_userids=sentinel.h_userids,
+            # Not a checkpointed assignment: no phases to bucket by.
+            document_uri=None,
+            due_date=None,
         )
         expected = {
             "students": [
@@ -257,7 +441,7 @@ class TestUserViews:
                     "display_name": student.display_name,
                     "annotation_metrics": {
                         "annotations": 4,
-                        "replies": sentinel.replies,
+                        "replies": 3,
                         "last_activity": datetime(2024, 1, 1),  # noqa: DTZ001
                     },
                 },
@@ -372,15 +556,15 @@ class TestUserViews:
                 "display_name": student.display_name,
                 "annotations": 2,
                 "page_notes": 2,
-                "replies": sentinel.replies,
+                "replies": 3,
                 "userid": student.h_userid,
                 "last_activity": "2024-01-01",
             },
             {
                 "display_name": sentinel.display_name,
-                "annotations": sentinel.annotations,
-                "page_notes": sentinel.page_notes,
-                "replies": sentinel.replies,
+                "annotations": 5,
+                "page_notes": 5,
+                "replies": 7,
                 "userid": "TEACHER",
                 "last_activity": "2024-01-02",
             },
