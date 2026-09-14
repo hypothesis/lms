@@ -129,6 +129,7 @@ export type FilePickerConfig = {
   promptForTitle: boolean;
   promptForGradable: boolean;
   autoGradingEnabled: boolean;
+  phasedAutoGradingEnabled: boolean;
   /**
    * The assignment types the instructor can choose from when configuring this
    * assignment. The backend decides availability (e.g. via feature flags);

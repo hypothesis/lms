@@ -7,6 +7,7 @@ from freezegun import freeze_time
 from h_matchers import Any
 from pyramid.testing import DummyRequest
 
+from lms.models.lti_role import Role, RoleScope, RoleType
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.validation import ValidationError
@@ -446,6 +447,117 @@ class TestDeepLinkingFieldsView:
 
         with pytest.raises(ValueError):  # noqa: PT011
             DeepLinkingFieldsViews(pyramid_request).file_picker_to_form_fields_v13()
+
+    def test_it_stores_the_auto_grading_config_of_the_assignment_being_edited(
+        self, views, pyramid_request, assignment_service, editable_assignment
+    ):
+        pyramid_request.parsed_params["assignment_id"] = editable_assignment.id
+        config = {"grading_type": "scaled", "required_annotations": 9}
+        pyramid_request.parsed_params["auto_grading_config"] = config
+
+        views.file_picker_to_form_fields_v13()
+
+        assignment_service.set_auto_grading_config.assert_called_once_with(
+            editable_assignment, config
+        )
+
+    def test_it_doesnt_store_the_config_of_another_installs_assignment(
+        self,
+        views,
+        pyramid_request,
+        assignment_service,
+        instructor,  # noqa: ARG002
+        db_session,
+    ):
+        # The id reaches us through the browser, so an instructor could name
+        # any assignment in the DB.
+        assignment = factories.Assignment(course=factories.Course())
+        db_session.flush()
+        assignment_service.get_by_id.return_value = assignment
+        pyramid_request.parsed_params["assignment_id"] = assignment.id
+
+        views.file_picker_to_form_fields_v13()
+
+        assignment_service.set_auto_grading_config.assert_not_called()
+
+    def test_it_stores_nothing_for_an_assignment_that_isnt_there(
+        self,
+        views,
+        pyramid_request,
+        assignment_service,
+        instructor,  # noqa: ARG002
+    ):
+        assignment_service.get_by_id.return_value = None
+        pyramid_request.parsed_params["assignment_id"] = sentinel.assignment_id
+
+        views.file_picker_to_form_fields_v13()
+
+        assignment_service.set_auto_grading_config.assert_not_called()
+
+    def test_it_doesnt_store_the_config_for_a_student(
+        self,
+        views,
+        pyramid_request,
+        assignment_service,
+        application_instance,
+        LTIEvent,  # noqa: ARG002
+        jwt_service,  # noqa: ARG002
+    ):
+        pyramid_request.lti_user = factories.LTIUser(
+            roles="Learner", application_instance=application_instance
+        )
+        pyramid_request.parsed_params["assignment_id"] = sentinel.assignment_id
+
+        views.file_picker_to_form_fields_v13()
+
+        assignment_service.set_auto_grading_config.assert_not_called()
+
+    def test_it_stores_nothing_when_not_editing(
+        self,
+        views,
+        assignment_service,
+        LTIEvent,  # noqa: ARG002
+        jwt_service,  # noqa: ARG002
+        application_instance,  # noqa: ARG002
+    ):
+        views.file_picker_to_form_fields_v13()
+
+        assignment_service.set_auto_grading_config.assert_not_called()
+
+    @pytest.fixture
+    def instructor(
+        self,
+        pyramid_request,
+        application_instance,
+        LTIEvent,  # noqa: ARG002
+        jwt_service,  # noqa: ARG002
+    ):
+        """Make the caller an instructor of `application_instance`."""
+        pyramid_request.lti_user = factories.LTIUser(
+            application_instance=application_instance,
+            application_instance_id=application_instance.id,
+            effective_lti_roles=[
+                Role(
+                    value="Instructor", scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
+                )
+            ],
+        )
+        return pyramid_request.lti_user
+
+    @pytest.fixture
+    def editable_assignment(
+        self,
+        instructor,  # noqa: ARG002
+        application_instance,
+        assignment_service,
+        db_session,
+    ):
+        assignment = factories.Assignment(
+            course=factories.Course(application_instance=application_instance)
+        )
+        db_session.flush()
+        assignment_service.get_by_id.return_value = assignment
+        return assignment
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):

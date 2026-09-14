@@ -188,6 +188,94 @@ class TestUserViews:
         }
         assert response == expected
 
+    def test_students_metrics_does_not_bucket_by_phase_when_the_flag_is_off(
+        self,
+        views,
+        pyramid_request,
+        h_api,
+        student,
+        dashboard_service,
+        annotation_counts_response,
+        db_session,
+    ):
+        pyramid_request.parsed_params = {
+            "h_userids": sentinel.h_userids,
+            "assignment_id": sentinel.assignment_id,
+        }
+        assignment = factories.Assignment(
+            course=factories.Course(),
+            checkpoint_enabled=True,
+            document_uri="https://example.com/reading",
+        )
+        db_session.flush()
+        dashboard_service.get_request_assignment.return_value = assignment
+        dashboard_service.get_assignment_roster.return_value = (
+            None,
+            select(User).where(User.id == student.id).add_columns(True),  # noqa: FBT003
+        )
+        h_api.get_annotation_counts.return_value = annotation_counts_response
+
+        response = views.students_metrics()
+
+        h_api.get_annotation_counts.assert_called_once_with(
+            [g.authority_provided_id for g in assignment.groupings],
+            group_by="user",
+            resource_link_ids=[assignment.resource_link_id],
+            h_userids=sentinel.h_userids,
+            document_uri=None,
+            due_date=None,
+        )
+        (api_student,) = response["students"]
+        assert "phase_metrics" not in api_student
+
+    def test_students_metrics_does_not_bucket_by_phase_for_a_single_grade(
+        self,
+        views,
+        pyramid_request,
+        h_api,
+        student,
+        dashboard_service,
+        assignment_service,
+        annotation_counts_response,
+        application_instance,
+        db_session,
+    ):
+        pyramid_request.parsed_params = {
+            "h_userids": sentinel.h_userids,
+            "assignment_id": sentinel.assignment_id,
+        }
+        application_instance.settings.set("hypothesis", "phased_auto_grading", True)  # noqa: FBT003
+        config = factories.AutoGradingConfig()
+        assignment = factories.Assignment(
+            course=factories.Course(application_instance=application_instance),
+            checkpoint_enabled=True,
+            document_uri="https://example.com/reading",
+            auto_grading_config=config,
+        )
+        db_session.flush()
+        dashboard_service.get_request_assignment.return_value = assignment
+        dashboard_service.get_assignment_roster.return_value = (
+            None,
+            select(User).where(User.id == student.id).add_columns(True),  # noqa: FBT003
+        )
+        # One config: the instructor asked for a single grade over the whole
+        # assignment, so its phases are not what it is graded in.
+        assignment_service.get_auto_grading_configs.return_value = [config]
+        h_api.get_annotation_counts.return_value = annotation_counts_response
+
+        response = views.students_metrics()
+
+        h_api.get_annotation_counts.assert_called_once_with(
+            [g.authority_provided_id for g in assignment.groupings],
+            group_by="user",
+            resource_link_ids=[assignment.resource_link_id],
+            h_userids=sentinel.h_userids,
+            document_uri=None,
+            due_date=None,
+        )
+        (api_student,) = response["students"]
+        assert "phase_metrics" not in api_student
+
     def test_students_metrics_sums_the_phases_of_a_checkpointed_assignment(
         self,
         views,
@@ -212,6 +300,11 @@ class TestUserViews:
             # Points at the head of the chain, which is what gates the
             # per-phase grades.
             auto_grading_config=first_config,
+        )
+        assignment.course.application_instance.settings.set(
+            "hypothesis",
+            "phased_auto_grading",
+            True,  # noqa: FBT003
         )
         db_session.flush()
         dashboard_service.get_request_assignment.return_value = assignment
@@ -340,6 +433,11 @@ class TestUserViews:
             document_uri="https://example.com/reading",
             auto_grading_config=first_config,
         )
+        assignment.course.application_instance.settings.set(
+            "hypothesis",
+            "phased_auto_grading",
+            True,  # noqa: FBT003
+        )
         db_session.flush()
         dashboard_service.get_request_assignment.return_value = assignment
         dashboard_service.get_assignment_roster.return_value = (
@@ -395,6 +493,11 @@ class TestUserViews:
             course=factories.Course(),
             checkpoint_enabled=True,
             document_uri="https://example.com/reading",
+        )
+        assignment.course.application_instance.settings.set(
+            "hypothesis",
+            "phased_auto_grading",
+            True,  # noqa: FBT003
         )
         db_session.flush()
         dashboard_service.get_request_assignment.return_value = assignment

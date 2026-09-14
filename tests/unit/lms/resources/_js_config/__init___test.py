@@ -92,6 +92,36 @@ class TestFilePickerMode:
 
         assert js_config.asdict()["filePicker"]["assignmentTypes"] == expected_types
 
+    @pytest.mark.parametrize(
+        "phased_auto_grading,expected",
+        [
+            # Flag explicitly on.
+            (True, True),
+            # Flag explicitly off.
+            (False, False),
+            # Flag unset: defaults to off.
+            (None, False),
+        ],
+    )
+    def test_it_sets_phased_auto_grading_enabled(
+        self,
+        js_config,
+        course,
+        application_instance,
+        phased_auto_grading,
+        expected,
+    ):
+        if phased_auto_grading is not None:
+            application_instance.settings.set(
+                "hypothesis", "phased_auto_grading", phased_auto_grading
+            )
+
+        js_config.enable_file_picker_mode(
+            sentinel.form_action, sentinel.form_fields, course
+        )
+
+        assert js_config.asdict()["filePicker"]["phasedAutoGradingEnabled"] == expected
+
     def test_it_does_not_set_assignment_config_for_a_create(self, js_config, course):
         js_config.enable_file_picker_mode(
             sentinel.form_action, sentinel.form_fields, course
@@ -896,6 +926,24 @@ class TestAddDeepLinkingAPI:
                 "context_id": pyramid_request.lti_params["context_id"],
             },
         }
+
+    def test_it_sends_the_assignment_id_when_editing(
+        self, js_config, pyramid_request, db_session
+    ):
+        # The picker echoes this data back when the instructor saves, which is
+        # how the grading config gets stored without waiting for a launch.
+        pyramid_request.lti_params.update(
+            {"content_item_return_url": sentinel.content_item_return_url}
+        )
+        assignment = factories.Assignment()
+        db_session.flush()
+
+        js_config.add_deep_linking_api(assignment)
+
+        config = js_config.asdict()
+        assert config["filePicker"]["deepLinkingAPI"]["data"]["assignment_id"] == (
+            assignment.id
+        )
 
 
 class TestEnableErrorDialogMode:
