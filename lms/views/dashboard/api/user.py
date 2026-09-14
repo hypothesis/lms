@@ -160,10 +160,9 @@ class UserViews:
             if userid := row["userid"]:
                 stats_by_user[userid].append(row)
 
-        # From h: an assignment can have phases and no grading configs.
-        phase_count = (
-            max((row["phase"] for row in stats), default=0) if use_phases else 0
-        )
+        # From h: an assignment can have phases and no grading configs. Used
+        # for the students h reports nothing for, who have no rows of their own.
+        phase_boundaries = self._phase_boundaries(stats) if use_phases else []
         students: list[RosterEntry] = []
 
         roster_last_updated, users_query = self._students_query(
@@ -199,7 +198,7 @@ class UserViews:
                 )
                 if use_phases:
                     api_student["phase_metrics"] = self._zeroed_phase_metrics(
-                        phase_count
+                        phase_boundaries
                     )
             students.append(api_student)
 
@@ -245,30 +244,73 @@ class UserViews:
         h buckets the annotations and reports where each phase ends, so nothing
         here needs to know the checkpoint's reveal dates.
         """
-        return [
-            PhaseMetrics(
-                phase=row["phase"],
-                ends_at=(
-                    datetime.fromisoformat(row["ends_at"]) if row["ends_at"] else None
-                ),
-                metrics=cls._metrics(row),
-            )
-            for row in sorted(rows, key=lambda row: row["phase"])
+        ordered = sorted(rows, key=lambda row: row["phase"])
+        boundaries = [
+            datetime.fromisoformat(row["ends_at"]) if row["ends_at"] else None
+            for row in ordered
         ]
 
+        return cls._build_phases(
+            boundaries, [cls._metrics(row) for row in ordered], ordered[0]["phase"]
+        )
+
     @staticmethod
-    def _zeroed_phase_metrics(phase_count: int) -> list[PhaseMetrics]:
+    def _phase_boundaries(stats: list[AnnotationCounts]) -> list[datetime | None]:
+        """When each phase of the assignment closes, as h reports it.
+
+        A group set reveals per group, so a phase can close at different times
+        for different students; the earliest is the one that has definitely
+        happened.
+        """
+        ends_at: dict[int, datetime | None] = {}
+        for row in stats:
+            end = datetime.fromisoformat(row["ends_at"]) if row["ends_at"] else None
+            current = ends_at.get(row["phase"], end)
+            ends_at[row["phase"]] = (
+                min(current, end) if current and end else current or end
+            )
+
+        return [ends_at[phase] for phase in sorted(ends_at)]
+
+    @classmethod
+    def _zeroed_phase_metrics(
+        cls, boundaries: list[datetime | None]
+    ) -> list[PhaseMetrics]:
         """Build the phases of a student h reports no annotations for.
 
-        Sent rather than omitted so the dashboard shows a 0, not a blank cell.
+        Sent rather than omitted so a started phase shows a 0 instead of a
+        blank. The boundaries come from what h reported for the other students,
+        since this one has no rows of their own to read them from -- close
+        enough except on a group set part-way through its reveals.
         """
+        return cls._build_phases(
+            boundaries,
+            [
+                AnnotationMetrics(annotations=0, replies=0, last_activity=None)
+                for _ in boundaries
+            ],
+        )
+
+    @classmethod
+    def _build_phases(
+        cls,
+        boundaries: list[datetime | None],
+        metrics: list[AnnotationMetrics],
+        first_phase: int = 1,
+    ) -> list[PhaseMetrics]:
+        """Pair each phase's boundary with its metrics, marking which have begun."""
+        now = datetime.utcnow()  # noqa: DTZ003
+
         return [
             PhaseMetrics(
-                phase=phase,
-                ends_at=None,
-                metrics=AnnotationMetrics(annotations=0, replies=0, last_activity=None),
+                phase=first_phase + index,
+                ends_at=ends_at,
+                started=cls._phase_started(boundaries, index, now),
+                metrics=phase_metrics,
             )
-            for phase in range(1, phase_count + 1)
+            for index, (ends_at, phase_metrics) in enumerate(
+                zip(boundaries, metrics, strict=True)
+            )
         ]
 
     def _add_auto_grading_data(
@@ -282,8 +324,18 @@ class UserViews:
         configs = self.assignment_service.get_auto_grading_configs(assignment)
 
         for api_student in api_students:
+            phases = api_student.get("phase_metrics") or []
+            for phase_metrics, config in zip(phases, configs, strict=False):
+                phase_metrics["grade"] = self.auto_grading_service.calculate_grade(
+                    config, phase_metrics["metrics"]
+                )
+
             auto_grading_grade: AutoGradingGrade = {
-                "current_grade": self.auto_grading_service.calculate_grade(
+                # Only the final grade is ever synced; the per-phase grades feed
+                # into it but are never sent on their own.
+                "current_grade": self._final_grade(phases)
+                if phases
+                else self.auto_grading_service.calculate_grade(
                     assignment.auto_grading_config,
                     api_student["annotation_metrics"],
                 ),
@@ -296,17 +348,38 @@ class UserViews:
 
             api_student["auto_grading_grade"] = auto_grading_grade
 
-            # Per-phase grades are informational only: there's no mechanism to
-            # sync more than one grade per assignment to the LMS gradebook, so
-            # these never get a `last_grade`.
-            for phase_metrics, config in zip(
-                api_student.get("phase_metrics") or [], configs, strict=False
-            ):
-                phase_metrics["grade"] = self.auto_grading_service.calculate_grade(
-                    config, phase_metrics["metrics"]
-                )
-
         return api_students
+
+    @classmethod
+    def _final_grade(cls, phases: list[PhaseMetrics]) -> float:
+        """Average the grades of the phases that have started.
+
+        `ends_at` is naive UTC, matching lms's other `utcnow()` comparisons.
+        """
+        grades = [
+            phase_metrics["grade"]
+            for phase_metrics in phases
+            if "grade" in phase_metrics and phase_metrics["started"]
+        ]
+
+        return round(sum(grades) / len(grades), 3)
+
+    @staticmethod
+    def _phase_started(
+        boundaries: list[datetime | None], index: int, now: datetime
+    ) -> bool:
+        """Whether the phase at `index` has begun.
+
+        A phase starts when the previous one ends, so a previous boundary that
+        is unset (an unrevealed checkpoint) or still ahead (a scheduled reveal,
+        or a due date yet to pass) means this one hasn't.
+        """
+        if index == 0:
+            return True
+
+        previous_end = boundaries[index - 1]
+
+        return previous_end is not None and previous_end <= now
 
     def _students_query(
         self,

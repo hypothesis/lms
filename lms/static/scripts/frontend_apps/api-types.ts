@@ -231,6 +231,14 @@ export type PhaseMetrics = {
    */
   ends_at: ISODateTime | null;
 
+  /**
+   * Whether the phase has begun.
+   *
+   * An unstarted phase reports no activity because none was possible, so it
+   * should read as blank rather than zero.
+   */
+  started: boolean;
+
   metrics: AnnotationMetrics;
 
   /**
