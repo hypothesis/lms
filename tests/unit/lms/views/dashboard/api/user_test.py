@@ -278,6 +278,7 @@ class TestUserViews:
                     "last_activity": datetime(2024, 1, 10),  # noqa: DTZ001
                 },
                 "grade": auto_grading_service.calculate_grade.return_value,
+                "requirements": first_config.asdict(),
             },
             {
                 "phase": 2,
@@ -292,6 +293,7 @@ class TestUserViews:
                     "last_activity": datetime(2024, 1, 20),  # noqa: DTZ001
                 },
                 "grade": auto_grading_service.calculate_grade.return_value,
+                "requirements": second_config.asdict(),
             },
         ]
         # Each phase is graded against the config at its own position, not the
@@ -368,6 +370,12 @@ class TestUserViews:
 
         (api_student,) = response["students"]
         assert api_student["auto_grading_grade"]["current_grade"] == expected
+        # Each phase carries what it was graded against, so the dashboard can
+        # show how the average was reached.
+        assert [phase["requirements"] for phase in api_student["phase_metrics"]] == [
+            first_config.asdict(),
+            second_config.asdict(),
+        ]
 
     def test_students_metrics_zero_fills_the_phases_h_reports_nothing_for(
         self,

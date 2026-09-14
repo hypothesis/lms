@@ -56,8 +56,8 @@ export function renderAutoGradingField(
         lastGrade={row.last_grade}
         annotations={row.annotations}
         replies={row.replies}
-        status={studentSyncStatuses[row.h_userid]}
         config={assignment?.auto_grading_config}
+        status={studentSyncStatuses[row.h_userid]}
       />
     </div>
   );

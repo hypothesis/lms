@@ -248,6 +248,14 @@ export type PhaseMetrics = {
    * only `auto_grading_grade` is ever synced.
    */
   grade?: number;
+
+  /**
+   * What this phase was graded against.
+   *
+   * Absent when the phase has no config of its own, which is also when it has
+   * no grade.
+   */
+  requirements?: AutoGradingConfig;
 };
 
 export type StudentWithMetrics = Student & {

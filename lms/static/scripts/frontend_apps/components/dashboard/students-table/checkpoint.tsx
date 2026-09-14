@@ -1,7 +1,8 @@
 import type { ComponentChildren } from 'preact';
 
-import type { StudentWithMetrics } from '../../../api-types';
-import { formatGrade } from '../GradeStatusChip';
+import type { PhaseMetrics, StudentWithMetrics } from '../../../api-types';
+import type { GradeContribution } from '../GradeIndicator';
+import GradeIndicator, { FinalGradeIndicator } from '../GradeIndicator';
 import type { OrderableActivityTableColumn } from '../OrderableActivityTable';
 import {
   gradeColumn,
@@ -54,37 +55,32 @@ export function metricKey(phase: number, metric: PhaseMetric): string {
 }
 
 /** Matches the fields {@link metricKey} generates, capturing the metric. */
-const PHASE_FIELD = new RegExp(`^phase_\\d+_(${PHASE_METRICS.join('|')})$`);
+const PHASE_FIELD = new RegExp(`^phase_(\\d+)_(${PHASE_METRICS.join('|')})$`);
 
 /**
  * Phases an assignment with checkpoints has at the very least.
  *
- * A checkpoint splits the activity in two, and the MVP has exactly one, so an
- * assignment which reports any phase has two. This is what keeps the last phase
- * from being guessed wrong while nobody has been active in it yet: the day after
- * a reveal, the API only reports phase 1, and calling that one the due date
- * would be wrong.
+ * Belt and braces rather than a workaround: h aggregates each phase separately
+ * and emits a row for every one of them, zeros included, so a student who
+ * reports any phase reports all of them and {@link phasesOf} already sees the
+ * last. This only does anything if that contract narrows -- were h to report
+ * just the phases with activity, the phase which closes at the due date would
+ * disappear until somebody annotated in it, and the one before it would get
+ * labelled as the revealed phase.
  *
- * ⚠️ This makes the labels correct for **one** checkpoint and only that. With
- * two, the API reports phases 1 and 2 until somebody is active in the third, and
- * phase 2 gets labelled as the due date. There is no way around it from here:
- * the API reports the position of a phase and never how many the assignment has,
- * and `ends_at` does not settle it either — telling a reveal from the due date
- * needs the assignment's `due_date` to compare against.
- *
- * @todo Two things fix this for good, both on the API: reporting the phases of
- * the assignment (the per-phase auto-grading configs already exist in the
- * backend), or reporting an entry per defined phase for every student, zeros
- * included.
+ * ⚠️ It is the labels rather than the count which put the ceiling at one
+ * checkpoint: h buckets into exactly two phases. Raising that is h's side, and
+ * `max(...reported)` picks up the extra phases on its own.
  */
 const MIN_PHASES = 2;
 
 /**
  * Header a phase is displayed under.
  *
- * The API reports the position of a phase, not a name. Phases are delimited by
- * the reveals of the checkpoints and the last one closes at the due date, so the
- * last phase is the due date and every other one is a checkpoint.
+ * The API reports the position of a phase, not a name. Annotations stay hidden
+ * until the checkpoint before them is revealed, so every phase but the last is
+ * a hidden one and the last is what the reveal opens up. Naming them that way
+ * rather than after the due date also suits an assignment which has none.
  *
  * Numbering by position rather than by how many phases came back keeps the
  * labels in order and distinct, which the grouped header needs: two adjacent
@@ -92,10 +88,11 @@ const MIN_PHASES = 2;
  */
 function phaseLabel(phase: number, lastPhase: number): string {
   if (phase === lastPhase) {
-    return 'Due Date';
+    return 'Revealed Phase';
   }
 
-  return lastPhase > 2 ? `Checkpoint ${phase}` : 'Checkpoint';
+  // Numbered only when there is more than one to tell apart.
+  return lastPhase > 2 ? `Hidden Phase ${phase}` : 'Hidden Phase';
 }
 
 /**
@@ -115,8 +112,9 @@ function phasesOf(students: StudentWithMetrics[]): CheckpointPhase[] {
   }
 
   const ordered = [...positions].sort((a, b) => a - b);
-  // The API only reports the phases a student was active in, so the highest one
-  // reported is not necessarily the last one the assignment has.
+  // Every phase h reports for anybody, so the highest is already the last: it
+  // reports a phase per bucket, not one per phase with activity. See
+  // MIN_PHASES for why there is a floor under it anyway.
   const lastPhase = Math.max(MIN_PHASES, ...ordered);
 
   return ordered.map(phase => ({
@@ -217,6 +215,60 @@ export function checkpointColumns(
 }
 
 /**
+ * What the API reported for this row's student, by phase.
+ *
+ * Read off the student rather than the row: a phase's counts and requirements
+ * are needed together, and a row holds one value per cell.
+ */
+function phaseMetricsOf(
+  row: CheckpointRow,
+  students: StudentWithMetrics[] | undefined,
+): Map<number, PhaseMetrics> {
+  const student = students?.find(({ h_userid }) => h_userid === row.h_userid);
+
+  return new Map(
+    (student?.phase_metrics ?? []).map(entry => [entry.phase, entry]),
+  );
+}
+
+/**
+ * What each phase contributed to the final grade, phases still to come
+ * included.
+ *
+ * A phase which has not started is listed without a grade. Its columns are
+ * already on the row showing zeros, because h reports the phase from the
+ * outset; what is only visible here is that it contributed nothing, and so
+ * that the average does not cover the whole assignment yet.
+ *
+ * Nothing is listed while the activity is not split at all, which is when the
+ * table displays the totals and this is the only grade there is.
+ */
+function gradeContributions(
+  row: CheckpointRow,
+  { students }: RenderContext,
+): GradeContribution[] {
+  const reported = phasesOf(students ?? []);
+  if (reported.length === 0) {
+    return [];
+  }
+
+  const byPhase = phaseMetricsOf(row, students);
+  const lastPhase = Math.max(MIN_PHASES, ...reported.map(({ phase }) => phase));
+
+  return Array.from({ length: lastPhase }, (_, index) => {
+    const entry = byPhase.get(index + 1);
+
+    return {
+      label: phaseLabel(index + 1, lastPhase),
+      // A phase which has not started, or which has no requirements of its
+      // own, contributed nothing and is shown as outstanding rather than as a
+      // zero -- the same phases `_final_grade` leaves out of the average.
+      grade: entry?.started && entry.requirements ? entry.grade : undefined,
+    };
+  });
+}
+
+/**
  * Render a cell of a checkpoint row.
  *
  * A metric of a phase is rendered here; everything else falls back to the
@@ -234,9 +286,30 @@ export function renderCheckpointField(
   if (!phaseMetric) {
     const sharedField = field as keyof StudentsTableRow;
 
-    return grades
-      ? renderAutoGradingField(row, sharedField, context)
-      : renderSharedField(row, sharedField);
+    if (grades && sharedField === 'current_grade') {
+      const contributions = gradeContributions(row, context);
+
+      // Without phases the table displays the totals, and the grade is the
+      // assignment's own requirements met once: the flat renderer explains it.
+      if (contributions.length === 0) {
+        return renderAutoGradingField(row, sharedField, context);
+      }
+
+      // Only this grade reaches the LMS, so it keeps the colour and the sync
+      // badge; the popover names what each phase contributed and their average.
+      return (
+        <div className="flex justify-end -my-0.5">
+          <FinalGradeIndicator
+            grade={row.current_grade ?? 0}
+            lastGrade={row.last_grade}
+            status={context.studentSyncStatuses[row.h_userid]}
+            phases={contributions}
+          />
+        </div>
+      );
+    }
+
+    return renderSharedField(row, sharedField);
   }
 
   const value = row[name];
@@ -244,15 +317,29 @@ export function renderCheckpointField(
     return '';
   }
 
-  return (
-    <div className="text-right">
-      {phaseMetric[1] === 'grade'
-        ? // Formatted the same way as the final grade of the row, so that a
-          // grade which is not a round percentage does not read as one
-          `${formatGrade(Number(value))}%`
-        : value}
-    </div>
-  );
+  const [, position, metric] = phaseMetric;
+
+  if (metric === 'grade') {
+    const entry = phaseMetricsOf(row, context.students).get(Number(position));
+
+    // The same indicator as the flat table's grade, so hovering a phase's
+    // grade lists its requirements the way hovering an ungrouped one does.
+    // `synced` is off: only the final grade reaches the LMS, so this one is
+    // grey and carries no badge.
+    return (
+      <div className="flex justify-end -my-0.5">
+        <GradeIndicator
+          grade={Number(value)}
+          annotations={entry?.metrics.annotations ?? 0}
+          replies={entry?.metrics.replies ?? 0}
+          config={entry?.requirements}
+          synced={false}
+        />
+      </div>
+    );
+  }
+
+  return <div className="text-right">{value}</div>;
 }
 
 /**
