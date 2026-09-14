@@ -29,35 +29,14 @@ import type {
 } from './DashboardActivityFilters';
 import DashboardActivityFilters from './DashboardActivityFilters';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
-import FormattedDate from './FormattedDate';
-import GradeIndicator from './GradeIndicator';
 import LastSyncIndicator from './LastSyncIndicator';
-import type { OrderableActivityTableColumn } from './OrderableActivityTable';
 import OrderableActivityTable from './OrderableActivityTable';
-import StudentStatusBadge from './StudentStatusBadge';
 import SyncGradesButton from './SyncGradesButton';
-
-type StudentsTableRow = {
-  lms_id: string;
-  h_userid: string;
-  display_name: string | null;
-  last_activity: string | null;
-  annotations: number;
-  replies: number;
-
-  /** Currently calculated grade, only for auto-grading assignments */
-  current_grade?: number;
-
-  /**
-   * Grade that was submitted to the LMS in the most recent sync.
-   * If no grade has ever been synced, this will be `null`.
-   * If the assignment is not auto-grading, this will be ´undefined`.
-   */
-  last_grade?: number | null;
-
-  /** Whether this student is active in the course/assignment or roster */
-  active: boolean;
-};
+import {
+  assignmentSyncsGrades,
+  useStudentsTableConfig,
+  useStudentsToSync,
+} from './students-table';
 
 /**
  * Error to display when last grades sync failed, showing the number of
@@ -100,7 +79,9 @@ export default function AssignmentActivity() {
   const assignment = useAPIFetch<AssignmentDetails>(
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
-  const isAutoGradingAssignment = !!assignment.data?.auto_grading_config;
+  // Whether this assignment's variant grades students. `isGradable` and
+  // `is_staff` are not variant-specific: they gate the sync for every variant.
+  const syncsGrades = assignmentSyncsGrades(assignment.data);
   const isGradable = !!assignment.data?.is_gradable;
   const segments = useMemo((): DashboardActivityFiltersProps['segments'] => {
     const { data } = assignment;
@@ -138,37 +119,19 @@ export default function AssignmentActivity() {
       org_public_id: organizationPublicId,
     },
   );
-  const studentsToSync = useMemo(() => {
-    if (!isAutoGradingAssignment || !students.data) {
-      return undefined;
-    }
-
-    return students.data.students
-      .filter(
-        ({ auto_grading_grade, active }) =>
-          active &&
-          !!auto_grading_grade &&
-          auto_grading_grade.current_grade !== auto_grading_grade.last_grade,
-      )
-      .map(({ h_userid, auto_grading_grade }) => ({
-        h_userid,
-        grade: auto_grading_grade?.current_grade ?? 0,
-      }));
-  }, [isAutoGradingAssignment, students.data]);
+  const studentsToSync = useStudentsToSync({
+    students: students.data?.students,
+    assignment: assignment.data,
+  });
 
   const syncURL = useMemo(
     () =>
-      isAutoGradingAssignment && isGradable
+      syncsGrades && isGradable
         ? replaceURLParams(routes.assignment_grades_sync, {
             assignment_id: assignmentId,
           })
         : null,
-    [
-      assignmentId,
-      isAutoGradingAssignment,
-      isGradable,
-      routes.assignment_grades_sync,
-    ],
+    [assignmentId, syncsGrades, isGradable, routes.assignment_grades_sync],
   );
   const [lastSyncParams, setLastSyncParams] = useState<QueryParams>({});
   const lastSync = usePolledAPIFetch<GradingSync>({
@@ -193,6 +156,13 @@ export default function AssignmentActivity() {
     // status is triggered again
     setLastSyncParams({ t: `${Date.now()}` });
 
+    // TODO: This is the last bit of this view which knows what kind of
+    // assignment it is displaying: `auto_grading_grade` only exists in the
+    // auto-grading variant, so a variant storing its grades anywhere else (per
+    // checkpoint, say) would keep labelling them as "New". Move it into the
+    // variant module as `markGradesAsSynced`, next to `gradesToSync`, when that
+    // second variant lands: designing the method against two real callers beats
+    // guessing its shape from this one.
     students.mutate({
       students: (students.data?.students ?? []).map(
         ({ auto_grading_grade, ...rest }) =>
@@ -213,51 +183,11 @@ export default function AssignmentActivity() {
     });
   }, [students]);
 
-  const rows: StudentsTableRow[] = useMemo(
-    () =>
-      (students.data?.students ?? []).map(
-        ({ annotation_metrics, auto_grading_grade, ...rest }) => ({
-          ...auto_grading_grade,
-          ...annotation_metrics,
-          ...rest,
-        }),
-      ),
-    [students.data],
-  );
-  const columns = useMemo(() => {
-    const firstColumns: OrderableActivityTableColumn<StudentsTableRow>[] = [
-      {
-        field: 'display_name',
-        label: 'Student',
-      },
-    ];
-    const lastColumns: OrderableActivityTableColumn<StudentsTableRow>[] = [
-      {
-        field: 'annotations',
-        label: 'Annotations',
-        initialOrderDirection: 'descending',
-      },
-      {
-        field: 'replies',
-        label: 'Replies',
-        initialOrderDirection: 'descending',
-      },
-      {
-        field: 'last_activity',
-        label: 'Last Activity',
-        initialOrderDirection: 'descending',
-      },
-    ];
-
-    if (isAutoGradingAssignment) {
-      firstColumns.push({
-        field: 'current_grade',
-        label: 'Grade',
-      });
-    }
-
-    return [...firstColumns, ...lastColumns];
-  }, [isAutoGradingAssignment]);
+  const { rows, columns, renderItem } = useStudentsTableConfig({
+    students: students.data?.students,
+    assignment: assignment.data,
+    studentSyncStatuses,
+  });
 
   const title = assignment.data?.title ?? 'Untitled assignment';
   useDocumentTitle(title);
@@ -354,7 +284,7 @@ export default function AssignmentActivity() {
             }
           />
         )}
-        {isAutoGradingAssignment && !user.is_staff && isGradable && (
+        {syncsGrades && !user.is_staff && isGradable && (
           <SyncGradesButton
             studentsToSync={studentsToSync}
             lastSync={lastSync}
@@ -371,62 +301,7 @@ export default function AssignmentActivity() {
         rows={rows}
         columns={columns}
         defaultOrderField="display_name"
-        renderItem={(stats, field) => {
-          switch (field) {
-            case 'annotations':
-            case 'replies':
-              return <div className="text-right">{stats[field]}</div>;
-            case 'last_activity':
-              return stats.last_activity ? (
-                <FormattedDate date={stats.last_activity} />
-              ) : (
-                ''
-              );
-            case 'display_name':
-              return (
-                <div className="flex items-center justify-between gap-x-2">
-                  {stats.display_name ?? (
-                    <span className="flex flex-col gap-1.5">
-                      <span className="italic">Unknown</span>
-                      <span className="text-xs text-grey-7">
-                        This student launched the assignment but didn{"'"}t
-                        annotate yet
-                      </span>
-                    </span>
-                  )}
-                  {!stats.active && (
-                    <div
-                      className="-my-0.5"
-                      title="This student is no longer in this assignment"
-                    >
-                      <StudentStatusBadge type="drop" />
-                    </div>
-                  )}
-                </div>
-              );
-            case 'current_grade':
-              return (
-                <div
-                  className={classnames(
-                    // Add a bit of vertical negative margin to avoid the chip
-                    // component to make rows too tall
-                    '-my-0.5',
-                  )}
-                >
-                  <GradeIndicator
-                    grade={stats.current_grade ?? 0}
-                    lastGrade={stats.last_grade}
-                    annotations={stats.annotations}
-                    replies={stats.replies}
-                    status={studentSyncStatuses[stats.h_userid]}
-                    config={assignment.data?.auto_grading_config}
-                  />
-                </div>
-              );
-            default:
-              return '';
-          }
-        }}
+        renderItem={renderItem}
       />
       {!students.isLoading && !students.data?.last_updated && (
         <Link
