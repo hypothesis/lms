@@ -11,6 +11,19 @@ export const studentColumn: OrderableActivityTableColumn<StudentsTableRow> = {
   label: 'Student',
 };
 
+/**
+ * Last column of every variant.
+ *
+ * A variant which repeats the other metrics per window still displays this one
+ * once, so it is defined apart from them.
+ */
+export const lastActivityColumn: OrderableActivityTableColumn<StudentsTableRow> =
+  {
+    field: 'last_activity',
+    label: 'Last Activity',
+    initialOrderDirection: 'descending',
+  };
+
 export const metricsColumns: OrderableActivityTableColumn<StudentsTableRow>[] =
   [
     {
@@ -23,11 +36,7 @@ export const metricsColumns: OrderableActivityTableColumn<StudentsTableRow>[] =
       label: 'Replies',
       initialOrderDirection: 'descending',
     },
-    {
-      field: 'last_activity',
-      label: 'Last Activity',
-      initialOrderDirection: 'descending',
-    },
+    lastActivityColumn,
   ];
 
 /**
@@ -36,15 +45,21 @@ export const metricsColumns: OrderableActivityTableColumn<StudentsTableRow>[] =
  * Every variant displays the same metrics, so they all build their rows this
  * way. `auto_grading_grade` is absent for an assignment without grading, so
  * spreading it is a no-op there.
+ *
+ * The fields are listed rather than spread from the student so that a row stays
+ * a deliberate projection: a table cell holds a single value, and the API also
+ * reports data which is not one — `phase_metrics` is a list, and the variant
+ * which displays it puts its own fields at the top level.
  */
 export function buildRows(students: StudentWithMetrics[]): StudentsTableRow[] {
-  return students.map(
-    ({ annotation_metrics, auto_grading_grade, ...rest }) => ({
-      ...auto_grading_grade,
-      ...annotation_metrics,
-      ...rest,
-    }),
-  );
+  return students.map(student => ({
+    h_userid: student.h_userid,
+    lms_id: student.lms_id,
+    display_name: student.display_name,
+    active: student.active,
+    ...student.auto_grading_grade,
+    ...student.annotation_metrics,
+  }));
 }
 
 /**

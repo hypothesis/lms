@@ -156,13 +156,13 @@ export default function AssignmentActivity() {
     // status is triggered again
     setLastSyncParams({ t: `${Date.now()}` });
 
-    // TODO: This is the last bit of this view which knows what kind of
-    // assignment it is displaying: `auto_grading_grade` only exists in the
-    // auto-grading variant, so a variant storing its grades anywhere else (per
-    // checkpoint, say) would keep labelling them as "New". Move it into the
-    // variant module as `markGradesAsSynced`, next to `gradesToSync`, when that
-    // second variant lands: designing the method against two real callers beats
-    // guessing its shape from this one.
+    // TODO: This is the last bit of this view which knows where a variant
+    // keeps its grades. The checkpoint variant which grades syncs its final
+    // grade out of `auto_grading_grade` too, so this stays correct for both of
+    // them; a variant storing its grades anywhere else would keep labelling
+    // them as "New". Move it into the variant module as `markGradesAsSynced`,
+    // next to `gradesToSync`, when such a variant lands: designing the method
+    // against two real callers beats guessing its shape from this one.
     students.mutate({
       students: (students.data?.students ?? []).map(
         ({ auto_grading_grade, ...rest }) =>
