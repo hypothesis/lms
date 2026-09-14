@@ -6,6 +6,7 @@ from h_matchers import Any
 from sqlalchemy import select
 
 from lms.models import (
+    MAX_AUTO_GRADING_PHASES,
     AssignmentGrouping,
     AssignmentMembership,
     AutoGradingConfig,
@@ -13,11 +14,7 @@ from lms.models import (
     RoleScope,
     RoleType,
 )
-from lms.services.assignment import (
-    _MAX_CHAIN_DEPTH,
-    AssignmentService,
-    factory,
-)
+from lms.services.assignment import AssignmentService, factory
 from tests import factories
 
 
@@ -295,6 +292,31 @@ class TestAssignmentService:
 
         assert svc.get_auto_grading_configs(assignment) == [config]
 
+    def test_get_auto_grading_config_data_without_a_config(self, svc):
+        assignment = factories.Assignment(auto_grading_config=None)
+
+        assert svc.get_auto_grading_config_data(assignment) is None
+
+    def test_get_auto_grading_config_data_with_one_phase(self, svc, db_session):
+        config = factories.AutoGradingConfig()
+        assignment = factories.Assignment(auto_grading_config=config)
+        db_session.flush()
+
+        # A single phase reads back as one config, the shape assignments had
+        # before paced grades existed.
+        assert svc.get_auto_grading_config_data(assignment) == config.asdict()
+
+    def test_get_auto_grading_config_data_with_several_phases(self, svc, db_session):
+        first, second = factories.AutoGradingConfig.create_batch(2)
+        second.previous_config = first
+        assignment = factories.Assignment(auto_grading_config=first)
+        db_session.flush()
+
+        assert svc.get_auto_grading_config_data(assignment) == [
+            first.asdict(),
+            second.asdict(),
+        ]
+
     def test_get_auto_grading_configs_stops_at_the_chain_depth_bound(
         self, svc, db_session
     ):
@@ -308,7 +330,7 @@ class TestAssignmentService:
 
         configs = svc.get_auto_grading_configs(assignment)
 
-        assert len(configs) == _MAX_CHAIN_DEPTH
+        assert len(configs) == MAX_AUTO_GRADING_PHASES
 
     def test_update_assignment_rejects_more_phases_than_the_chain_bound(
         self, svc, pyramid_request, course, misc_plugin
@@ -326,7 +348,8 @@ class TestAssignmentService:
                 None,
                 course,
                 auto_grading_config=[
-                    {"required_annotations": 1} for _ in range(_MAX_CHAIN_DEPTH + 1)
+                    {"required_annotations": 1}
+                    for _ in range(MAX_AUTO_GRADING_PHASES + 1)
                 ],
             )
 

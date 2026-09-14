@@ -10,6 +10,7 @@ from marshmallow import (
 )
 from marshmallow.validate import OneOf, Range
 
+from lms.models import MAX_AUTO_GRADING_PHASES
 from lms.validation._base import PyramidRequestSchema
 from lms.validation._exceptions import LTIToolRedirect
 
@@ -172,6 +173,52 @@ class AutoGradingConfigSchema(Schema):
     )
 
 
+class AutoGradingConfigsField(fields.Field):
+    """Accept either one auto-grading config or one per grading phase.
+
+    The shape is kept rather than normalised to a list: an assignment graded as
+    a whole sends exactly what it sent before paced grades existed, which is
+    also what assignments created back then still carry in their LTI custom
+    params. `AssignmentService` stores either.
+    """
+
+    _config_schema = AutoGradingConfigSchema()
+
+    def _deserialize(self, value, attr, data, **kwargs):  # noqa: ARG002
+        if not isinstance(value, list):
+            return self._config_schema.load(value)
+
+        if not value or len(value) > MAX_AUTO_GRADING_PHASES:
+            # Refused here rather than left to `AssignmentService`, which
+            # raises a plain `ValueError`. On the deep-linking path that is not
+            # an error the instructor can act on: the configs are handed to the
+            # LMS as a custom param before anything validates them against the
+            # DB, and the failure surfaces on the next launch instead -- every
+            # launch, for every user, over a value stored where we cannot edit
+            # it. An empty list is refused too: the backend reads it as "no
+            # auto grading" and deletes the config, which `None` already says.
+            raise ValidationError(  # noqa: TRY003
+                f"Expected between 1 and {MAX_AUTO_GRADING_PHASES} auto-grading configs,"  # noqa: EM102
+                f" got {len(value)}"
+            )
+
+        # Loaded one by one, keeping which phase each error came from: the
+        # whole list is one field here, so without the index a client is told
+        # that some config is wrong but not which.
+        configs = []
+        errors: dict[int, object] = {}
+        for index, config in enumerate(value):
+            try:
+                configs.append(self._config_schema.load(config))
+            except ValidationError as err:
+                errors[index] = err.messages
+
+        if errors:
+            raise ValidationError(errors)
+
+        return configs
+
+
 class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
     """Schema for validating requests to the configure_assignment() view."""
 
@@ -182,9 +229,7 @@ class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
     user_id = fields.Str(required=True)
     context_title = fields.Str(required=True)
     group_set = fields.Str(required=False, allow_none=True)
-    auto_grading_config = fields.Nested(
-        AutoGradingConfigSchema, required=False, allow_none=True
-    )
+    auto_grading_config = AutoGradingConfigsField(required=False, allow_none=True)
     checkpoint_enabled = fields.Bool(
         required=False,
         load_default=False,

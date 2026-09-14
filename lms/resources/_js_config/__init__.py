@@ -28,6 +28,18 @@ from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
 
+def _due_date_iso(assignment) -> str | None:
+    """Return the assignment's due date as a UTC ISO string, or None.
+
+    The column is naive UTC, so the offset has to be put back on before the
+    frontend parses it -- without it a browser reads the value as local time.
+    """
+    if not assignment.due_date:
+        return None
+
+    return assignment.due_date.replace(tzinfo=UTC).isoformat()
+
+
 class JSConfig:
     """The config for the app's JavaScript code."""
 
@@ -419,11 +431,23 @@ class JSConfig:
             self._config["assignment"] = {
                 "group_set_id": assignment.extra.get("group_set_id"),
                 "document": {"url": assignment.document_url},
+                # Whether the assignment is graded phase by phase is the
+                # instructor's to change, so the file picker needs to know an
+                # assignment has phases even when auto grading is off.
+                "checkpoint_enabled": assignment.checkpoint_enabled,
+                # Sent so an edit can show the due date it already has. What the
+                # file picker is given is what it sends back, so leaving this
+                # out would clear the date on every save.
+                "due_date": _due_date_iso(assignment),
             }
-            if auto_grading_config := assignment.auto_grading_config:
-                self._config["assignment"]["auto_grading_config"] = (
-                    auto_grading_config.asdict()
-                )
+            assignment_service = self._request.find_service(name="assignment")
+            # Every grading phase, not just the first: what the file picker is
+            # given is what it sends back, so a phase missing here is a phase
+            # deleted on save.
+            if auto_grading_config := assignment_service.get_auto_grading_config_data(
+                assignment
+            ):
+                self._config["assignment"]["auto_grading_config"] = auto_grading_config
 
         return self._config
 
@@ -490,11 +514,7 @@ class JSConfig:
     ):
         toolbar_config = self._config.get("instructorToolbar", {})
 
-        due_date_iso = (
-            assignment.due_date.replace(tzinfo=UTC).isoformat()
-            if assignment.due_date
-            else None
-        )
+        due_date_iso = _due_date_iso(assignment)
 
         toolbar_config["courseCheckpointConfig"] = {
             "revealed": h_revealed,
@@ -508,11 +528,7 @@ class JSConfig:
         self._config["instructorToolbar"] = toolbar_config
 
     def enable_student_checkpoint(self, assignment, *, h_revealed=False):
-        due_date_iso = (
-            assignment.due_date.replace(tzinfo=UTC).isoformat()
-            if assignment.due_date
-            else None
-        )
+        due_date_iso = _due_date_iso(assignment)
 
         self._config["studentToolbar"] = {
             "courseCheckpointConfig": {

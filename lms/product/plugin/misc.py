@@ -15,7 +15,9 @@ if TYPE_CHECKING:
 class AssignmentConfig(TypedDict):
     document_url: str | None
     group_set_id: str | None
-    auto_grading_config: NotRequired[AutoGradingConfig | None]
+    # One config for an assignment graded as a whole, one per grading phase for
+    # a paced one. `AssignmentService` stores either shape.
+    auto_grading_config: NotRequired[AutoGradingConfig | list[AutoGradingConfig] | None]
     checkpoint_enabled: NotRequired[bool]
     # datetime from the DB; ISO string from deep-linked params.
     due_date: NotRequired[datetime | str]
