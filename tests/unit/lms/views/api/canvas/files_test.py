@@ -49,6 +49,60 @@ class TestFilesAPIViews:
         )
         assert result == {"via_url": helpers.via_url.return_value}
 
+    @pytest.mark.usefixtures("with_teacher_or_student")
+    def test_via_url_identifies_an_unidentified_checkpoint_document(
+        self,
+        pyramid_request,
+        assignment_service,
+        canvas_service,
+        fingerprint_checkpoint_document,
+    ):
+        # The launch could not read the file, or this would already be set.
+        # This request just did, so the identity can be worked out from here.
+        assignment = assignment_service.get_assignment.return_value
+        assignment.document_url = "canvas://file/course/COURSE_ID/file_id/FILE_ID"
+        assignment.checkpoint_enabled = True
+        assignment.document_uri = None
+        pyramid_request.matchdict = {"resource_link_id": "test_resource_link_id"}
+
+        FilesAPIViews(pyramid_request).via_url()
+
+        fingerprint_checkpoint_document.delay.assert_called_once_with(
+            assignment_id=assignment.id,
+            public_url=canvas_service.public_url_for_file.return_value,
+        )
+
+    @pytest.mark.usefixtures("with_teacher_or_student")
+    @pytest.mark.parametrize(
+        ("checkpoint_enabled", "document_uri"),
+        [
+            (False, None),
+            (True, "urn:x-pdf:already"),
+            (False, "urn:x-pdf:already"),
+        ],
+    )
+    def test_via_url_doesnt_identify_it_otherwise(
+        self,
+        pyramid_request,
+        assignment_service,
+        fingerprint_checkpoint_document,
+        checkpoint_enabled,
+        document_uri,
+    ):
+        assignment = assignment_service.get_assignment.return_value
+        assignment.document_url = "canvas://file/course/COURSE_ID/file_id/FILE_ID"
+        assignment.checkpoint_enabled = checkpoint_enabled
+        assignment.document_uri = document_uri
+        pyramid_request.matchdict = {"resource_link_id": "test_resource_link_id"}
+
+        FilesAPIViews(pyramid_request).via_url()
+
+        fingerprint_checkpoint_document.delay.assert_not_called()
+
+    @pytest.fixture
+    def fingerprint_checkpoint_document(self, patch):
+        return patch("lms.views.api.canvas.files.fingerprint_checkpoint_document")
+
     @pytest.fixture(params=("instructor", "learner"))
     def with_teacher_or_student(self, request, pyramid_request):
         pyramid_request.lti_user.roles = request.param
