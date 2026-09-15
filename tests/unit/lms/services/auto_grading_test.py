@@ -121,11 +121,11 @@ class TestAutoGradingService:
             ("all_or_nothing", "separate", 10, 5, 10, 5, 1),
             ("all_or_nothing", "separate", 10, 0, 9, 4, 0),
             ("all_or_nothing", "separate", 10, None, 9, 4, 0),
-            ("scaled", "cumulative", 3, None, 1, 0, 0.333),
-            ("scaled", "cumulative", 3, None, 2, 0, 0.667),
-            ("scaled", "cumulative", 15, None, 5, 5, 0.667),
+            ("scaled", "cumulative", 3, None, 1, 0, 1 / 3),
+            ("scaled", "cumulative", 3, None, 2, 0, 2 / 3),
+            ("scaled", "cumulative", 15, None, 5, 5, 2 / 3),
             ("scaled", "cumulative", 15, None, 10, 10, 1),
-            ("scaled", "separate", 10, 5, 8, 2, 0.667),
+            ("scaled", "separate", 10, 5, 8, 2, 2 / 3),
             ("scaled", "separate", 10, 5, 5, 1, 0.4),
             # In scaled+separate cases, extra annos/replies should be ignored
             ("scaled", "separate", 3, 2, 0, 3, 0.4),
@@ -156,6 +156,33 @@ class TestAutoGradingService:
         )
 
         assert grade == expected_grade
+
+    @pytest.mark.parametrize(
+        "required_annotations,annotations,score_maximum,expected_points",
+        [
+            (3, 1, 15, 5),
+            (3, 2, 15, 10),
+            (3, 1, 3, 1),
+            (7, 3, 100, 42.857142857142854),
+        ],
+    )
+    def test_calculate_grade_is_precise_enough_for_the_lms(
+        self, required_annotations, annotations, score_maximum, expected_points, svc
+    ):
+        # We send grades as a proportion of 1, so it's the LMS that multiplies
+        # them by its own maximum. Rounding here lands students on the wrong
+        # number of points.
+        grade = svc.calculate_grade(
+            AutoGradingConfig(
+                activity_calculation="cumulative",
+                grading_type="scaled",
+                required_annotations=required_annotations,
+                required_replies=None,
+            ),
+            AnnotationMetrics(annotations=annotations, replies=0),
+        )
+
+        assert grade * score_maximum == expected_points
 
     def test_calculate_grade_bad_config(self, svc):
         with pytest.raises(ValueError):  # noqa: PT011
