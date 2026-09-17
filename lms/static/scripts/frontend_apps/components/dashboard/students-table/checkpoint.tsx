@@ -319,16 +319,18 @@ export function renderCheckpointField(
 
   const [, position, metric] = phaseMetric;
 
+  const entry = phaseMetricsOf(row, context.students).get(Number(position));
+
+  // h counts a phase from the outset, so one which hasn't started reports
+  // zeros. Showing them says nobody engaged with the phase, when what happened
+  // is that it hasn't opened: it is dashed instead, the way the final grade's
+  // summary dashes the phases it leaves out of the average. A phase with no
+  // requirements of its own is ungraded for the same reason.
+  if (!entry?.started || (metric === 'grade' && !entry.requirements)) {
+    return <div className="text-right text-grey-5">—</div>;
+  }
+
   if (metric === 'grade') {
-    const entry = phaseMetricsOf(row, context.students).get(Number(position));
-
-    // A phase which hasn't started scores a dash rather than the zero h
-    // reports from the outset, the way the final grade's summary does: nothing
-    // was possible in it yet, so it has not failed its requirements.
-    if (!entry?.started || !entry.requirements) {
-      return <div className="text-right text-grey-5">—</div>;
-    }
-
     // The same indicator as the flat table's grade, so hovering a phase's
     // grade lists its requirements the way hovering an ungrouped one does.
     // `synced` is off: only the final grade reaches the LMS, so this one is
