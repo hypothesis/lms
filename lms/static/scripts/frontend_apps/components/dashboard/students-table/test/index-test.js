@@ -629,24 +629,38 @@ describe('students-table', () => {
       });
     });
 
-    it('scores a phase which has not started as a dash', () => {
-      // h reports a phase from the outset, so an unrevealed one arrives with
-      // a zero grade. Showing it reads as a phase failed rather than one
-      // still to come, and the final grade leaves it out of the average.
+    it('reports nothing for a phase which has not started', () => {
+      // h counts a phase from the outset, so an unrevealed one arrives with
+      // zeros throughout. Showing them says nobody engaged with the phase,
+      // when what happened is that it hasn't opened yet.
       const { rows, renderItem } = config(gradedCheckpointAssignment, [
         {
           ...student,
           phase_metrics: [
             phaseMetrics[0],
-            { ...phaseMetrics[1], started: false, grade: 0 },
+            {
+              ...phaseMetrics[1],
+              started: false,
+              grade: 0,
+              metrics: { annotations: 0, replies: 0, last_activity: null },
+            },
           ],
         },
       ]);
 
-      const cell = mountItem(renderItem(rows[0], 'phase_2_grade'));
+      for (const field of [
+        'phase_2_grade',
+        'phase_2_annotations',
+        'phase_2_replies',
+      ]) {
+        assert.equal(mountItem(renderItem(rows[0], field)).text(), '—', field);
+      }
 
-      assert.isFalse(cell.exists('GradeIndicator'));
-      assert.equal(cell.text(), '—');
+      // The phase that has started still reports its counts
+      assert.equal(
+        mountItem(renderItem(rows[0], 'phase_1_annotations')).text(),
+        '5',
+      );
     });
 
     it('does not offer a phase grade for syncing', () => {
