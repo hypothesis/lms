@@ -387,11 +387,11 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     checkpointEnabled && phasedAutoGradingEnabled
       ? [
           {
-            label: 'Checkpoint',
+            label: 'Hidden Phase',
             description: 'Applies to activity before the Checkpoint',
           },
           {
-            label: dueDate ? 'Due Date' : 'Assignment end',
+            label: 'Revealed Phase',
             description: 'Applies to activity after the Checkpoint',
           },
         ]
