@@ -322,6 +322,13 @@ export function renderCheckpointField(
   if (metric === 'grade') {
     const entry = phaseMetricsOf(row, context.students).get(Number(position));
 
+    // A phase which hasn't started scores a dash rather than the zero h
+    // reports from the outset, the way the final grade's summary does: nothing
+    // was possible in it yet, so it has not failed its requirements.
+    if (!entry?.started || !entry.requirements) {
+      return <div className="text-right text-grey-5">—</div>;
+    }
+
     // The same indicator as the flat table's grade, so hovering a phase's
     // grade lists its requirements the way hovering an ungrouped one does.
     // `synced` is off: only the final grade reaches the LMS, so this one is
@@ -330,9 +337,9 @@ export function renderCheckpointField(
       <div className="flex justify-end -my-0.5">
         <GradeIndicator
           grade={Number(value)}
-          annotations={entry?.metrics.annotations ?? 0}
-          replies={entry?.metrics.replies ?? 0}
-          config={entry?.requirements}
+          annotations={entry.metrics.annotations}
+          replies={entry.metrics.replies}
+          config={entry.requirements}
           synced={false}
         />
       </div>

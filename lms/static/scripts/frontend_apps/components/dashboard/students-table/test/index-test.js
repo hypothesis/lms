@@ -629,6 +629,26 @@ describe('students-table', () => {
       });
     });
 
+    it('scores a phase which has not started as a dash', () => {
+      // h reports a phase from the outset, so an unrevealed one arrives with
+      // a zero grade. Showing it reads as a phase failed rather than one
+      // still to come, and the final grade leaves it out of the average.
+      const { rows, renderItem } = config(gradedCheckpointAssignment, [
+        {
+          ...student,
+          phase_metrics: [
+            phaseMetrics[0],
+            { ...phaseMetrics[1], started: false, grade: 0 },
+          ],
+        },
+      ]);
+
+      const cell = mountItem(renderItem(rows[0], 'phase_2_grade'));
+
+      assert.isFalse(cell.exists('GradeIndicator'));
+      assert.equal(cell.text(), '—');
+    });
+
     it('does not offer a phase grade for syncing', () => {
       // Only the final grade reaches the LMS, so a phase's grade carries no
       // sync state: no badge, and nothing about a previous sync
