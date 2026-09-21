@@ -99,8 +99,8 @@ class TestFilePickerMode:
             (True, True),
             # Flag explicitly off.
             (False, False),
-            # Flag unset: defaults to off.
-            (None, False),
+            # Flag unset: defaults to on.
+            (None, True),
         ],
     )
     def test_it_sets_phased_auto_grading_enabled(
