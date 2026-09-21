@@ -30,7 +30,7 @@ class TestDeepLinkingLaunch:
         assert js_config["filePicker"] == {
             "assignmentTypes": ["reading", "hide_and_reveal"],
             "autoGradingEnabled": True,
-            "phasedAutoGradingEnabled": False,
+            "phasedAutoGradingEnabled": True,
             "blackboard": {"enabled": None},
             "canvas": {
                 "enabled": None,
