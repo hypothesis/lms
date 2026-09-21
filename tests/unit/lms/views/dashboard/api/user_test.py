@@ -196,14 +196,16 @@ class TestUserViews:
         student,
         dashboard_service,
         annotation_counts_response,
+        application_instance,
         db_session,
     ):
         pyramid_request.parsed_params = {
             "h_userids": sentinel.h_userids,
             "assignment_id": sentinel.assignment_id,
         }
+        application_instance.settings.set("hypothesis", "phased_auto_grading", False)  # noqa: FBT003
         assignment = factories.Assignment(
-            course=factories.Course(),
+            course=factories.Course(application_instance=application_instance),
             checkpoint_enabled=True,
             document_uri="https://example.com/reading",
         )

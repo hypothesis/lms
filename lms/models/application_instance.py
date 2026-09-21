@@ -192,7 +192,7 @@ class ApplicationSettings(JSONSettings):
         Settings.HYPOTHESIS_PHASED_AUTO_GRADING: JSONSetting(
             Settings.HYPOTHESIS_PHASED_AUTO_GRADING,
             SettingFormat.TRI_STATE,
-            default=False,
+            default=True,
         ),
     }
 
