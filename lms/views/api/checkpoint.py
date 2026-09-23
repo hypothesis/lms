@@ -1,9 +1,9 @@
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound
 from pyramid.view import view_config
 
-from lms.models import Grouping
 from lms.security import Permissions
 from lms.services import HAPI
+from lms.services.lti_h import checkpoint_groupings
 
 
 @view_config(
@@ -48,22 +48,12 @@ def reveal_checkpoint(request):
 
     # Reveal directly in h — h is the source of truth for reveal state.
     h_api = request.find_service(HAPI)
-    # If the assignment has section/group groupings, only reveal those —
-    # not the course group. The course group's checkpoint may be shared
-    # with other assignments that use the same URL, so revealing it would
-    # affect those assignments too.
-    all_groupings = assignment.groupings.all()
-    non_course_groupings = [
-        group for group in all_groupings if group.type != Grouping.Type.COURSE
-    ]
-    reveal_groupings = non_course_groupings if non_course_groupings else all_groupings
-
     checkpoints = [
         {
             "group_authority_provided_id": grouping.authority_provided_id,
             "document_uri": assignment.document_uri,
         }
-        for grouping in reveal_groupings
+        for grouping in checkpoint_groupings(assignment)
     ]
 
     if not checkpoints:

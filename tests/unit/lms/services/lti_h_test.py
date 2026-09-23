@@ -5,7 +5,7 @@ from h_api.bulk_api import CommandBuilder
 
 from lms.models import Grouping
 from lms.services import HAPIError
-from lms.services.lti_h import LTIHService, checkpoint_sync_data
+from lms.services.lti_h import LTIHService, checkpoint_groupings, checkpoint_sync_data
 from tests import factories
 
 
@@ -143,3 +143,23 @@ class TestCheckpointSyncData:
         assignment = factories.Assignment(checkpoint_enabled=True, document_uri=None)
 
         assert checkpoint_sync_data(assignment, lti_user) is None
+
+
+class TestCheckpointGroupings:
+    def test_it_prefers_non_course_groupings(self, db_session):
+        assignment = factories.Assignment()
+        course = factories.Course()
+        section = factories.CanvasSection()
+        factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        factories.AssignmentGrouping(assignment=assignment, grouping=section)
+        db_session.flush()
+
+        assert checkpoint_groupings(assignment) == [section]
+
+    def test_it_falls_back_to_the_course(self, db_session):
+        assignment = factories.Assignment()
+        course = factories.Course()
+        factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        db_session.flush()
+
+        assert checkpoint_groupings(assignment) == [course]
