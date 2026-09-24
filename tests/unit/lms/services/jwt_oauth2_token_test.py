@@ -4,6 +4,7 @@ from unittest.mock import sentinel
 import pytest
 from freezegun import freeze_time
 
+from lms.db import LockType
 from lms.services.jwt_oauth2_token import JWTOAuth2TokenService, factory
 from tests import factories
 
@@ -80,6 +81,17 @@ class TestJWTOAuth2TokenServiceTest:
 
         assert token == expired_token
 
+    def test_try_lock_for_refresh(
+        self, svc, db_session, lti_registration, try_advisory_transaction_lock
+    ):
+        svc.try_lock_for_refresh(lti_registration)
+
+        # Keyed on the registration, not the token row: there may be no token
+        # row yet the first time a registration needs one.
+        try_advisory_transaction_lock.assert_called_once_with(
+            db_session, LockType.LTIA_TOKEN_REFRESH, lti_registration.id
+        )
+
     @pytest.fixture
     def scopes(self):
         return ["SCOPE_1", "SCOPE_2"]
@@ -104,3 +116,8 @@ class TestFactory:
     @pytest.fixture
     def JWTOAuth2TokenService(self, patch):
         return patch("lms.services.jwt_oauth2_token.JWTOAuth2TokenService")
+
+
+@pytest.fixture(autouse=True)
+def try_advisory_transaction_lock(patch):
+    return patch("lms.services.jwt_oauth2_token.try_advisory_transaction_lock")
