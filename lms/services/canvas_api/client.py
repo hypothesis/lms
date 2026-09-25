@@ -386,10 +386,12 @@ class CanvasAPIClient:
         id = fields.Integer(required=True)
         updated_at = fields.String(required=True)
 
-    @lru_cache(maxsize=128)  # noqa: B019
     def public_url(self, file_id):
         """
         Get a new temporary public download URL for the file with the given ID.
+
+        Not cached: Canvas signs each URL with a single-use JWT, so handing the
+        same one to two callers means whichever downloads second gets a 403.
 
         :param file_id: the ID of the Canvas file
         """
