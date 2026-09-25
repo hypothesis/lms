@@ -29,6 +29,21 @@ def checkpoint_sync_data(assignment: Assignment | None, lti_user) -> dict | None
     }
 
 
+def checkpoint_groupings(assignment: Assignment) -> list[Grouping]:
+    """Return the groupings a Hide & Reveal checkpoint should target.
+
+    Section/group groupings are preferred over the course: the course's
+    checkpoint is shared with every assignment that resolves to the same
+    document, so it's only used as a fallback when the assignment has no
+    more specific grouping.
+    """
+    groupings = assignment.groupings.all()
+    non_course = [
+        grouping for grouping in groupings if grouping.type != Grouping.Type.COURSE
+    ]
+    return non_course or groupings
+
+
 class LTIHService:
     """
     Copy LTI users and courses to h users and groups.

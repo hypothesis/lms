@@ -5,6 +5,7 @@ from pyramid.view import view_config, view_defaults
 from lms.document_url_regex import CANVAS_FILE as DOCUMENT_URL_REGEX
 from lms.security import Permissions
 from lms.services.canvas import CanvasService
+from lms.tasks.checkpoint import fingerprint_checkpoint_document
 from lms.views import helpers
 
 
@@ -46,6 +47,24 @@ class FilesAPIViews:
             assignment.course.extra["canvas"]["custom_canvas_course_id"],
             check_in_course=self.request.lti_user.is_instructor,
         )
+
+        if assignment.checkpoint_enabled and not assignment.document_uri:
+            # The launch could not read the file -- otherwise this would
+            # already be set -- but this request just did, so hand a URL to a
+            # task rather than making the reader wait for a download.
+            #
+            # A second URL, not the reader's: Canvas signs each one with a
+            # single-use JWT, so the task downloading the URL Via is about to
+            # fetch gets "JTI has already been used" whichever of them is
+            # second. `public_url` mints a new one per call.
+            fingerprint_checkpoint_document.delay(
+                assignment_id=assignment.id,
+                public_url=self.canvas.public_url_for_file(
+                    assignment,
+                    document_url_match["file_id"],
+                    assignment.course.extra["canvas"]["custom_canvas_course_id"],
+                ),
+            )
 
         # Currently we only let users pick PDF files, so we can save a little
         # time by specifying this, instead of Via having to work it out

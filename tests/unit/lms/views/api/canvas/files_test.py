@@ -1,3 +1,5 @@
+from unittest.mock import sentinel
+
 import pytest
 
 from lms.views.api.canvas.files import FilesAPIViews
@@ -48,6 +50,71 @@ class TestFilesAPIViews:
             content_type="pdf",
         )
         assert result == {"via_url": helpers.via_url.return_value}
+
+    @pytest.mark.usefixtures("with_teacher_or_student")
+    def test_via_url_identifies_an_unidentified_checkpoint_document(
+        self,
+        pyramid_request,
+        assignment_service,
+        canvas_service,
+        fingerprint_checkpoint_document,
+        helpers,
+    ):
+        # The launch could not read the file, or this would already be set.
+        # This request just did, so the identity can be worked out from here.
+        assignment = assignment_service.get_assignment.return_value
+        assignment.document_url = "canvas://file/course/COURSE_ID/file_id/FILE_ID"
+        assignment.checkpoint_enabled = True
+        assignment.document_uri = None
+        # Canvas signs each public URL with a single-use JWT, so the reader and
+        # the task each need one of their own.
+        canvas_service.public_url_for_file.side_effect = [
+            sentinel.readers_url,
+            sentinel.tasks_url,
+        ]
+        pyramid_request.matchdict = {"resource_link_id": "test_resource_link_id"}
+
+        FilesAPIViews(pyramid_request).via_url()
+
+        fingerprint_checkpoint_document.delay.assert_called_once_with(
+            assignment_id=assignment.id, public_url=sentinel.tasks_url
+        )
+        # The reader keeps the first one: sharing it would burn the JWT for
+        # whichever of the two downloads came second.
+        helpers.via_url.assert_called_once_with(
+            pyramid_request, sentinel.readers_url, content_type="pdf"
+        )
+
+    @pytest.mark.usefixtures("with_teacher_or_student")
+    @pytest.mark.parametrize(
+        ("checkpoint_enabled", "document_uri"),
+        [
+            (False, None),
+            (True, "urn:x-pdf:already"),
+            (False, "urn:x-pdf:already"),
+        ],
+    )
+    def test_via_url_doesnt_identify_it_otherwise(
+        self,
+        pyramid_request,
+        assignment_service,
+        fingerprint_checkpoint_document,
+        checkpoint_enabled,
+        document_uri,
+    ):
+        assignment = assignment_service.get_assignment.return_value
+        assignment.document_url = "canvas://file/course/COURSE_ID/file_id/FILE_ID"
+        assignment.checkpoint_enabled = checkpoint_enabled
+        assignment.document_uri = document_uri
+        pyramid_request.matchdict = {"resource_link_id": "test_resource_link_id"}
+
+        FilesAPIViews(pyramid_request).via_url()
+
+        fingerprint_checkpoint_document.delay.assert_not_called()
+
+    @pytest.fixture
+    def fingerprint_checkpoint_document(self, patch):
+        return patch("lms.views.api.canvas.files.fingerprint_checkpoint_document")
 
     @pytest.fixture(params=("instructor", "learner"))
     def with_teacher_or_student(self, request, pyramid_request):
