@@ -2,6 +2,7 @@ import { SpinnerOverlay } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
+import type { SyncResponse } from '../api-types';
 import { useConfig } from '../config';
 import { isAuthorizationError, isLTILaunchServerError } from '../errors';
 import type { LTILaunchServerErrorCode } from '../errors';
@@ -16,14 +17,6 @@ import ContentFrame from './ContentFrame';
 import InstructorToolbar from './InstructorToolbar';
 import LaunchErrorDialog from './LaunchErrorDialog';
 import StudentToolbar from './StudentToolbar';
-
-type SyncResponse = {
-  groups: string[];
-  checkpoint?: {
-    revealed: boolean;
-    revealDate: string | null;
-  };
-};
 
 /**
  * Error states managed by this component that can arise during assignment

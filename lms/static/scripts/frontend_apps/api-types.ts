@@ -73,6 +73,17 @@ export type GroupSet = {
   name: string;
 };
 
+/**
+ * Response for the `/api/sync` call.
+ */
+export type SyncResponse = {
+  groups: string[];
+  checkpoint?: {
+    revealed: boolean;
+    revealDate: string | null;
+  };
+};
+
 /** Metadata for an ebook that is available to annotate. */
 export type Book = {
   id: string;

@@ -185,8 +185,8 @@ describe('GradingControls', () => {
         path: '/fake/path',
         data: { foo: 'bar' },
       };
-      studentGroups = [{ groupid: 'group1' }, { groupid: 'group2' }];
-      fakeApiCall.resolves(studentGroups);
+      studentGroups = ['group1', 'group2'];
+      fakeApiCall.resolves({ groups: studentGroups });
     });
 
     afterEach(() => {
