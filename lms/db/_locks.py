@@ -24,6 +24,14 @@ class LockType(IntEnum):
     The object ID is the `OAuth2Token.id` value for the token being updated.
     """
 
+    LTIA_TOKEN_REFRESH = 2
+    """
+    Lock for an LTI Advantage access token refresh.
+
+    The object ID is the `LTIRegistration.id` value whose token is being
+    refreshed.
+    """
+
 
 def try_advisory_transaction_lock(db: Session, lock_type: LockType, id_: int):
     """
