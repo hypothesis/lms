@@ -112,6 +112,42 @@ class TestRecordCanvasSpeedgraderSubmission:
         with pytest.raises(SerializableError):
             GradingViews(pyramid_request).record_canvas_speedgrader_submission()
 
+    def test_it_records_the_submission_when_canvas_refuses_the_result_read(
+        self, lti_v13_pyramid_request, lti_grading_service, LTIEvent
+    ):
+        # Canvas answers the results endpoint with a 412 when the line item
+        # belongs to a different developer key than ours. That must not stop
+        # us recording the submission, which is a separate call.
+        lti_grading_service.read_result.side_effect = self.forbidden_line_item()
+
+        GradingViews(lti_v13_pyramid_request).record_canvas_speedgrader_submission()
+
+        lti_grading_service.record_result.assert_called_once_with(
+            self.GRADING_ID,
+            pre_record_hook=Any.instance_of(CanvasPreRecordHook),
+        )
+
+    def test_it_raises_when_canvas_refuses_the_result_read_in_lti_v11(
+        self, pyramid_request, lti_grading_service
+    ):
+        # LTI1.1 sends no `preserve_score`, so recording anyway could clear an
+        # existing grade. Keep failing instead.
+        lti_grading_service.read_result.side_effect = self.forbidden_line_item()
+
+        with pytest.raises(ExternalRequestError):
+            GradingViews(pyramid_request).record_canvas_speedgrader_submission()
+
+        lti_grading_service.record_result.assert_not_called()
+
+    @staticmethod
+    def forbidden_line_item():
+        return ExternalRequestError(
+            response=Mock(
+                status_code=412,
+                text='{"errors":{"type":"precondition_failed","message":"Tool does not have permission to view line_item"}}',
+            )
+        )
+
     def test_it_raises_unhandled_external_request_error(
         self, pyramid_request, lti_grading_service
     ):
@@ -199,6 +235,7 @@ class TestCanvasPreRecordHook:
                 "submitted_at": (
                     submitted_at or hook.DEFAULT_SUBMISSION_DATE
                 ).isoformat(),
+                "preserve_score": True,
             }
         }
 
