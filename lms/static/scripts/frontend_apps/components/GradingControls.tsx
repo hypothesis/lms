@@ -2,6 +2,7 @@ import { confirm } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
+import type { SyncResponse } from '../api-types';
 import { useConfig } from '../config';
 import type { StudentInfo } from '../config';
 import { ClientRPC, useService } from '../services';
@@ -78,7 +79,7 @@ export default function GradingControls({
 
   const changeFocusedUser = useCallback(
     async (user: StudentInfo | null) => {
-      let groups = null;
+      let groups: string[] | null = null;
       if (syncAPICallInfo && user?.lmsId) {
         // Request and set a list of groups specific to the student being graded
         const studentGroupsCallData = {
@@ -86,11 +87,12 @@ export default function GradingControls({
           gradingStudentId: user.lmsId,
         };
         try {
-          groups = await apiCall<string[]>({
+          const response = await apiCall<SyncResponse>({
             authToken,
             path: syncAPICallInfo.path,
             data: studentGroupsCallData,
           });
+          groups = response.groups;
         } catch {
           // An error could plausibly occur when fetching a student's groups
           // from the sync API. This is unlikely (there are no known specific
