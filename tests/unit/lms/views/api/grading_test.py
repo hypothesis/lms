@@ -126,6 +126,9 @@ class TestRecordCanvasSpeedgraderSubmission:
             self.GRADING_ID,
             pre_record_hook=Any.instance_of(CanvasPreRecordHook),
         )
+        LTIEvent.from_request.assert_called_once_with(
+            request=lti_v13_pyramid_request, type_=LTIEvent.Type.SUBMISSION
+        )
 
     def test_it_raises_when_canvas_refuses_the_result_read_in_lti_v11(
         self, pyramid_request, lti_grading_service
