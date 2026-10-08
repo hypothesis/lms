@@ -5,7 +5,12 @@ import pytest
 from freezegun import freeze_time
 from requests.exceptions import Timeout
 
-from lms.services.exceptions import ExternalRequestError, LTIATokenRequestError
+from lms.db import CouldNotAcquireLock
+from lms.services.exceptions import (
+    ConcurrentTokenRefreshError,
+    ExternalRequestError,
+    LTIATokenRequestError,
+)
 from lms.services.ltia_http import LTIAHTTPService, factory
 from tests import factories
 
@@ -61,6 +66,48 @@ class TestLTIAHTTPService:
             scopes,
             http_service.post.return_value.json.return_value["access_token"],
             http_service.post.return_value.json.return_value["expires_in"],
+        )
+
+    def test_request_locks_before_refreshing_the_token(
+        self, svc, jwt_oauth2_token_service, scopes, lti_registration
+    ):
+        jwt_oauth2_token_service.get_token.return_value = None
+
+        svc.request(lti_registration, "POST", "https://example.com", scopes)
+
+        jwt_oauth2_token_service.try_lock_for_refresh.assert_called_once_with(
+            lti_registration
+        )
+
+    def test_request_raises_ConcurrentTokenRefreshError_when_locked(
+        self, svc, http_service, jwt_oauth2_token_service, scopes, lti_registration
+    ):
+        jwt_oauth2_token_service.get_token.return_value = None
+        jwt_oauth2_token_service.try_lock_for_refresh.side_effect = (
+            CouldNotAcquireLock()
+        )
+
+        with pytest.raises(ConcurrentTokenRefreshError):
+            svc.request(lti_registration, "POST", "https://example.com", scopes)
+
+        # The whole point: the request that loses the race must not make its
+        # own token request.
+        http_service.post.assert_not_called()
+
+    def test_request_uses_a_token_refreshed_while_it_waited_for_the_lock(
+        self, svc, http_service, jwt_oauth2_token_service, scopes, lti_registration
+    ):
+        refreshed = factories.JWTOAuth2Token(access_token="REFRESHED")  # noqa: S106
+        # Absent on the first read, present once we hold the lock.
+        jwt_oauth2_token_service.get_token.side_effect = [None, refreshed]
+
+        svc.request(lti_registration, "POST", "https://example.com", scopes)
+
+        http_service.post.assert_not_called()
+        http_service.request.assert_called_once_with(
+            "POST",
+            "https://example.com",
+            headers={"Authorization": "Bearer REFRESHED"},
         )
 
     def test_request_raises_LTIATokenRequestError_when_the_token_request_fails(
