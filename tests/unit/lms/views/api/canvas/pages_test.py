@@ -193,7 +193,13 @@ class TestPageAPIViews:
         with pytest.raises(PageNotFoundInCourse):
             PagesAPIViews(pyramid_request).via_url()
 
-    def test_proxy(self, canvas_service, pyramid_request, application_instance):
+    def test_proxy(
+        self,
+        canvas_service,
+        pyramid_request,
+        application_instance,
+        open_lti_embeds_in_canvas,
+    ):
         pyramid_request.params["course_id"] = "COURSE_ID"
         pyramid_request.params["page_id"] = "PAGE_ID"
         canvas_service.api.pages.page.return_value = CanvasPage(
@@ -203,9 +209,10 @@ class TestPageAPIViews:
         response = PagesAPIViews(pyramid_request).proxy()
 
         canvas_service.api.pages.page.assert_called_once_with("COURSE_ID", "PAGE_ID")
+        open_lti_embeds_in_canvas.assert_called_once_with(sentinel.body)
         assert response == {
             "title": sentinel.title,
-            "body": sentinel.body,
+            "body": open_lti_embeds_in_canvas.return_value,
             "canonical_url": f"https://{application_instance.lms_host()}/courses/COURSE_ID/pages/1",
         }
 
@@ -221,6 +228,10 @@ class TestPageAPIViews:
     @pytest.fixture
     def helpers(self, patch):
         return patch("lms.views.api.canvas.pages.helpers")
+
+    @pytest.fixture
+    def open_lti_embeds_in_canvas(self, patch):
+        return patch("lms.views.api.canvas.pages.open_lti_embeds_in_canvas")
 
     @pytest.fixture
     def BearerTokenSchema(self, patch):
