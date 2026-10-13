@@ -34,6 +34,16 @@ class GradingViews:
             LTIGradingService
         )
 
+    @property
+    def _sends_preserve_score(self) -> bool:
+        """Whether a submission we record will carry Canvas's `preserve_score`.
+
+        Only LTI1.3 submissions do, see `CanvasPreRecordHook._rewrite_v13`.
+        This is the same check the LTIGradingService factory uses to pick the
+        LTI version, so the two cannot disagree.
+        """
+        return self.request.lti_user.application_instance.lti_version == "1.3.0"
+
     @view_config(
         route_name="lti_api.result.record",
         schema=APIRecordResultSchema,
@@ -109,8 +119,31 @@ class GradingViews:
 
         lis_result_sourcedid = self.parsed_params["lis_result_sourcedid"]
         try:
+            try:
+                current_score = self.lti_grading_service.read_result(
+                    lis_result_sourcedid
+                ).score
+            except ExternalRequestError as err:
+                # Canvas answers 412 "Tool does not have permission to view
+                # line_item" when the line item belongs to a different
+                # developer key than ours, eg an LTI1.1-era assignment
+                # migrated to 1.3 under another install. That is a refusal to
+                # answer the question, not a reason to skip the submission:
+                # recording it is a separate call. `preserve_score` (see
+                # CanvasPreRecordHook._rewrite_v13) means going ahead can't
+                # clear an existing grade, so only ignore the failure when
+                # we'll be sending it.
+                if err.status_code != 412 or not self._sends_preserve_score:
+                    raise
+
+                LOG.warning(
+                    "Canvas refused to read the result, recording the submission anyway: %s",
+                    err.response_body,
+                )
+                current_score = None
+
             # If we already have a score, then we've already recorded this info
-            if self.lti_grading_service.read_result(lis_result_sourcedid).score:
+            if current_score:
                 LOG.debug(
                     "Grade already present, not recording submission. User ID: %s",
                     self.request.user.id,
@@ -228,6 +261,11 @@ class CanvasPreRecordHook:
             "submission_type": "basic_lti_launch",
             "submission_data": speedgrader_url,
             "submitted_at": submitted_at.isoformat(),
+            # We send no score with a submission, and Canvas reads a missing
+            # score as "clear this student's grade". This stops it doing that,
+            # so recording a submission can never wipe a grade the teacher
+            # entered. See Canvas's scores_controller `reset_score?`.
+            "preserve_score": True,
         }
 
         return request_body
