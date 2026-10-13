@@ -8,6 +8,7 @@ from lms.services.canvas import CanvasService
 from lms.services.exceptions import CanvasAPIError, FileNotFoundInCourse
 from lms.validation.authentication import BearerTokenSchema
 from lms.views import helpers
+from lms.views.api.canvas.lti_embeds import open_lti_embeds_in_canvas
 
 LOG = logging.getLogger(__name__)
 
@@ -158,7 +159,7 @@ class PagesAPIViews:
                 self.request.lti_user.application_instance.lms_host(), course_id
             ),
             "title": page.title,
-            "body": page.body,
+            "body": open_lti_embeds_in_canvas(page.body),
         }
 
     @staticmethod
