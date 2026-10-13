@@ -73,7 +73,7 @@
     "sinon": "^19.0.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.1",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.11"
   },
   "prettier": {
     "arrowParens": "avoid",
