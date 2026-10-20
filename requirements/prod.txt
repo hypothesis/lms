@@ -6,7 +6,7 @@
 #
 aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.13.3
+aiohttp==3.14.4
     # via -r prod.in
 aiosignal==1.4.0
     # via aiohttp
@@ -140,7 +140,7 @@ plaster-pastedeploy==1.0.1
     # via pyramid
 prompt-toolkit==3.0.43
     # via click-repl
-propcache==0.2.0
+propcache==0.5.4
     # via
     #   aiohttp
     #   yarl
@@ -246,6 +246,7 @@ translationstring==1.4
     # via pyramid
 typing-extensions==4.15.0
     # via
+    #   aiohttp
     #   aiosignal
     #   alembic
     #   pydantic
@@ -281,7 +282,7 @@ wired==0.3
     # via pyramid-services
 xmltodict==1.0.2
     # via -r prod.in
-yarl==1.17.2
+yarl==1.25.1
     # via aiohttp
 zope-deprecation==5.0
     # via
