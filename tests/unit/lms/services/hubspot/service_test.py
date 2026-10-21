@@ -6,7 +6,7 @@ import pytest
 from lms.models import HubSpotCompany
 from lms.services.hubspot import HubSpotService
 from lms.services.hubspot._client import HubSpotClient
-from lms.services.hubspot.service import date_or_timestamp
+from lms.services.hubspot.service import date_or_timestamp, int_or_none
 from tests import factories
 
 
@@ -111,6 +111,30 @@ class TestHubSpotService:
     )
     def test_date_or_timestamp(self, expected, value):
         assert expected == date_or_timestamp(value)
+
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [
+            # Absent: most companies have no current deal.
+            (None, None),
+            ("", None),
+            # The ordinary case.
+            ("1500", 1500),
+            (1500, 1500),
+            # HubSpot calls this a "formatted number", so it arrives
+            # thousands-separated or with a decimal part even though a seat
+            # count is whole.
+            ("1,500", 1500),
+            ("1500.0", 1500),
+            ("1,500.00", 1500),
+            # Unparseable values must not abort the refresh for every other
+            # company in the batch.
+            ("not a number", None),
+            ("--", None),
+        ],
+    )
+    def test_int_or_none(self, value, expected):
+        assert int_or_none(value) == expected
 
     def test_factory(self, pyramid_request, db_session, HubSpotClient, HubSpot):
         svc = HubSpotService.factory(sentinel.context, pyramid_request)

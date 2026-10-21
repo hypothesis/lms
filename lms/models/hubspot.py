@@ -20,6 +20,7 @@ class HubSpotCompany(Base):
     lms_organization_id: Mapped[str | None]
     current_deal_services_start: Mapped[date | None]
     current_deal_services_end: Mapped[date | None]
+    current_deal_users_contracted: Mapped[int | None]
 
     organization: Mapped[Organization] = relationship(
         "Organization",
