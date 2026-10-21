@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from logging import getLogger
 
 from hubspot import HubSpot
 from sqlalchemy import func, select
@@ -7,6 +8,8 @@ from sqlalchemy.exc import MultipleResultsFound
 from lms.models import HubSpotCompany, Organization, OrganizationUsageReport
 from lms.services.hubspot._client import HubSpotClient
 from lms.services.upsert import bulk_upsert
+
+LOG = getLogger(__name__)
 
 
 class HubSpotService:
@@ -66,6 +69,9 @@ class HubSpotService:
                     "current_deal_services_end": date_or_timestamp(
                         company.properties["current_deal__services_end"]
                     ),
+                    "current_deal_users_contracted": int_or_none(
+                        company.properties["current_deal__users_contracted"]
+                    ),
                 }
                 for company in companies
                 # Only get companies with an org ID
@@ -81,6 +87,7 @@ class HubSpotService:
                 "lms_organization_id",
                 "current_deal_services_start",
                 "current_deal_services_end",
+                "current_deal_users_contracted",
             ],
         )
 
@@ -116,6 +123,25 @@ class HubSpotService:
             ),
             region_code=request.registry.settings["region_code"],
         )
+
+
+def int_or_none(value: str | int | None) -> int | None:
+    """
+    Parse HubSpot's "formatted number" fields into an int.
+
+    These arrive as strings and are not always clean: empty for companies
+    without a current deal, sometimes thousands-separated, and sometimes
+    decimal ("1500.0") even though a seat count is whole. Anything we cannot
+    read becomes None rather than raising -- one malformed company should not
+    abort the refresh for every other company in the batch.
+    """
+    if value is None or value == "":
+        return None
+    try:
+        return int(float(str(value).replace(",", "")))
+    except ValueError:
+        LOG.warning("Could not parse contracted users from HubSpot: %r", value)
+        return None
 
 
 def date_or_timestamp(value: str | int | None) -> date | None:
