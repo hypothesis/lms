@@ -19,6 +19,10 @@ class TestHubSpotClient:
                 "lms_organization_id",
                 "current_deal__services_start",
                 "current_deal__services_end",
+                "current_deal__users_contracted",
+                "student_fte",
+                "contract_type",
+                "hs_parent_company_id",
             ]
         )
         assert companies == list(api_client.crm.companies.get_all.return_value)

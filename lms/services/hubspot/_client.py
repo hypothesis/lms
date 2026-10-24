@@ -33,6 +33,9 @@ class HubSpotClient:
             "current_deal__services_start",
             "current_deal__services_end",
             "current_deal__users_contracted",
+            "student_fte",
+            "contract_type",
+            "hs_parent_company_id",
         ]
         yield from self._get_objects(self._api_client.crm.companies, fields)
 
