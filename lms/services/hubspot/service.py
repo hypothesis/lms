@@ -72,6 +72,11 @@ class HubSpotService:
                     "current_deal_users_contracted": int_or_none(
                         company.properties["current_deal__users_contracted"]
                     ),
+                    "student_fte": int_or_none(company.properties["student_fte"]),
+                    "contract_type": company.properties["contract_type"] or None,
+                    "parent_hubspot_id": int_or_none(
+                        company.properties["hs_parent_company_id"]
+                    ),
                 }
                 for company in companies
                 # Only get companies with an org ID
@@ -88,6 +93,9 @@ class HubSpotService:
                 "current_deal_services_start",
                 "current_deal_services_end",
                 "current_deal_users_contracted",
+                "student_fte",
+                "contract_type",
+                "parent_hubspot_id",
             ],
         )
 
