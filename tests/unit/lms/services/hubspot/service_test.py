@@ -6,7 +6,7 @@ import pytest
 from lms.models import HubSpotCompany
 from lms.services.hubspot import HubSpotService
 from lms.services.hubspot._client import HubSpotClient
-from lms.services.hubspot.service import date_or_timestamp
+from lms.services.hubspot.service import date_or_timestamp, int_or_none
 from tests import factories
 
 
@@ -55,6 +55,25 @@ class TestHubSpotService:
                     "hs_object_id": 100,
                     "current_deal__services_start": "2024-01-01",
                     "current_deal__services_end": None,
+                    "current_deal__users_contracted": "1,500",
+                    "student_fte": "17444",
+                    "contract_type": "School",
+                    # HubSpot IDs don't fit in a 32-bit integer
+                    "hs_parent_company_id": "43892014728",
+                }
+            ),
+            Mock(
+                properties={
+                    "lms_organization_id": "us.org.2",
+                    "name": "NO DEAL",
+                    "hs_object_id": 200,
+                    "current_deal__services_start": None,
+                    "current_deal__services_end": None,
+                    "current_deal__users_contracted": None,
+                    "student_fte": None,
+                    # HubSpot sends empty properties as either None or ""
+                    "contract_type": "",
+                    "hs_parent_company_id": "",
                 }
             ),
         ]
@@ -63,9 +82,19 @@ class TestHubSpotService:
 
         hubspot_api_client.get_companies.assert_called_once()
 
-        company = db_session.query(HubSpotCompany).one()
+        company, no_deal = db_session.query(HubSpotCompany).order_by(
+            HubSpotCompany.hubspot_id
+        )
         assert company.name == "COMPANY"
         assert company.hubspot_id == 100
+        assert company.current_deal_users_contracted == 1500
+        assert company.student_fte == 17444
+        assert company.contract_type == "School"
+        assert company.parent_hubspot_id == 43892014728
+        assert no_deal.current_deal_users_contracted is None
+        assert no_deal.student_fte is None
+        assert no_deal.contract_type is None
+        assert no_deal.parent_hubspot_id is None
 
     def test_export_companies_contract_billables(
         self, svc, hubspot_api_client, db_session
@@ -111,6 +140,30 @@ class TestHubSpotService:
     )
     def test_date_or_timestamp(self, expected, value):
         assert expected == date_or_timestamp(value)
+
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [
+            # Absent: most companies have no current deal.
+            (None, None),
+            ("", None),
+            # The ordinary case.
+            ("1500", 1500),
+            (1500, 1500),
+            # HubSpot calls this a "formatted number", so it arrives
+            # thousands-separated or with a decimal part even though a seat
+            # count is whole.
+            ("1,500", 1500),
+            ("1500.0", 1500),
+            ("1,500.00", 1500),
+            # Unparseable values must not abort the refresh for every other
+            # company in the batch.
+            ("not a number", None),
+            ("--", None),
+        ],
+    )
+    def test_int_or_none(self, value, expected):
+        assert int_or_none(value) == expected
 
     def test_factory(self, pyramid_request, db_session, HubSpotClient, HubSpot):
         svc = HubSpotService.factory(sentinel.context, pyramid_request)
