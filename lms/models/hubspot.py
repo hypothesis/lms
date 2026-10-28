@@ -22,6 +22,15 @@ class HubSpotCompany(Base):
     current_deal_services_end: Mapped[date | None]
     current_deal_users_contracted: Mapped[int | None]
 
+    student_fte: Mapped[int | None]
+    """Full-time equivalent students, as entered in HubSpot."""
+
+    contract_type: Mapped[str | None]
+    """School, System, Unlimited, Department, Course or Student Pay."""
+
+    parent_hubspot_id: Mapped[int | None] = mapped_column(BigInteger)
+    """HubSpot ID of the parent company, if this company has one."""
+
     organization: Mapped[Organization] = relationship(
         "Organization",
         primaryjoin=lambda: foreign(Organization.public_id)
