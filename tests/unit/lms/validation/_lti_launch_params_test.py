@@ -267,6 +267,71 @@ class TestConfigureAssignmentSchema:
         with pytest.raises(ValidationError):
             schema.parse()
 
+    def test_with_a_replies_only_auto_grading_config(
+        self, pyramid_request, schema, auto_grading_config
+    ):
+        # Zero annotations required, but replies are: still graded.
+        auto_grading_config["required_annotations"] = 0
+        pyramid_request.params["auto_grading_config"] = json.dumps(auto_grading_config)
+
+        data = schema.parse()
+
+        assert data["auto_grading_config"] == auto_grading_config
+
+    @pytest.mark.parametrize(
+        "requiring_nothing",
+        [
+            {
+                "activity_calculation": "separate",
+                "required_annotations": 0,
+                "required_replies": 0,
+            },
+            {
+                "activity_calculation": "separate",
+                "required_annotations": 0,
+                "required_replies": None,
+            },
+            # A cumulative config never looks at the replies goal.
+            {
+                "activity_calculation": "cumulative",
+                "required_annotations": 0,
+                "required_replies": 5,
+            },
+        ],
+    )
+    def test_with_an_auto_grading_config_requiring_nothing(
+        self, pyramid_request, schema, auto_grading_config, requiring_nothing
+    ):
+        # A single grade with nothing to grade against is auto grading turned
+        # off, which `None` already says.
+        auto_grading_config.update(requiring_nothing)
+        pyramid_request.params["auto_grading_config"] = json.dumps(auto_grading_config)
+
+        with pytest.raises(ValidationError):
+            schema.parse()
+
+    def test_with_a_phase_requiring_nothing(
+        self, pyramid_request, schema, auto_grading_config
+    ):
+        # One phase is ungraded; the other still is, so there is a grade.
+        ungraded = dict(auto_grading_config, required_annotations=0, required_replies=0)
+        pyramid_request.params["auto_grading_config"] = json.dumps(
+            [ungraded, auto_grading_config]
+        )
+
+        data = schema.parse()
+
+        assert data["auto_grading_config"] == [ungraded, auto_grading_config]
+
+    def test_with_no_phase_requiring_anything(
+        self, pyramid_request, schema, auto_grading_config
+    ):
+        ungraded = dict(auto_grading_config, required_annotations=0, required_replies=0)
+        pyramid_request.params["auto_grading_config"] = json.dumps([ungraded, ungraded])
+
+        with pytest.raises(ValidationError):
+            schema.parse()
+
     def test_with_invalid_json(self, pyramid_request, schema):
         pyramid_request.params["auto_grading_config"] = "{]"
 
