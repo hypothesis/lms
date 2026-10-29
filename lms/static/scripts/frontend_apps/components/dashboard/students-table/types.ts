@@ -53,8 +53,11 @@ export type StudentsTableRow = {
   annotations: number;
   replies: number;
 
-  /** Currently calculated grade, only for auto-grading assignments */
-  current_grade?: number;
+  /**
+   * Currently calculated grade, only for auto-grading assignments.
+   * `null` while nothing is graded: no started phase requires any activity.
+   */
+  current_grade?: number | null;
 
   /**
    * Grade that was submitted to the LMS in the most recent sync.

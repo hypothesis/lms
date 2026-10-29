@@ -43,10 +43,9 @@ export const DEFAULT_SINGLE_GOALS: PhaseGoals = { required_annotations: 1 };
 /**
  * What a grading phase's goals start at: nothing set yet.
  *
- * Zero rather than one, so that a phase the instructor never opened reads as
- * unset -- it shows the "Not set" badge, and `validate` refuses to submit it.
- * The number inputs have `min=1`, so zero is never a value they can settle on;
- * it only ever means "untouched", or "cleared just now".
+ * Zero rather than one: a goal of zero is no requirement on that count, so a
+ * phase the instructor never opened is left ungraded, the same as one they
+ * zeroed on purpose. Either shows the "Not set" badge.
  */
 export const UNSET_PHASE_GOALS: PhaseGoals = { required_annotations: 0 };
 
@@ -197,20 +196,21 @@ export function fromAPIConfig(
 }
 
 /**
- * Whether a phase still has no goal.
+ * Whether a phase has no goal at all, which leaves it ungraded.
  *
- * The annotations goal is the one the instructor has to fill in: its input is
- * `required` with a minimum of one, in both activity calculations, while the
- * replies goal accepts zero. So this is the same condition the browser would
- * report for a mounted field -- which is the point, since a phase in an
- * unselected tab has no mounted fields to report anything.
- *
- * It is also exactly what keeps grading safe: a proportional grade divides by
- * the annotations goal when activity is cumulative, and by the two goals
- * together when it is separate (`services/auto_grading.py`).
+ * A goal of zero is no requirement on that count, so this is every goal at
+ * zero. The replies goal only counts when the activity is calculated
+ * separately: a cumulative goal already covers replies, and a replies goal can
+ * be left over from a switch of calculation. The backend draws the same line
+ * in `auto_grading_requires_activity`.
  */
-function goalsAreUnset(goals: PhaseGoals): boolean {
-  return !goals.required_annotations;
+function goalsAreUnset(
+  goals: PhaseGoals,
+  activityCalculation: ActivityCalculation,
+): boolean {
+  const replies =
+    activityCalculation === 'separate' ? (goals.required_replies ?? 0) : 0;
+  return !goals.required_annotations && !replies;
 }
 
 type AnnotationsGoalInputProps = {
@@ -218,9 +218,6 @@ type AnnotationsGoalInputProps = {
   gradingType: GradingType;
   value: number;
   onChange: (newValue: number) => void;
-
-  /** Minimum required value for the input. Defaults to 1 */
-  min?: number;
 };
 
 /**
@@ -232,7 +229,6 @@ function AnnotationsGoalInput({
   gradingType,
   value,
   onChange,
-  min = 1,
 }: AnnotationsGoalInputProps) {
   const inputId = useId();
 
@@ -252,7 +248,8 @@ function AnnotationsGoalInput({
         classes="max-w-14"
         type="number"
         required
-        min={min}
+        // Zero is a goal: no requirement on this count.
+        min={0}
         step={1}
         value={value}
         onChange={e => onChange(Number((e.target as HTMLInputElement).value))}
@@ -305,7 +302,6 @@ function PhaseGoalsFields({
           onChange={requiredReplies =>
             onChange({ ...goals, required_replies: requiredReplies })
           }
-          min={0}
         >
           Replies
         </AnnotationsGoalInput>
@@ -316,8 +312,8 @@ function PhaseGoalsFields({
 
 export type AutoGradingConfiguratorHandle = {
   /**
-   * Check that every grading phase has a goal, switching to the first one that
-   * doesn't and showing an error there, and return whether they all do.
+   * Check that at least one goal is above zero, switching to the first grading
+   * phase and showing an error there when none is, and return whether one is.
    */
   validate(): boolean;
 };
@@ -395,35 +391,36 @@ export default function AutoGradingConfigurator({
 
   const showPhases = paced && mode === 'paced';
 
-  // Whether a submit was already refused for a phase with no goal. Until then
-  // an empty phase is not an error, just one the instructor hasn't reached.
+  const unset = (goals: PhaseGoals) =>
+    goalsAreUnset(goals, activityCalculation);
+
+  // A phase with no goal is simply not graded. Every phase with no goal is
+  // auto grading switched on with nothing to grade, which the backend refuses.
+  const nothingToGrade = (showPhases ? phaseGoals : [config.single]).every(
+    unset,
+  );
+
+  // Whether a submit was already refused for that. Until then an empty phase
+  // is not an error, just one the instructor hasn't reached.
   const [goalRefused, setGoalRefused] = useState(false);
-  const activeGoalsUnset = showPhases && goalsAreUnset(phaseGoals[activePhase]);
 
   useImperativeHandle(
     configuratorRef ?? null,
     () => ({
       validate: () => {
-        // With a single grade the only goals on screen are native inputs the
-        // browser checks itself, and with auto grading off there are none.
-        if (!enabled || !showPhases) {
-          return true;
-        }
-
-        const unset = phaseGoals.findIndex(goalsAreUnset);
-        if (unset === -1) {
+        if (!enabled || !nothingToGrade) {
           setGoalRefused(false);
           return true;
         }
 
-        // Move to the offending phase so the message lands next to the field
-        // it is about -- it may well be in a tab that isn't even mounted.
-        setActivePhase(unset);
+        // Move to the first phase so the message lands next to a field a goal
+        // would go in -- it may well be in a tab that isn't even mounted.
+        setActivePhase(0);
         setGoalRefused(true);
         return false;
       },
     }),
-    [enabled, showPhases, phaseGoals],
+    [enabled, nothingToGrade],
   );
 
   return (
@@ -555,15 +552,14 @@ export default function AutoGradingConfigurator({
                   {phase.label}
                   {/* The phase on screen never needs the pill: its empty input
                       says the same thing, right where you're looking. */}
-                  {index !== activePhase &&
-                    goalsAreUnset(phaseGoals[index]) && (
-                      <span
-                        data-testid={`phase-unset-${index}`}
-                        className="ml-1.5 px-1.5 rounded-full border border-grey-5 text-xs font-normal text-grey-7 bg-white"
-                      >
-                        Not set
-                      </span>
-                    )}
+                  {index !== activePhase && unset(phaseGoals[index]) && (
+                    <span
+                      data-testid={`phase-unset-${index}`}
+                      className="ml-1.5 px-1.5 rounded-full border border-grey-5 text-xs font-normal text-grey-7 bg-white"
+                    >
+                      Not set
+                    </span>
+                  )}
                 </Tab>
               ))}
             </TabList>
@@ -606,13 +602,15 @@ export default function AutoGradingConfigurator({
                   : updateConfig({ single: goals })
               }
             />
-            {goalRefused && activeGoalsUnset && (
+            {goalRefused && nothingToGrade && (
               <UIMessage
                 status="error"
                 role="alert"
                 data-testid="phase-goal-error"
               >
-                Set a goal for this phase.
+                {showPhases
+                  ? 'Set a goal above zero for at least one phase.'
+                  : 'Set a goal above zero.'}
               </UIMessage>
             )}
           </div>

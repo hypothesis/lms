@@ -267,6 +267,30 @@ describe('GradeIndicator', () => {
 
       assert.isTrue(wrapper.exists('StudentStatusBadge'));
     });
+
+    it('shows a dash instead of a chip while nothing is graded', () => {
+      // Every started phase is ungraded: there is no grade of record, so
+      // nothing to colour and nothing new to sync. The popover still lists
+      // the phases, which is where the reader sees why.
+      const wrapper = createFinalGrade({
+        grade: null,
+        lastGrade: null,
+        phases: [{ label: 'Hidden Phase' }, { label: 'Revealed Phase' }],
+      });
+
+      const toggle = getToggleButton(wrapper);
+      assert.isFalse(toggle.exists('GradeStatusChip'));
+      assert.equal(toggle.text(), '—');
+      assert.isFalse(wrapper.exists('StudentStatusBadge'));
+
+      openPopover(wrapper);
+
+      assert.deepEqual(summaryRows(wrapper), [
+        'Hidden Phase—',
+        'Revealed Phase—',
+        'Average—',
+      ]);
+    });
   });
 
   it('mutes the chip of a grade which is not synced', () => {
