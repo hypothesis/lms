@@ -86,11 +86,15 @@ class AutoGradingService:
         self,
         auto_grading_config: AutoGradingConfig,
         annotation_metrics: AnnotationMetrics,
-    ) -> float:
+    ) -> float | None:
         """Calculate auto grades based on the config and the number of annotations made.
 
-        The results is a float from 0 to 1, rounded to two decimals.
+        The results is a float from 0 to 1, rounded to two decimals, or None
+        for a config which requires nothing: there is no grade to calculate.
         """
+        if not auto_grading_config.requires_activity:
+            return None
+
         combined_count = (
             annotation_metrics["annotations"] + annotation_metrics["replies"]
         )

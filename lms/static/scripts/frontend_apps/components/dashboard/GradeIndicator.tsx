@@ -121,7 +121,9 @@ export type GradeIndicatorProps = GradeProps &
     synced?: boolean;
   };
 
-type GradeHoverProps = GradeProps & {
+type GradeHoverProps = Omit<GradeProps, 'grade'> & {
+  /** The grade, or `null` while there is none. */
+  grade: number | null;
   synced?: boolean;
 
   /** What the reader hovers: the grade, however it is displayed. */
@@ -151,7 +153,8 @@ function GradeHover({
   const hasLastGrade = typeof lastGrade === 'number';
   const gradeHasChanged = lastGrade !== grade;
   const badgeType = ((): StudentStatusType | undefined => {
-    if (!synced) {
+    // No grade is nothing to sync: not new, whatever the LMS holds.
+    if (!synced || grade === null) {
       return undefined;
     }
     if (status === 'in_progress') {
@@ -280,7 +283,13 @@ export type GradeContribution = {
   grade?: number;
 };
 
-export type FinalGradeIndicatorProps = GradeProps & {
+export type FinalGradeIndicatorProps = Omit<GradeProps, 'grade'> & {
+  /**
+   * The average of the graded phases, or `null` while none of the phases
+   * which have started is graded.
+   */
+  grade: number | null;
+
   /** The phases the grade is the average of, in display order. */
   phases: GradeContribution[];
 };
@@ -294,6 +303,9 @@ export type FinalGradeIndicatorProps = GradeProps & {
  * Every phase is listed, the ones still to come included, which is what keeps
  * the average from reading as a settled one: before the first reveal it sits
  * under a phase with no grade of its own yet.
+ *
+ * With no grade at all there is no chip, just a dash: the phases listed under
+ * it are what says why.
  */
 export function FinalGradeIndicator({
   grade,
@@ -306,7 +318,15 @@ export function FinalGradeIndicator({
       grade={grade}
       lastGrade={lastGrade}
       status={status}
-      trigger={<GradeStatusChip grade={grade} />}
+      trigger={
+        grade === null ? (
+          <span className="text-grey-5" data-testid="no-grade">
+            —
+          </span>
+        ) : (
+          <GradeStatusChip grade={grade} />
+        )
+      }
     >
       {phases.map(({ label, grade: phaseGrade }) => (
         <SummaryRow key={label} grade={phaseGrade}>
@@ -314,7 +334,7 @@ export function FinalGradeIndicator({
         </SummaryRow>
       ))}
       {phases.length > 0 && (
-        <SummaryRow grade={grade} total>
+        <SummaryRow grade={grade ?? undefined} total>
           Average
         </SummaryRow>
       )}

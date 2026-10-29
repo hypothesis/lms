@@ -65,14 +65,15 @@ export function renderAutoGradingField(
 
 /**
  * Grades of the active students whose current grade differs from the last one
- * synced. A student whose grade has not changed is not synced again.
+ * synced. A student whose grade has not changed is not synced again, and one
+ * with nothing graded has no grade to send: the LMS keeps whatever it holds.
  */
 export function gradesToSync(students: StudentWithMetrics[]): GradeToSync[] {
   return students
     .filter(
       ({ auto_grading_grade, active }) =>
         active &&
-        !!auto_grading_grade &&
+        typeof auto_grading_grade?.current_grade === 'number' &&
         auto_grading_grade.current_grade !== auto_grading_grade.last_grade,
     )
     .map(({ h_userid, auto_grading_grade }) => ({

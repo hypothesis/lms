@@ -1,5 +1,7 @@
+from collections.abc import Mapping
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
@@ -23,6 +25,20 @@ class AutoGradingType(StrEnum):
 class AutoGradingCalculation(StrEnum):
     CUMULATIVE = "cumulative"
     SEPARATE = "separate"
+
+
+def auto_grading_requires_activity(config: Mapping[str, Any]) -> bool:
+    """Whether an auto grading config asks for any activity at all.
+
+    One that doesn't has nothing to grade against, so whatever it covers is
+    left ungraded. The replies goal only counts when the activity is
+    calculated separately.
+    """
+    required = config["required_annotations"]
+    if config["activity_calculation"] == AutoGradingCalculation.SEPARATE:
+        required += config.get("required_replies") or 0
+
+    return required > 0
 
 
 class AutoGradingConfig(Base):
@@ -64,6 +80,11 @@ class AutoGradingConfig(Base):
             "required_annotations": self.required_annotations,
             "required_replies": self.required_replies,
         }
+
+    @property
+    def requires_activity(self) -> bool:
+        """Whether there is anything to grade against. See `auto_grading_requires_activity`."""
+        return auto_grading_requires_activity(self.asdict())
 
 
 class Assignment(CreatedUpdatedMixin, Base):

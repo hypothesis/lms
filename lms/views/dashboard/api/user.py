@@ -347,9 +347,16 @@ class UserViews:
         for api_student in api_students:
             phases = api_student.get("phase_metrics") or []
             for phase_metrics, config in zip(phases, configs, strict=False):
-                phase_metrics["grade"] = self.auto_grading_service.calculate_grade(
+                # Goals of zero: the phase is counted but not graded, and is
+                # left exactly like one with no config of its own.
+                if not config.requires_activity:
+                    continue
+
+                grade = self.auto_grading_service.calculate_grade(
                     config, phase_metrics["metrics"]
                 )
+                assert grade is not None, "A config requiring activity grades"  # noqa: S101
+                phase_metrics["grade"] = grade
                 # Sent alongside the grade so the dashboard can show how each
                 # phase reached it, rather than a total it cannot derive.
                 phase_metrics["requirements"] = config.asdict()
@@ -375,8 +382,10 @@ class UserViews:
         return api_students
 
     @classmethod
-    def _final_grade(cls, phases: list[PhaseMetrics]) -> float:
+    def _final_grade(cls, phases: list[PhaseMetrics]) -> float | None:
         """Average the grades of the phases that have started.
+
+        None while no started phase has a grade: nothing is graded yet.
 
         `ends_at` is naive UTC, matching lms's other `utcnow()` comparisons.
         """
@@ -385,6 +394,8 @@ class UserViews:
             for phase_metrics in phases
             if "grade" in phase_metrics and phase_metrics["started"]
         ]
+        if not grades:
+            return None
 
         return round(sum(grades) / len(grades), 3)
 

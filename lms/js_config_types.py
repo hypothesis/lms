@@ -67,7 +67,7 @@ class PhaseMetrics(TypedDict):
 
     requirements: NotRequired[AutoGradingConfig]
     """What this phase was graded against. Absent when the phase has no config
-    of its own, which is also when it has no grade."""
+    of its own, or one requiring nothing, which is also when it has no grade."""
 
 
 class CourseMetrics(TypedDict):
@@ -88,8 +88,10 @@ class APICourse(TypedDict):
 
 
 class AutoGradingGrade(TypedDict):
-    current_grade: float
-    """Current auto-grading grade calculated based on the config and current number of annotations."""
+    current_grade: float | None
+    """Current auto-grading grade calculated based on the config and current number of annotations.
+
+    None when nothing is graded: no started phase requires any activity."""
 
     last_grade: float | None
     """Last grade that was successfully sync to the LMS."""
