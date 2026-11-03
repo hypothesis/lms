@@ -11,6 +11,11 @@ from lms.services.upsert import bulk_upsert
 
 LOG = getLogger(__name__)
 
+# The largest values the integer and bigint columns accept. Postgres rejects a
+# larger one, and that would roll back the refresh for every company.
+INT_MAX = 2**31 - 1
+BIGINT_MAX = 2**63 - 1
+
 
 class HubSpotService:
     def __init__(self, db, client: HubSpotClient, region_code: str):
@@ -69,13 +74,22 @@ class HubSpotService:
                     "current_deal_services_end": date_or_timestamp(
                         company.properties["current_deal__services_end"]
                     ),
+                    # .get(): HubSpot leaves a property out of the response
+                    # when the portal doesn't define it, and a KeyError here
+                    # would roll back the refresh for every company.
                     "current_deal_users_contracted": int_or_none(
-                        company.properties["current_deal__users_contracted"]
+                        company.properties.get("current_deal__users_contracted"),
+                        "current_deal__users_contracted",
+                        INT_MAX,
                     ),
-                    "student_fte": int_or_none(company.properties["student_fte"]),
-                    "contract_type": company.properties["contract_type"] or None,
+                    "student_fte": int_or_none(
+                        company.properties.get("student_fte"), "student_fte", INT_MAX
+                    ),
+                    "contract_type": company.properties.get("contract_type") or None,
                     "parent_hubspot_id": int_or_none(
-                        company.properties["hs_parent_company_id"]
+                        company.properties.get("hs_parent_company_id"),
+                        "hs_parent_company_id",
+                        BIGINT_MAX,
                     ),
                 }
                 for company in companies
@@ -133,23 +147,28 @@ class HubSpotService:
         )
 
 
-def int_or_none(value: str | int | None) -> int | None:
+def int_or_none(value: str | int | None, field: str, max_value: int) -> int | None:
     """
     Parse HubSpot's "formatted number" fields into an int.
 
     These arrive as strings and are not always clean: empty for companies
     without a current deal, sometimes thousands-separated, and sometimes
     decimal ("1500.0") even though a seat count is whole. Anything we cannot
-    read becomes None rather than raising -- one malformed company should not
-    abort the refresh for every other company in the batch.
+    read, and anything outside 0..max_value, becomes None rather than raising:
+    one malformed company should not abort the refresh for every other
+    company in the batch.
     """
     if value is None or value == "":
         return None
     try:
-        return int(float(str(value).replace(",", "")))
-    except ValueError:
-        LOG.warning("Could not parse contracted users from HubSpot: %r", value)
+        number = int(float(str(value).replace(",", "")))
+    except (ValueError, OverflowError):
+        LOG.warning("Could not parse HubSpot %s: %r", field, value)
         return None
+    if not 0 <= number <= max_value:
+        LOG.warning("HubSpot %s out of range: %r", field, value)
+        return None
+    return number
 
 
 def date_or_timestamp(value: str | int | None) -> date | None:

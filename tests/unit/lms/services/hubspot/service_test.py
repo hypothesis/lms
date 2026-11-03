@@ -160,10 +160,52 @@ class TestHubSpotService:
             # company in the batch.
             ("not a number", None),
             ("--", None),
+            ("inf", None),
+            ("nan", None),
+            # Postgres would reject these for the whole batch.
+            ("2147483648", None),
+            ("-5", None),
+            ("2147483647", 2147483647),
         ],
     )
     def test_int_or_none(self, value, expected):
-        assert int_or_none(value) == expected
+        assert int_or_none(value, "field", 2**31 - 1) == expected
+
+    @pytest.mark.parametrize(
+        ("value", "message"),
+        [
+            ("not a number", "Could not parse HubSpot student_fte: 'not a number'"),
+            ("99999999999", "HubSpot student_fte out of range: '99999999999'"),
+        ],
+    )
+    def test_int_or_none_logs_the_field(self, value, message, caplog):
+        int_or_none(value, "student_fte", 2**31 - 1)
+
+        assert caplog.messages == [message]
+
+    def test_refresh_companies_without_the_new_properties(
+        self, svc, hubspot_api_client, db_session
+    ):
+        # A portal that doesn't define a property leaves it out of the response.
+        hubspot_api_client.get_companies.return_value = [
+            Mock(
+                properties={
+                    "lms_organization_id": "us.org.1",
+                    "name": "COMPANY",
+                    "hs_object_id": 100,
+                    "current_deal__services_start": None,
+                    "current_deal__services_end": None,
+                }
+            )
+        ]
+
+        svc.refresh_companies()
+
+        company = db_session.query(HubSpotCompany).one()
+        assert company.current_deal_users_contracted is None
+        assert company.student_fte is None
+        assert company.contract_type is None
+        assert company.parent_hubspot_id is None
 
     def test_factory(self, pyramid_request, db_session, HubSpotClient, HubSpot):
         svc = HubSpotService.factory(sentinel.context, pyramid_request)
