@@ -1,7 +1,7 @@
 """Open LTI tool embeds in a Canvas page top-level in Canvas."""
 
 import re
-from html import unescape
+from html import escape, unescape
 from urllib.parse import urlparse
 
 # An <iframe ...> tag, optionally followed by its closing tag.
@@ -32,8 +32,14 @@ def _replace_lti_embed(match: re.Match) -> str:
     if not src_match:
         return match.group(0)
 
-    src = src_match.group(1) or src_match.group(2) or ""
-    if not urlparse(unescape(src)).path.endswith("/external_tools/retrieve"):
+    url = unescape(src_match.group(1) or src_match.group(2) or "")
+    parsed = urlparse(url)
+    # Only an absolute http(s) URL: a `javascript:` one would run on click.
+    if parsed.scheme not in ("http", "https") or not parsed.path.endswith(
+        "/external_tools/retrieve"
+    ):
         return match.group(0)
 
-    return f'<p><a href="{src}" target="_blank" rel="noopener">{LINK_TEXT}</a></p>'
+    # Escaped again on the way out: a single-quoted src may hold a `"`.
+    href = escape(url, quote=True)
+    return f'<p><a href="{href}" target="_blank" rel="noopener">{LINK_TEXT}</a></p>'

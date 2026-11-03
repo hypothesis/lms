@@ -58,10 +58,41 @@ class TestOpenLTIEmbedsInCanvas:
         [
             '<iframe src="https://www.youtube.com/embed/abc123"></iframe>',
             '<iframe srcdoc="<p>inline</p>"></iframe>',
+            # Only http(s) embeds become links: a javascript: URL would run
+            # when clicked, and nothing else is a Canvas route anyway.
+            '<iframe src="javascript:alert(1)//external_tools/retrieve"></iframe>',
+            '<iframe src="data:text/html,x//external_tools/retrieve"></iframe>',
+            '<iframe src="/courses/1/external_tools/retrieve"></iframe>',
         ],
     )
     def test_it_leaves_other_iframes_alone(self, body):
         assert open_lti_embeds_in_canvas(body) == body
+
+    def test_it_escapes_the_url_in_the_link(self):
+        # A single-quoted src can hold a double quote, which unescaped into
+        # the href would end the attribute and start another one.
+        body = (
+            "<iframe src='https://example.instructure.com/courses/1"
+            '/external_tools/retrieve?x=1" onmouseover="alert(1)\'></iframe>'
+        )
+
+        result = open_lti_embeds_in_canvas(body)
+
+        assert (
+            'href="https://example.instructure.com/courses/1/external_tools/retrieve'
+            '?x=1&quot; onmouseover=&quot;alert(1)"' in result
+        )
+        assert ' onmouseover="' not in result
+
+    def test_it_does_not_double_escape_the_url(self):
+        # Canvas stores `&amp;` in the src; the href must carry it once, and a
+        # raw `&` must come out escaped too.
+        body = '<iframe src="https://example.instructure.com/courses/1/external_tools/retrieve?a=1&amp;b=2&c=3"></iframe>'
+
+        result = open_lti_embeds_in_canvas(body)
+
+        assert "retrieve?a=1&amp;b=2&amp;c=3" in result
+        assert "&amp;amp;" not in result
 
     def test_it_replaces_every_lti_embed_on_the_page(self):
         body = (
