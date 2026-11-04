@@ -477,6 +477,92 @@ class TestUserViews:
             second_config.asdict(),
         ]
 
+    @pytest.mark.parametrize(
+        ("first_phase_ends_at", "expected"),
+        [
+            # Phase 1 closed, so phase 2 has started and is the only grade.
+            ("2024-01-15", 0.5),
+            # Phase 1 is still open: the only started phase is ungraded, so
+            # there is no grade at all rather than a zero.
+            (None, None),
+        ],
+    )
+    def test_students_metrics_leaves_a_phase_requiring_nothing_ungraded(
+        self,
+        views,
+        pyramid_request,
+        h_api,
+        student,
+        dashboard_service,
+        assignment_service,
+        auto_grading_service,
+        db_session,
+        first_phase_ends_at,
+        expected,
+    ):
+        pyramid_request.parsed_params = {
+            "h_userids": sentinel.h_userids,
+            "assignment_id": sentinel.assignment_id,
+        }
+        # Goals of zero: the activity of this phase is counted but not graded.
+        first_config = factories.AutoGradingConfig(
+            activity_calculation="cumulative",
+            required_annotations=0,
+            required_replies=None,
+        )
+        second_config = factories.AutoGradingConfig(required_annotations=5)
+        assignment = factories.Assignment(
+            course=factories.Course(),
+            checkpoint_enabled=True,
+            document_uri="https://example.com/reading",
+            auto_grading_config=first_config,
+        )
+        assignment.course.application_instance.settings.set(
+            "hypothesis",
+            "phased_auto_grading",
+            True,  # noqa: FBT003
+        )
+        db_session.flush()
+        dashboard_service.get_request_assignment.return_value = assignment
+        dashboard_service.get_assignment_roster.return_value = (
+            None,
+            select(User).where(User.id == student.id).add_columns(True),  # noqa: FBT003
+        )
+        assignment_service.get_auto_grading_configs.return_value = [
+            first_config,
+            second_config,
+        ]
+        auto_grading_service.get_last_grades.return_value = {}
+        auto_grading_service.calculate_grade.return_value = 0.5
+        h_api.get_annotation_counts.return_value = [
+            {
+                "display_name": student.display_name,
+                "userid": student.h_userid,
+                "phase": phase,
+                "ends_at": ends_at,
+                "annotations": 1,
+                "page_notes": 0,
+                "replies": 0,
+                "last_activity": "2024-01-10",
+            }
+            for phase, ends_at in ((1, first_phase_ends_at), (2, None))
+        ]
+
+        response = views.students_metrics()
+
+        (api_student,) = response["students"]
+        first_phase, second_phase = api_student["phase_metrics"]
+        # Left exactly like a phase with no config of its own, which is what
+        # the dashboard already shows as ungraded.
+        assert "grade" not in first_phase
+        assert "requirements" not in first_phase
+        assert second_phase["grade"] == 0.5
+        assert second_phase["requirements"] == second_config.asdict()
+        auto_grading_service.calculate_grade.assert_called_once_with(
+            second_config, second_phase["metrics"]
+        )
+        assert api_student["auto_grading_grade"]["current_grade"] == expected
+
     def test_students_metrics_zero_fills_the_phases_h_reports_nothing_for(
         self,
         views,

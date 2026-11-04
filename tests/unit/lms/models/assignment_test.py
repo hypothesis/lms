@@ -92,3 +92,34 @@ class TestAutoGradingConfig:
         db_session.flush()
 
         assert not db_session.query(AutoGradingConfig).count()
+
+    @pytest.mark.parametrize(
+        (
+            "activity_calculation",
+            "required_annotations",
+            "required_replies",
+            "expected",
+        ),
+        [
+            ("cumulative", 3, None, True),
+            ("cumulative", 0, None, False),
+            # A cumulative config only counts its combined goal, so a replies
+            # goal left over from a separate one asks for nothing.
+            ("cumulative", 0, 3, False),
+            ("separate", 3, 0, True),
+            ("separate", 0, 3, True),
+            ("separate", 0, 0, False),
+            ("separate", 0, None, False),
+        ],
+    )
+    def test_requires_activity(
+        self, activity_calculation, required_annotations, required_replies, expected
+    ):
+        config = AutoGradingConfig(
+            activity_calculation=activity_calculation,
+            grading_type="scaled",
+            required_annotations=required_annotations,
+            required_replies=required_replies,
+        )
+
+        assert config.requires_activity == expected

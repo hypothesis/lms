@@ -6,6 +6,7 @@ from lms.models.assignment import (
     AutoGradingCalculation,
     AutoGradingConfig,
     AutoGradingType,
+    auto_grading_requires_activity,
 )
 from lms.models.assignment_grouping import AssignmentGrouping
 from lms.models.assignment_membership import (

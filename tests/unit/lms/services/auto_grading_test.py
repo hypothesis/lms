@@ -132,6 +132,12 @@ class TestAutoGradingService:
             ("scaled", "separate", 5, 5, 12, 2, 0.7),
             ("scaled", "separate", 5, 0, 5, 2, 1),
             ("scaled", "separate", 5, None, 5, 2, 1),
+            # Graded on replies alone: the annotations goal is zero, not the
+            # whole config, so there is still something to grade against.
+            ("all_or_nothing", "separate", 0, 5, 0, 5, 1),
+            ("all_or_nothing", "separate", 0, 5, 3, 4, 0),
+            ("scaled", "separate", 0, 5, 0, 2, 0.4),
+            ("scaled", "separate", 0, 5, 9, 5, 1),
         ],
     )
     def test_calculate_grade(
@@ -183,6 +189,43 @@ class TestAutoGradingService:
         )
 
         assert grade * score_maximum == expected_points
+
+    @pytest.mark.parametrize(
+        "grading_type,activity_calculation,required_annotations,required_replies,annotations,replies",
+        [
+            ("all_or_nothing", "cumulative", 0, None, 5, 5),
+            ("scaled", "cumulative", 0, None, 0, 0),
+            # The replies goal plays no part in a cumulative config.
+            ("scaled", "cumulative", 0, 3, 1, 1),
+            ("all_or_nothing", "separate", 0, 0, 0, 0),
+            ("all_or_nothing", "separate", 0, None, 2, 2),
+            ("scaled", "separate", 0, 0, 2, 2),
+            ("scaled", "separate", 0, None, 2, 2),
+        ],
+    )
+    def test_calculate_grade_with_a_config_requiring_nothing(
+        self,
+        grading_type,
+        activity_calculation,
+        required_annotations,
+        required_replies,
+        annotations,
+        replies,
+        svc,
+    ):
+        # Nothing to grade against: neither a free full mark nor a division
+        # by zero, but no grade at all.
+        grade = svc.calculate_grade(
+            AutoGradingConfig(
+                activity_calculation=activity_calculation,
+                grading_type=grading_type,
+                required_annotations=required_annotations,
+                required_replies=required_replies,
+            ),
+            AnnotationMetrics(annotations=annotations, replies=replies),
+        )
+
+        assert grade is None
 
     def test_calculate_grade_bad_config(self, svc):
         with pytest.raises(ValueError):  # noqa: PT011

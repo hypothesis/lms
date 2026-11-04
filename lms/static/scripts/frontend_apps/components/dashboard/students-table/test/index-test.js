@@ -790,6 +790,31 @@ describe('students-table', () => {
       ]);
     });
 
+    it('passes a missing final grade along rather than a zero', () => {
+      // Every started phase is ungraded: the indicator shows that there is
+      // no grade, which a zero would misreport as a failing one
+      const { rows, renderItem } = config(gradedCheckpointAssignment, [
+        {
+          ...student,
+          auto_grading_grade: { current_grade: null, last_grade: null },
+          phase_metrics: [
+            { ...phaseMetrics[0], grade: undefined, requirements: undefined },
+            { ...phaseMetrics[1], started: false },
+          ],
+        },
+      ]);
+
+      const gradeIndicator = mountItem(
+        renderItem(rows[0], 'current_grade'),
+      ).find('FinalGradeIndicator');
+
+      assert.isNull(gradeIndicator.prop('grade'));
+      assert.deepEqual(gradeIndicator.prop('phases'), [
+        { label: 'Hidden Phase', grade: undefined },
+        { label: 'Revealed Phase', grade: undefined },
+      ]);
+    });
+
     it('lists a phase which did not count without a grade', () => {
       // A phase which has not started contributed nothing, and is listed as
       // outstanding rather than as a zero it did not score
@@ -946,6 +971,19 @@ describe('students-table', () => {
         h_userid: 'quux',
         active: false,
         auto_grading_grade: { current_grade: 0.5 },
+      },
+      // Ignored, because nothing is graded yet: there is no grade to send
+      {
+        h_userid: 'corge',
+        active: true,
+        auto_grading_grade: { current_grade: null, last_grade: null },
+      },
+      // Ignored, because nothing is graded any more: the goals were zeroed
+      // after a sync, and the grade the LMS holds is left alone
+      {
+        h_userid: 'grault',
+        active: true,
+        auto_grading_grade: { current_grade: null, last_grade: 0.5 },
       },
     ];
 
