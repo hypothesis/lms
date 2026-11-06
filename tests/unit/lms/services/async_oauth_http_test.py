@@ -1,11 +1,24 @@
-from unittest.mock import sentinel
+from unittest.mock import Mock, sentinel
 
 import pytest
-from aiohttp import TooManyRedirects
+from aiohttp import ClientResponse, TooManyRedirects
 from aioresponses import aioresponses
 
 from lms.services.async_oauth_http import AsyncOAuthHTTPService, factory
 from lms.services.exceptions import ExternalAsyncRequestError
+
+
+class _ClientResponse(ClientResponse):
+    """ClientResponse that works with aioresponses and aiohttp>=3.14.4.
+
+    aiohttp 3.14.4 added a required `stream_writer` argument to
+    ClientResponse.__init__() but aioresponses (<= 0.7.9, the latest release)
+    doesn't pass it when building mocked responses.
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("stream_writer", Mock(output_size=0))
+        super().__init__(*args, **kwargs)
 
 
 @pytest.mark.filterwarnings(
@@ -41,7 +54,12 @@ class TestAsyncOAuthHTTPService:
     def with_successful_responses(self, urls):
         with aioresponses() as m:
             for url in urls:
-                m.get(url, headers={"url": url}, body='["ASYNC RESPONSE"]')
+                m.get(
+                    url,
+                    headers={"url": url},
+                    body='["ASYNC RESPONSE"]',
+                    response_class=_ClientResponse,
+                )
 
             yield m
 
@@ -49,7 +67,7 @@ class TestAsyncOAuthHTTPService:
     def with_one_failed_response(self, urls):
         with aioresponses() as m:
             for url in urls[:-1]:
-                m.get(url, status=200)
+                m.get(url, status=200, response_class=_ClientResponse)
             m.get(urls[-1], exception=TooManyRedirects("info", "history"))
 
             yield m
