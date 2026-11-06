@@ -15,6 +15,7 @@ from lms.services.email_preferences import (
 )
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from tests import factories
+from tests.conftest import TEST_SETTINGS
 
 
 class TestEmailPreferences:
@@ -300,7 +301,7 @@ class TestFactory:
 
         EmailPreferencesService.assert_called_once_with(
             db_session,
-            secret="test_secret",  # noqa: S106
+            secret=TEST_SETTINGS["jwt_secret"],
             route_url=pyramid_request.route_url,
             jwt_service=jwt_service,
             user_preferences_service=user_preferences_service,

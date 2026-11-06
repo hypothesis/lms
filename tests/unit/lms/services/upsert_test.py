@@ -85,8 +85,9 @@ class TestBulkAction:
         )
 
     @pytest.fixture(autouse=True, scope="class")
-    def create_test_table_with_bulk_upsert_table(self, db_engine):
-        self.TableWithBulkUpsert.__table__.drop(db_engine, checkfirst=True)
-        self.TableWithBulkUpsert.__table__.create(db_engine)
+    @classmethod
+    def create_test_table_with_bulk_upsert_table(cls, db_engine):
+        cls.TableWithBulkUpsert.__table__.drop(db_engine, checkfirst=True)
+        cls.TableWithBulkUpsert.__table__.create(db_engine)
         yield
-        self.TableWithBulkUpsert.__table__.drop(db_engine)
+        cls.TableWithBulkUpsert.__table__.drop(db_engine)

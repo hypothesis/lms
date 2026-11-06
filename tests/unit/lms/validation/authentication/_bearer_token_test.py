@@ -5,6 +5,7 @@ import pytest
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.validation import ValidationError
 from lms.validation.authentication import BearerTokenSchema
+from tests.conftest import TEST_SETTINGS
 
 
 class TestBearerTokenSchema:
@@ -16,7 +17,7 @@ class TestBearerTokenSchema:
         lti_user_service.serialize.assert_called_once_with(lti_user)
         jwt_service.encode_with_secret.assert_called_once_with(
             lti_user_service.serialize.return_value,
-            "test_secret",
+            TEST_SETTINGS["jwt_secret"],
             lifetime=datetime.timedelta(hours=24),
         )
         assert (
@@ -32,7 +33,7 @@ class TestBearerTokenSchema:
             == lti_user_service.deserialize.return_value
         )
         jwt_service.decode_with_secret.assert_called_once_with(
-            jwt_service.encode_with_secret.return_value, "test_secret"
+            jwt_service.encode_with_secret.return_value, TEST_SETTINGS["jwt_secret"]
         )
 
     def test_it_deserializes_lti_users_from_authorization_query_params(
