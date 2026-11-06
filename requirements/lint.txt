@@ -251,7 +251,7 @@ mailchimp-transactional==1.0.56
     # via
     #   -r functests.txt
     #   -r tests.txt
-mako==1.3.0
+mako==1.4.2
     # via
     #   -r functests.txt
     #   -r tests.txt
