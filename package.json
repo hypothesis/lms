@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/hypothesis/lms#readme",
   "dependencies": {
-    "@babel/core": "^7.28.6",
+    "@babel/core": "^7.29.6",
     "@babel/preset-env": "^7.28.6",
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
@@ -38,7 +38,7 @@
     "classnames": "^2.5.1",
     "gulp": "^5.0.1",
     "normalize.css": "^8.0.1",
-    "postcss": "^8.4.47",
+    "postcss": "^8.5.23",
     "preact": "^10.26.10",
     "rollup": "^4.59.0",
     "sass": "^1.93.2",
@@ -51,9 +51,9 @@
     "@types/gapi": "^0.0.47",
     "@types/google.accounts": "^0.0.18",
     "@types/google.picker": "^0.0.52",
-    "@vitest/browser": "^4.1.9",
-    "@vitest/browser-playwright": "^4.1.9",
-    "@vitest/coverage-istanbul": "^4.1.9",
+    "@vitest/browser": "^4.1.12",
+    "@vitest/browser-playwright": "^4.1.12",
+    "@vitest/coverage-istanbul": "^4.1.12",
     "@vitest/eslint-plugin": "^1.6.18",
     "axe-core": "^4.10.3",
     "babel-plugin-istanbul": "^7.0.0",
@@ -73,7 +73,7 @@
     "sinon": "^19.0.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.1",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.12"
   },
   "prettier": {
     "arrowParens": "avoid",
@@ -89,9 +89,9 @@
   "browserslist": "chrome 110, firefox 115, safari 16.4",
   "packageManager": "yarn@3.6.1",
   "resolutions": {
-    "vite": "8.0.14",
-    "tar": "7.5.16",
-    "serialize-javascript": "7.0.5",
+    "vite": "8.3.6",
+    "tar": "7.5.22",
+    "serialize-javascript": "7.1.4",
     "lodash": "4.18.0",
     "minimatch@^3.0.4": "3.1.4",
     "minimatch@^3.1.2": "3.1.4",
@@ -103,7 +103,7 @@
     "picomatch@^2.3.1": "2.3.2",
     "picomatch@^4.0.2": "4.0.4",
     "picomatch@^4.0.3": "4.0.4",
-    "brace-expansion@^1.1.7": "1.1.13",
+    "brace-expansion@^1.1.7": "1.1.21",
     "brace-expansion@^2.0.1": "2.0.3"
   }
 }
