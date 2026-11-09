@@ -5732,31 +5732,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fsevents@npm:2.3.2":
-  version: 2.3.2
-  resolution: "fsevents@npm:2.3.2"
-  dependencies:
-    node-gyp: latest
-  checksum: 97ade64e75091afee5265e6956cb72ba34db7819b4c3e94c431d4be2b19b8bb7a2d4116da417950c3425f17c8fe693d25e20212cac583ac1521ad066b77ae31f
-  conditions: os=darwin
-  languageName: node
-  linkType: hard
-
 "fsevents@npm:~2.3.2, fsevents@npm:~2.3.3":
   version: 2.3.3
   resolution: "fsevents@npm:2.3.3"
   dependencies:
     node-gyp: latest
   checksum: 11e6ea6fea15e42461fc55b4b0e4a0a3c654faa567f1877dbd353f39156f69def97a69936d1746619d656c4b93de2238bf731f6085a03a50cabf287c9d024317
-  conditions: os=darwin
-  languageName: node
-  linkType: hard
-
-"fsevents@patch:fsevents@2.3.2#~builtin<compat/fsevents>":
-  version: 2.3.2
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=df0bf1"
-  dependencies:
-    node-gyp: latest
   conditions: os=darwin
   languageName: node
   linkType: hard
@@ -7273,7 +7254,7 @@ __metadata:
     gulp: ^5.0.1
     navigation-api-types: ^0.5.1
     normalize.css: ^8.0.1
-    playwright: ^1.55.1
+    playwright: ^1.65.0
     postcss: ^8.4.47
     preact: ^10.26.10
     prettier: 3.4.2
@@ -8170,27 +8151,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.55.1":
-  version: 1.55.1
-  resolution: "playwright-core@npm:1.55.1"
+"playwright-core@npm:1.65.0":
+  version: 1.65.0
+  resolution: "playwright-core@npm:1.65.0"
   bin:
     playwright-core: cli.js
-  checksum: a2b981223fd8f5c50a4e0b6cc36a3ce40b41919d418b564561f085bcd6c8ce9df2354e687fbc76e662fddb9f2b28d0bc1f0124c085958406fcab6c6cf3b8228f
+  checksum: 1c726cd73e5fdc9a8b07938604c9b0cac15ea509a72fdbe0f6588154159431dfa9ac2c6809146439e743ff44fd8dda8591462fe4117dd39ab81f5c7a77f635f6
   languageName: node
   linkType: hard
 
-"playwright@npm:^1.55.1":
-  version: 1.55.1
-  resolution: "playwright@npm:1.55.1"
+"playwright@npm:^1.65.0":
+  version: 1.65.0
+  resolution: "playwright@npm:1.65.0"
   dependencies:
-    fsevents: 2.3.2
-    playwright-core: 1.55.1
-  dependenciesMeta:
-    fsevents:
-      optional: true
+    playwright-core: 1.65.0
   bin:
     playwright: cli.js
-  checksum: 4935122ed687cd14861d64e6fdc79613d36d45f1363e911213a338da9993525d3872d7379300471f70209e1ad68ec91c0d65f0136e6c09c0775477943aaf7fb3
+  checksum: b581862b94eb4aaeec8a5816c504d0b6283e8dcf7dec884ccb93e8ed1e2f124355f5703b44f6ee470e78af70e538b6511d02cc91305935fabdd97ab26826b24e
   languageName: node
   linkType: hard
 
