@@ -300,7 +300,7 @@ export function renderCheckpointField(
       return (
         <div className="flex justify-end -my-0.5">
           <FinalGradeIndicator
-            grade={row.current_grade ?? 0}
+            grade={row.current_grade ?? null}
             lastGrade={row.last_grade}
             status={context.studentSyncStatuses[row.h_userid]}
             phases={contributions}

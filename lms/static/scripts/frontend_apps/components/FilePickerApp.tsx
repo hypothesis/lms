@@ -551,11 +551,11 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         return;
       }
 
-      // Only the selected grading phase has its goal inputs mounted, so
-      // `reportValidity` above checked one phase out of however many there
-      // are. This switches to the first phase left without a goal and reports
-      // it there. Left unchecked, a phase would save a goal of zero, which the
-      // proportional grade then divides by.
+      // The goal inputs accept zero, which leaves that count ungraded, so the
+      // browser cannot tell that no goal at all was set -- and only the
+      // selected grading phase has its inputs mounted anyway. This reports it
+      // on the first phase. Left unchecked, auto grading would be saved as on
+      // with nothing to grade, which the backend refuses.
       if (autoGradingRef.current && !autoGradingRef.current.validate()) {
         return;
       }

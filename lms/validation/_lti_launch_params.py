@@ -10,7 +10,7 @@ from marshmallow import (
 )
 from marshmallow.validate import OneOf, Range
 
-from lms.models import MAX_AUTO_GRADING_PHASES
+from lms.models import MAX_AUTO_GRADING_PHASES, auto_grading_requires_activity
 from lms.validation._base import PyramidRequestSchema
 from lms.validation._exceptions import LTIToolRedirect
 
@@ -186,7 +186,12 @@ class AutoGradingConfigsField(fields.Field):
 
     def _deserialize(self, value, attr, data, **kwargs):  # noqa: ARG002
         if not isinstance(value, list):
-            return self._config_schema.load(value)
+            config = self._config_schema.load(value)
+            if not auto_grading_requires_activity(config):
+                # Nothing to grade against is auto grading turned off, which
+                # `None` already says.
+                raise ValidationError("At least one goal must be above zero")  # noqa: EM101, TRY003
+            return config
 
         if not value or len(value) > MAX_AUTO_GRADING_PHASES:
             # Refused here rather than left to `AssignmentService`, which
@@ -215,6 +220,10 @@ class AutoGradingConfigsField(fields.Field):
 
         if errors:
             raise ValidationError(errors)
+
+        if not any(auto_grading_requires_activity(config) for config in configs):
+            # Every phase ungraded is auto grading turned off, as above.
+            raise ValidationError("At least one phase needs a goal above zero")  # noqa: EM101, TRY003
 
         return configs
 

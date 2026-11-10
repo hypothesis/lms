@@ -211,8 +211,12 @@ export type Student = {
 };
 
 export type AutoGradingGrade = {
-  /** Grade calculated with current annotations/replies */
-  current_grade: number;
+  /**
+   * Grade calculated with current annotations/replies.
+   *
+   * `null` while nothing is graded: no started phase requires any activity.
+   */
+  current_grade: number | null;
   /** Grade that was last synced, if any */
   last_grade: number | null;
   /** When did the last grade sync happen, if any */

@@ -110,6 +110,17 @@ describe('AutoGradingConfigurator', () => {
     });
 
     ['all_or_nothing', 'scaled'].forEach(gradingType => {
+      it('lets either goal be zero: a count without a goal is not graded', () => {
+        fakeAutoGradingConfig.activity_calculation = 'separate';
+
+        const wrapper = createComponent();
+
+        const minimums = wrapper
+          .find('AnnotationsGoalInput Input')
+          .map(input => input.prop('min'));
+        assert.deepEqual(minimums, [0, 0]);
+      });
+
       it('updates config when changing grading type', () => {
         const wrapper = createComponent();
 
@@ -323,10 +334,20 @@ describe('AutoGradingConfigurator', () => {
             unset: true,
           },
           {
-            // The replies input allows zero, so the annotations goal is the
-            // one that has to be filled in either way.
+            // Graded on replies alone: that is a goal.
             when: 'only the separate replies goal is set',
             activityCalculation: 'separate',
+            phases: [
+              { required_annotations: 2 },
+              { required_annotations: 0, required_replies: 3 },
+            ],
+            unset: false,
+          },
+          {
+            // A cumulative goal counts annotations and replies together, so
+            // a replies goal left over from a separate one is no goal.
+            when: 'only a leftover replies goal is set on a cumulative phase',
+            activityCalculation: 'cumulative',
             phases: [
               { required_annotations: 2 },
               { required_annotations: 0, required_replies: 3 },
@@ -395,19 +416,31 @@ describe('AutoGradingConfigurator', () => {
             assert.isFalse(wrapper.exists('[data-testid="phase-goal-error"]'));
           });
 
-          it('refuses a phase left without a goal and switches to it', () => {
+          it('accepts a phase left without a goal, which is not graded', () => {
             fakeAutoGradingConfig.phases = [
               { required_annotations: 2 },
               { required_annotations: 0 },
             ];
             const { wrapper, validate } = createComponentWithHandle();
 
+            assert.isTrue(validate());
+            assert.isFalse(wrapper.exists('[data-testid="phase-goal-error"]'));
+          });
+
+          it('refuses phases none of which has a goal, and switches to the first', () => {
+            // Nothing graded anywhere is auto grading turned off.
+            fakeAutoGradingConfig.phases = [
+              { required_annotations: 0 },
+              { required_annotations: 0 },
+            ];
+            const { wrapper, validate } = createComponentWithHandle();
+            wrapper.find('button[data-testid="phase-tab-1"]').simulate('click');
+
             assert.isFalse(validate());
-            // The offending phase is now the one on screen, so the message
-            // lands next to the field it is about.
+            // The message lands on the first phase, where a goal would go.
             assert.equal(
               wrapper.find('[data-testid="phase-description"]').text(),
-              gradingPhases[1].description,
+              gradingPhases[0].description,
             );
             assert.isTrue(wrapper.exists('[data-testid="phase-goal-error"]'));
           });
@@ -433,10 +466,10 @@ describe('AutoGradingConfigurator', () => {
             assert.isFalse(wrapper.exists('[data-testid="phase-goal-error"]'));
           });
 
-          it('stops complaining once the goal is entered', () => {
+          it('stops complaining once a goal is entered', () => {
             fakeAutoGradingConfig.phases = [
               { required_annotations: 0 },
-              { required_annotations: 5 },
+              { required_annotations: 0 },
             ];
             const { wrapper, validate } = createComponentWithHandle();
 
@@ -449,12 +482,34 @@ describe('AutoGradingConfigurator', () => {
             assert.isFalse(wrapper.exists('[data-testid="phase-goal-error"]'));
           });
 
-          it('leaves a single grade to the browser, which sees its one input', () => {
+          it('accepts a single grade with a goal', () => {
             fakeAutoGradingConfig.mode = 'single';
             fakeAutoGradingConfig.phases = [];
             const { validate } = createComponentWithHandle();
 
             assert.isTrue(validate());
+          });
+
+          it('accepts a single grade on replies alone', () => {
+            fakeAutoGradingConfig.mode = 'single';
+            fakeAutoGradingConfig.activity_calculation = 'separate';
+            fakeAutoGradingConfig.single = {
+              required_annotations: 0,
+              required_replies: 3,
+            };
+            const { validate } = createComponentWithHandle();
+
+            assert.isTrue(validate());
+          });
+
+          it('refuses a single grade with no goal above zero', () => {
+            // The inputs allow zero, so the browser no longer catches this.
+            fakeAutoGradingConfig.mode = 'single';
+            fakeAutoGradingConfig.single = { required_annotations: 0 };
+            const { wrapper, validate } = createComponentWithHandle();
+
+            assert.isFalse(validate());
+            assert.isTrue(wrapper.exists('[data-testid="phase-goal-error"]'));
           });
 
           it('has nothing to check while auto grading is off', () => {
