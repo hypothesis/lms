@@ -14,6 +14,11 @@ class _ClientResponse(ClientResponse):
     aiohttp 3.14.4 added a required `stream_writer` argument to
     ClientResponse.__init__() but aioresponses (<= 0.7.9, the latest release)
     doesn't pass it when building mocked responses.
+
+    Upstream: https://github.com/pnuckowski/aioresponses/issues/289 and the
+    fix in https://github.com/pnuckowski/aioresponses/pull/288 (still open).
+    Once a release includes it, this class and the `response_class=`
+    arguments below can go.
     """
 
     def __init__(self, *args, **kwargs):
