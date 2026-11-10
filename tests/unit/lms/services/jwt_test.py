@@ -20,22 +20,27 @@ from lms.services.jwt import (
 from lms.validation import ValidationError
 from tests import factories
 
+# PyJWT warns about HMAC keys shorter than the hash output size (32 bytes for
+# HS256, 48 for HS384, 64 for HS512), so use keys that are long enough.
+SECRET = "test_secret_that_is_long_enough_for_hs256_hs384_and_hs512_algorithms"  # noqa: S105
+WRONG_SECRET = "wrong_secret_that_is_long_enough_for_hs256_hs384_and_hs512_algorithms"  # noqa: S105
+
 
 class TestJWTService:
     def test_it_can_decode_a_jwt_from_encoded_jwt(self, svc):
         original_payload = {"key": "value"}
         jwt_str = svc.encode_with_secret(
-            original_payload, "test_secret", datetime.timedelta(hours=1)
+            original_payload, SECRET, datetime.timedelta(hours=1)
         )
 
-        decoded_payload = svc.decode_with_secret(jwt_str, "test_secret")
+        decoded_payload = svc.decode_with_secret(jwt_str, SECRET)
 
         assert decoded_payload == original_payload
 
     @pytest.mark.parametrize(
         "error,kwargs",
         (
-            param(InvalidJWTError, {"secret": "WRONG"}, id="wrong_secret"),
+            param(InvalidJWTError, {"secret": WRONG_SECRET}, id="wrong_secret"),
             param(InvalidJWTError, {"algorithm": "HS384"}, id="wrong_algorithm"),
             param(
                 ExpiredJWTError,
@@ -51,7 +56,7 @@ class TestJWTService:
         jwt_str = self.encode_jwt({"key": "value"}, **jwt_params)
 
         with pytest.raises(error):
-            svc.decode_with_secret(jwt_str, "test_secret")
+            svc.decode_with_secret(jwt_str, SECRET)
 
     @freeze_time("2022-04-04")
     def test_encode_with_secret(self, svc, jwt):
@@ -139,6 +144,7 @@ class TestJWTService:
 
         assert "jwt" in exc_info.value.messages
 
+    @pytest.mark.usefixtures("_RequestsPyJWKClient")
     def test_decode_lti_token_with_invalid_jwt(self, svc, jwt):
         jwt.decode.side_effect = [{"aud": "AUD", "iss": "ISS"}, InvalidTokenError()]
 
@@ -150,7 +156,7 @@ class TestJWTService:
     @staticmethod
     def encode_jwt(
         payload,
-        secret="test_secret",  # noqa: S107
+        secret=SECRET,
         algorithm="HS256",
         headers=None,
         lifetime=None,
@@ -181,10 +187,12 @@ class TestJWTService:
 
 class Test_RequestsPyJWKClient:
     def test_fetch_data(self, requests):
-        keys = _RequestsPyJWKClient(sentinel.url).fetch_data()
+        keys = _RequestsPyJWKClient("https://example.com/jwks").fetch_data()
 
         requests.get.assert_called_once_with(
-            sentinel.url, headers={"User-Agent": "requests"}, timeout=(10, 10)
+            "https://example.com/jwks",
+            headers={"User-Agent": "requests"},
+            timeout=(10, 10),
         )
         assert (
             keys == requests.get.return_value.__enter__.return_value.json.return_value
