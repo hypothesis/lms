@@ -12,12 +12,20 @@ export type GradeStatusChipProps = {
 };
 
 /**
+ * A grade from 0 to 1 as the percentage this app works in, rounded to the two
+ * decimals it is displayed with.
+ */
+export function gradePercentage(grade: number): number {
+  return Math.round(grade * 10000) / 100;
+}
+
+/**
  * Format a grade from 0 to 1 to a string. If the grade is an integer, it
  * will be returned as an integer string. Otherwise, it will be returned
  * with two decimal places.
  */
 export function formatGrade(grade: number): string {
-  const scaledGrade = grade * 100;
+  const scaledGrade = gradePercentage(grade);
 
   return Number.isInteger(scaledGrade)
     ? scaledGrade.toString()
@@ -41,7 +49,8 @@ export default function GradeStatusChip({
   grade,
   muted = false,
 }: GradeStatusChipProps) {
-  const gradeIsInvalid = grade < 0 || grade > 1;
+  const percentage = gradePercentage(grade);
+  const gradeIsInvalid = percentage < 0 || percentage > 100;
   const isGrey = muted || gradeIsInvalid;
 
   return (
@@ -49,13 +58,14 @@ export default function GradeStatusChip({
       className={classnames(
         'rounded inline-block font-bold px-2 py-0.5 cursor-default',
         {
-          'bg-green-dark text-white': !isGrey && grade === 1,
+          'bg-green-dark text-white': !isGrey && percentage === 100,
           'bg-green-light text-green-dark':
-            !isGrey && grade >= 0.8 && grade < 1,
+            !isGrey && percentage >= 80 && percentage < 100,
           'bg-yellow-light text-yellow-dark':
-            !isGrey && grade >= 0.5 && grade < 0.8,
-          'bg-red-light text-red-dark': !isGrey && grade > 0 && grade < 0.5,
-          'bg-red-dark text-white': !isGrey && grade === 0,
+            !isGrey && percentage >= 50 && percentage < 80,
+          'bg-red-light text-red-dark':
+            !isGrey && percentage > 0 && percentage < 50,
+          'bg-red-dark text-white': !isGrey && percentage === 0,
           'bg-grey-3 text-grey-7': isGrey,
         },
       )}
