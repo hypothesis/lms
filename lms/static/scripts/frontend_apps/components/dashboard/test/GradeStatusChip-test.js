@@ -30,6 +30,33 @@ describe('GradeStatusChip', () => {
     });
   });
 
+  // Grades arrive unrounded, so a whole percentage can carry float noise.
+  [
+    [0.15000000000000002, '15%'],
+    [0.55, '55%'],
+    [(1 / 3 + 1) / 2, '66.67%'],
+  ].forEach(([grade, expected]) => {
+    it('renders a grade at the precision it displays', () => {
+      const wrapper = renderComponent(grade);
+      assert.equal(wrapper.text(), expected);
+    });
+  });
+
+  [
+    // Phases graded 40%, 100% and 100% average to 0.7999999999999999, which
+    // reads as 80% and so belongs in the colour 80% is shown in.
+    [(0.4 + 1 + 1) / 3, 'bg-green-light'],
+    [0.8, 'bg-green-light'],
+    [0.79, 'bg-yellow-light'],
+    [1, 'bg-green-dark'],
+    [0, 'bg-red-dark'],
+  ].forEach(([grade, expectedClass]) => {
+    it('colours a grade by the percentage it displays', () => {
+      const wrapper = renderComponent(grade);
+      assert.isTrue(wrapper.find('div').hasClass(expectedClass));
+    });
+  });
+
   it('renders a muted grade in grey, keeping the percentage', () => {
     const wrapper = renderComponent(1, true);
 
