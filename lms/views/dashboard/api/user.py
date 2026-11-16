@@ -397,7 +397,7 @@ class UserViews:
         if not grades:
             return None
 
-        return round(sum(grades) / len(grades), 3)
+        return sum(grades) / len(grades)
 
     @staticmethod
     def _phase_started(

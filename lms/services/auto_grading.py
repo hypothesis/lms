@@ -89,8 +89,8 @@ class AutoGradingService:
     ) -> float | None:
         """Calculate auto grades based on the config and the number of annotations made.
 
-        The results is a float from 0 to 1, rounded to two decimals, or None
-        for a config which requires nothing: there is no grade to calculate.
+        The result is a float from 0 to 1, or None for a config which
+        requires nothing: there is no grade to calculate.
         """
         if not auto_grading_config.requires_activity:
             return None

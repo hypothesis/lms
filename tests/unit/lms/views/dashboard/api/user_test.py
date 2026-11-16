@@ -404,11 +404,11 @@ class TestUserViews:
         ("first_phase_ends_at", "expected"),
         [
             # Phase 1 closed, so phase 2 has started and both count.
-            ("2024-01-15", 0.375),
+            ("2024-01-15", 2 / 3),
             # Phase 1 is still open, so phase 2 hasn't started.
-            (None, 0.25),
+            (None, 1 / 3),
             # A scheduled reveal that hasn't fired yet closes nothing.
-            ("2099-01-01", 0.25),
+            ("2099-01-01", 1 / 3),
         ],
     )
     def test_students_metrics_averages_the_started_phases(
@@ -451,7 +451,7 @@ class TestUserViews:
             second_config,
         ]
         auto_grading_service.get_last_grades.return_value = {}
-        auto_grading_service.calculate_grade.side_effect = [0.25, 0.5]
+        auto_grading_service.calculate_grade.side_effect = [1 / 3, 1]
         h_api.get_annotation_counts.return_value = [
             {
                 "display_name": student.display_name,
