@@ -2,6 +2,7 @@ from datetime import date, datetime
 from unittest.mock import Mock, create_autospec, sentinel
 
 import pytest
+from hubspot.crm.owners import ApiException
 
 from lms.models import HubSpotCompany
 from lms.services.hubspot import HubSpotService
@@ -60,6 +61,7 @@ class TestHubSpotService:
                     "contract_type": "School",
                     # HubSpot IDs don't fit in a 32-bit integer
                     "hs_parent_company_id": "43892014728",
+                    "hubspot_owner_id": "81234567",
                 }
             ),
             Mock(
@@ -74,8 +76,14 @@ class TestHubSpotService:
                     # HubSpot sends empty properties as either None or ""
                     "contract_type": "",
                     "hs_parent_company_id": "",
+                    "hubspot_owner_id": "",
                 }
             ),
+        ]
+        hubspot_api_client.get_owners.return_value = [
+            Mock(id="81234567", first_name="Jane", last_name="Doe"),
+            # Owners without a name don't get an entry.
+            Mock(id="99", first_name=None, last_name=""),
         ]
 
         svc.refresh_companies()
@@ -91,10 +99,39 @@ class TestHubSpotService:
         assert company.student_fte == 17444
         assert company.contract_type == "School"
         assert company.parent_hubspot_id == 43892014728
+        assert company.owner_hubspot_id == 81234567
+        assert company.owner_name == "Jane Doe"
         assert no_deal.current_deal_users_contracted is None
         assert no_deal.student_fte is None
         assert no_deal.contract_type is None
         assert no_deal.parent_hubspot_id is None
+        assert no_deal.owner_hubspot_id is None
+        assert no_deal.owner_name is None
+
+    def test_refresh_companies_when_owners_cannot_be_read(
+        self, svc, hubspot_api_client, db_session, caplog
+    ):
+        hubspot_api_client.get_companies.return_value = [
+            Mock(
+                properties={
+                    "lms_organization_id": "us.org.1",
+                    "name": "COMPANY",
+                    "hs_object_id": 100,
+                    "current_deal__services_start": None,
+                    "current_deal__services_end": None,
+                    "hubspot_owner_id": "81234567",
+                }
+            )
+        ]
+        # e.g. the access token lacks the crm.objects.owners.read scope
+        hubspot_api_client.get_owners.side_effect = ApiException(status=403)
+
+        svc.refresh_companies()
+
+        company = db_session.query(HubSpotCompany).one()
+        assert company.owner_hubspot_id == 81234567
+        assert company.owner_name is None
+        assert "Could not read HubSpot owners" in caplog.messages
 
     def test_export_companies_contract_billables(
         self, svc, hubspot_api_client, db_session
@@ -206,6 +243,8 @@ class TestHubSpotService:
         assert company.student_fte is None
         assert company.contract_type is None
         assert company.parent_hubspot_id is None
+        assert company.owner_hubspot_id is None
+        assert company.owner_name is None
 
     def test_factory(self, pyramid_request, db_session, HubSpotClient, HubSpot):
         svc = HubSpotService.factory(sentinel.context, pyramid_request)

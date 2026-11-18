@@ -36,8 +36,18 @@ class HubSpotClient:
             "student_fte",
             "contract_type",
             "hs_parent_company_id",
+            "hubspot_owner_id",
         ]
         yield from self._get_objects(self._api_client.crm.companies, fields)
+
+    def get_owners(self):
+        """Get every HubSpot owner, including archived ones.
+
+        Companies keep pointing at an owner after that user is deactivated, so
+        the archived owners are needed to put a name on those companies too.
+        """
+        for archived in (False, True):
+            yield from self._api_client.crm.owners.get_all(archived=archived)
 
     def import_billables(self, billables: list[tuple[str, int, int]], date_: date):
         """Import the given billables into HubSpot.
