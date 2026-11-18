@@ -100,7 +100,9 @@ class HubSpotService:
                             BIGINT_MAX,
                         )
                     ),
-                    "owner_name": owner_names.get(owner_id),
+                    "owner_name": (
+                        owner_names.get(owner_id) if owner_id is not None else None
+                    ),
                 }
                 for company in companies
                 # Only get companies with an org ID
