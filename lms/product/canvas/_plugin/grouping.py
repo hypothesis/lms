@@ -108,6 +108,12 @@ class CanvasGroupingPlugin(GroupingPlugin):
         self, svc, course, group_set_id, grading_student_id=None
     ):
         # SpeedGrader requests are made by the teacher, get the groups for the student we are grading.
+        # Prefer the membership stored when the student launched, the API call is slow in big courses.
+        if stored_group := svc.get_latest_course_grouping_for_lms_api_user(
+            course, grading_student_id, self.group_type, group_set_id
+        ):
+            return [stored_group]
+
         if grading_groups := self._canvas_api.user_groups(
             self._custom_course_id(course), grading_student_id, group_set_id
         ):

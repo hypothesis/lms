@@ -163,9 +163,29 @@ class TestCanvasGroupingPlugin:
 
         assert err.value.error_code == ErrorCodes.GROUP_SET_EMPTY
 
+    def test_get_groups_for_grading_from_stored_membership(
+        self, canvas_api_client, grouping_service, plugin, course
+    ):
+        groups = plugin.get_groups_for_grading(
+            grouping_service, course, sentinel.group_set_id, sentinel.grading_student_id
+        )
+
+        grouping_service.get_latest_course_grouping_for_lms_api_user.assert_called_once_with(
+            course,
+            sentinel.grading_student_id,
+            plugin.group_type,
+            sentinel.group_set_id,
+        )
+        canvas_api_client.user_groups.assert_not_called()
+        assert groups == [
+            grouping_service.get_latest_course_grouping_for_lms_api_user.return_value
+        ]
+
     def test_get_groups_for_grading(
         self, canvas_api_client, grouping_service, plugin, course
     ):
+        grouping_service.get_latest_course_grouping_for_lms_api_user.return_value = None
+
         api_groups = plugin.get_groups_for_grading(
             grouping_service, course, sentinel.group_set_id, sentinel.grading_student_id
         )
@@ -180,6 +200,7 @@ class TestCanvasGroupingPlugin:
     def test_get_groups_for_grading_fallback_not_found(
         self, canvas_api_client, grouping_service, plugin, course
     ):
+        grouping_service.get_latest_course_grouping_for_lms_api_user.return_value = None
         canvas_api_client.user_groups.return_value = []
 
         all_groups = plugin.get_groups_for_grading(
