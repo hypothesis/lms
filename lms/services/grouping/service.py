@@ -1,7 +1,15 @@
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
-from lms.models import Course, Grouping, GroupingMembership, LTIRole, LTIUser, User
+from lms.models import (
+    Course,
+    Grouping,
+    GroupingMembership,
+    LMSUser,
+    LTIRole,
+    LTIUser,
+    User,
+)
 from lms.models._hashed_id import hashed_id
 from lms.product.plugin.grouping import GroupingPlugin
 from lms.services.segment import SegmentService
@@ -153,6 +161,37 @@ class GroupingService:
             )
 
         return query.all()
+
+    def get_latest_course_grouping_for_lms_api_user(
+        self,
+        course: Course,
+        lms_api_user_id: str,
+        type_: Grouping.Type,
+        group_set_id: str | int,
+    ) -> Grouping | None:
+        """
+        Get the grouping a user most recently launched in, within a group set.
+
+        :param course:  The course the users belongs to
+        :param lms_api_user_id: LMSUser.lms_api_user_id of the user we are filtering by
+        :param type_: Type of subdivision within the course
+        :param group_set_id: `group_set_id` the grouping must belong to
+        """
+        return (
+            self._db.query(Grouping)
+            .join(GroupingMembership)
+            .join(User)
+            .join(LMSUser, LMSUser.h_userid == User.h_userid)
+            .filter(
+                LMSUser.lms_api_user_id == str(lms_api_user_id),
+                Grouping.parent_id == course.id,
+                Grouping.type == type_,
+                Grouping.extra["group_set_id"].astext == str(group_set_id),
+            )
+            # Memberships are never deleted, the latest one is the current group.
+            .order_by(GroupingMembership.updated.desc())
+            .first()
+        )
 
     def get_sections(
         self, user: User, lti_user: LTIUser, course: Course, grading_student_id=None

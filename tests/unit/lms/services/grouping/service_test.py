@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from functools import partial
 from unittest.mock import patch, sentinel
 
@@ -317,6 +318,65 @@ class TestGetCourseGroupingsForUser:
             return grouping
 
         return make_grouping
+
+
+class TestGetLatestCourseGroupingForLMSAPIUser:
+    def test_it(self, db_session, svc, course, add_membership):
+        add_membership(updated=datetime(2026, 1, 1, tzinfo=UTC))
+        latest = add_membership(updated=datetime(2026, 2, 1, tzinfo=UTC))
+        # Wrong group set, course, type and user.
+        add_membership(group_set_id=56)
+        add_membership(parent=factories.Course())
+        add_membership(factory=factories.CanvasSection)
+        add_membership(user=factories.User())
+        db_session.flush()
+
+        grouping = svc.get_latest_course_grouping_for_lms_api_user(
+            course, 1234, Grouping.Type.CANVAS_GROUP, group_set_id=42
+        )
+
+        assert grouping == latest
+
+    def test_it_when_no_membership(self, db_session, svc, course, add_membership):
+        add_membership(user=factories.User())
+        db_session.flush()
+
+        assert not svc.get_latest_course_grouping_for_lms_api_user(
+            course, 1234, Grouping.Type.CANVAS_GROUP, group_set_id=42
+        )
+
+    @pytest.fixture
+    def course(self):
+        return factories.Course()
+
+    @pytest.fixture
+    def user(self):
+        user = factories.User()
+        factories.LMSUser(h_userid=user.h_userid, lms_api_user_id="1234")
+        return user
+
+    @pytest.fixture
+    def add_membership(self, db_session, course, user):
+        default_user = user
+
+        def add_membership(
+            factory=factories.CanvasGroup,
+            parent=None,
+            group_set_id=42,
+            user=None,
+            updated=None,
+        ):
+            grouping = factory(
+                parent=parent or course, extra={"group_set_id": group_set_id}
+            )
+            db_session.add(
+                GroupingMembership(
+                    user=user or default_user, grouping=grouping, updated=updated
+                )
+            )
+            return grouping
+
+        return add_membership
 
 
 class TestGetGroupings:
