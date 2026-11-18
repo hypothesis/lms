@@ -31,6 +31,12 @@ class HubSpotCompany(Base):
     parent_hubspot_id: Mapped[int | None] = mapped_column(BigInteger)
     """HubSpot ID of the parent company, if this company has one."""
 
+    owner_hubspot_id: Mapped[int | None] = mapped_column(BigInteger)
+    """HubSpot owner ID of the company owner (the hubspot_owner_id property)."""
+
+    owner_name: Mapped[str | None]
+    """First and last name of the company owner, from HubSpot's owners API."""
+
     organization: Mapped[Organization] = relationship(
         "Organization",
         primaryjoin=lambda: foreign(Organization.public_id)

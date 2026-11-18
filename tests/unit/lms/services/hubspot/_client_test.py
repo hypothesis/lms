@@ -1,6 +1,6 @@
 import json
 from datetime import date
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import call, create_autospec, sentinel
 
 import pytest
 from hubspot import HubSpot
@@ -23,9 +23,24 @@ class TestHubSpotClient:
                 "student_fte",
                 "contract_type",
                 "hs_parent_company_id",
+                "hubspot_owner_id",
             ]
         )
         assert companies == list(api_client.crm.companies.get_all.return_value)
+
+    def test_get_owners(self, api_client, svc):
+        api_client.crm.owners.get_all.side_effect = [
+            [sentinel.active_owner],
+            [sentinel.archived_owner],
+        ]
+
+        owners = list(svc.get_owners())
+
+        assert api_client.crm.owners.get_all.call_args_list == [
+            call(archived=False),
+            call(archived=True),
+        ]
+        assert owners == [sentinel.active_owner, sentinel.archived_owner]
 
     def test_import_billables(self, api_client, svc, csv, NamedTemporaryFile):
         svc.import_billables(
