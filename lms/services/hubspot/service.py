@@ -2,6 +2,7 @@ from datetime import date, datetime
 from logging import getLogger
 
 from hubspot import HubSpot
+from hubspot.crm.owners import ApiException as OwnersApiException
 from sqlalchemy import func, select
 from sqlalchemy.exc import MultipleResultsFound
 
@@ -59,6 +60,7 @@ class HubSpotService:
     def refresh_companies(self) -> None:
         """Refresh all companies in the DB upserting accordingly."""
         companies = self._client.get_companies()
+        owner_names = self._get_owner_names()
 
         bulk_upsert(
             self._db,
@@ -91,6 +93,14 @@ class HubSpotService:
                         "hs_parent_company_id",
                         BIGINT_MAX,
                     ),
+                    "owner_hubspot_id": (
+                        owner_id := int_or_none(
+                            company.properties.get("hubspot_owner_id"),
+                            "hubspot_owner_id",
+                            BIGINT_MAX,
+                        )
+                    ),
+                    "owner_name": owner_names.get(owner_id),
                 }
                 for company in companies
                 # Only get companies with an org ID
@@ -110,8 +120,32 @@ class HubSpotService:
                 "student_fte",
                 "contract_type",
                 "parent_hubspot_id",
+                "owner_hubspot_id",
+                "owner_name",
             ],
         )
+
+    def _get_owner_names(self) -> dict[int, str]:
+        """
+        Map HubSpot owner IDs to the owner's name.
+
+        Failing to read the owners (e.g. the access token lacks the
+        crm.objects.owners.read scope) leaves the names empty rather than
+        failing the refresh: owner_hubspot_id is still stored.
+        """
+        try:
+            owners = list(self._client.get_owners())
+        except OwnersApiException:
+            LOG.exception("Could not read HubSpot owners")
+            return {}
+
+        names = {}
+        for owner in owners:
+            name = " ".join(filter(None, [owner.first_name, owner.last_name]))
+            owner_id = int_or_none(owner.id, "owner id", BIGINT_MAX)
+            if name and owner_id is not None:
+                names[owner_id] = name
+        return names
 
     def export_companies_contract_billables(self, date_: date):
         """Export the contract billable numbers to HubSpot."""
