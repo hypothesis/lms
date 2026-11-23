@@ -24,8 +24,14 @@ def sync_grades():
             )
 
             for sync in scheduled_syncs:
-                for grade in sync.grades:
-                    sync_grade.delay(grading_sync_grade_id=grade.id)
+                # Send one grade on its own and let it fan out the rest once
+                # it lands.
+                if lead_grade := min(
+                    sync.grades, key=lambda grade: grade.id, default=None
+                ):
+                    sync_grade.delay(
+                        grading_sync_grade_id=lead_grade.id, leads_sync=True
+                    )
 
                 sync.status = "in_progress"
 
@@ -35,8 +41,13 @@ def sync_grades():
     retry_backoff=10,
     autoretry_for=(Exception,),
 )
-def sync_grade(*, grading_sync_grade_id: int):
-    """Send one particular grade to the LMS."""
+def sync_grade(*, grading_sync_grade_id: int, leads_sync: bool = False):
+    """Send one particular grade to the LMS.
+
+    :param leads_sync: whether the rest of this grade's GradingSync waits on
+        it. D2L creates the assignment's grade item on the first score it
+        receives, and duplicates it if several arrive at once.
+    """
     with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             grading_sync_grade = request.db.get(GradingSyncGrade, grading_sync_grade_id)
@@ -64,6 +75,15 @@ def sync_grade(*, grading_sync_grade_id: int):
                     # If this is the last retry, mark this particular grade as an error
                     grading_sync_grade.success = False
                     grading_sync_grade.error_details = {"exception": str(err)}
+                    if leads_sync and (
+                        remaining := _remaining_grades(grading_sync, grading_sync_grade)
+                    ):
+                        # Nothing reached the LMS, so the grade item may still
+                        # be missing and the rest can't go out together yet.
+                        # Hand the lead to the next one instead.
+                        sync_grade.delay(
+                            grading_sync_grade_id=remaining[0].id, leads_sync=True
+                        )
                     _schedule_sync_grades_complete(grading_sync.id, countdown=1)
                     LOG.exception("Syncing grade back to LMS failed")
                     return
@@ -71,6 +91,9 @@ def sync_grade(*, grading_sync_grade_id: int):
                 raise
 
             grading_sync_grade.success = True
+            if leads_sync:
+                for grade in _remaining_grades(grading_sync, grading_sync_grade):
+                    sync_grade.delay(grading_sync_grade_id=grade.id)
             _schedule_sync_grades_complete(grading_sync.id, countdown=1)
 
 
@@ -103,6 +126,20 @@ def sync_grades_complete(*, grading_sync_id):
 
             if is_completed:
                 grading_sync.status = "failed" if is_failed else "finished"
+
+
+def _remaining_grades(
+    grading_sync: GradingSync, synced_grade: GradingSyncGrade
+) -> list[GradingSyncGrade]:
+    """Get the GradingSync's grades that haven't been sent yet, in send order."""
+    return sorted(
+        (
+            grade
+            for grade in grading_sync.grades
+            if grade.id != synced_grade.id and grade.success is None
+        ),
+        key=lambda grade: grade.id,
+    )
 
 
 def _schedule_sync_grades_complete(grading_sync_id: int, countdown: int):
