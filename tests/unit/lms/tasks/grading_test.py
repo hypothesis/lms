@@ -1,6 +1,5 @@
 from contextlib import contextmanager
 from datetime import UTC
-from unittest.mock import call
 
 import pytest
 
@@ -9,13 +8,23 @@ from tests import factories
 
 
 class TestGradingTasks:
-    def test_sync_grades(self, sync_grade, grading_sync):
+    def test_sync_grades(self, sync_grade_task, grades):
         sync_grades()
 
-        sync_grade.delay.assert_has_calls(
-            [call(grading_sync_grade_id=grade.id) for grade in grading_sync.grades],
-            any_order=True,
+        sync_grade_task.delay.assert_called_once_with(
+            grading_sync_grade_id=grades[0].id, leads_sync=True
         )
+        assert grades[0].grading_sync.status == "in_progress"
+
+    def test_sync_grades_with_a_sync_that_has_no_grades(
+        self, sync_grade_task, assignment, db_session
+    ):
+        grading_sync = factories.GradingSync(assignment=assignment, status="scheduled")
+        db_session.flush()
+
+        sync_grades()
+
+        sync_grade_task.delay.assert_not_called()
         assert grading_sync.status == "in_progress"
 
     def test_sync_grade(
@@ -25,6 +34,7 @@ class TestGradingTasks:
         service_factory,
         pyramid_request,
         sync_grades_complete,
+        sync_grade_task,
     ):
         sync_grade(
             grading_sync_grade_id=grading_sync.grades[0].id,
@@ -46,6 +56,30 @@ class TestGradingTasks:
             (), {"grading_sync_id": grading_sync.id}, countdown=1
         )
         assert grading_sync.grades[0].success is True
+        sync_grade_task.delay.assert_not_called()
+
+    @pytest.mark.usefixtures("service_factory", "sync_grades_complete")
+    def test_sync_grade_leading_sends_the_remaining_grades(
+        self, grades, sync_grade_task
+    ):
+        sync_grade(grading_sync_grade_id=grades[0].id, leads_sync=True)
+
+        sync_grade_task.delay.assert_called_once_with(
+            grading_sync_grade_id=grades[1].id
+        )
+
+    @pytest.mark.usefixtures("sync_grades_complete")
+    def test_sync_grade_leading_hands_the_lead_over_when_it_fails(
+        self, grades, service_factory, sync_grade_task
+    ):
+        service_factory.return_value.sync_grade.side_effect = Exception
+        sync_grade_task.request.retries = sync_grade_task.max_retries = 0
+
+        sync_grade(grading_sync_grade_id=grades[0].id, leads_sync=True)
+
+        sync_grade_task.delay.assert_called_once_with(
+            grading_sync_grade_id=grades[1].id, leads_sync=True
+        )
 
     @pytest.mark.usefixtures("ltia_http_service")
     def test_sync_grade_raises(
@@ -117,7 +151,13 @@ class TestGradingTasks:
         return grading_sync
 
     @pytest.fixture
-    def sync_grade(self, patch):
+    def grades(self, grading_sync):
+        """Get the GradingSync's grades in the order they are sent in."""
+        return sorted(grading_sync.grades, key=lambda grade: grade.id)
+
+    @pytest.fixture
+    def sync_grade_task(self, patch):
+        """Patch the task as the module sees it, leaving the import callable."""
         return patch("lms.tasks.grading.sync_grade")
 
     @pytest.fixture
