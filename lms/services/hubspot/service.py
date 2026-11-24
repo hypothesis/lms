@@ -61,6 +61,11 @@ class HubSpotService:
         """Refresh all companies in the DB upserting accordingly."""
         companies = self._client.get_companies()
         owner_names = self._get_owner_names()
+        # Without the owners there is no name to write: leave the stored ones
+        # alone rather than overwrite every company's owner_name with NULL.
+        owner_columns = ["owner_hubspot_id"] + (
+            ["owner_name"] if owner_names is not None else []
+        )
 
         bulk_upsert(
             self._db,
@@ -100,8 +105,16 @@ class HubSpotService:
                             BIGINT_MAX,
                         )
                     ),
-                    "owner_name": (
-                        owner_names.get(owner_id) if owner_id is not None else None
+                    **(
+                        {
+                            "owner_name": (
+                                owner_names.get(owner_id)
+                                if owner_id is not None
+                                else None
+                            )
+                        }
+                        if owner_names is not None
+                        else {}
                     ),
                 }
                 for company in companies
@@ -122,24 +135,23 @@ class HubSpotService:
                 "student_fte",
                 "contract_type",
                 "parent_hubspot_id",
-                "owner_hubspot_id",
-                "owner_name",
+                *owner_columns,
             ],
         )
 
-    def _get_owner_names(self) -> dict[int, str]:
+    def _get_owner_names(self) -> dict[int, str] | None:
         """
         Map HubSpot owner IDs to the owner's name.
 
-        Failing to read the owners (e.g. the access token lacks the
-        crm.objects.owners.read scope) leaves the names empty rather than
-        failing the refresh: owner_hubspot_id is still stored.
+        None when the owners can't be read (e.g. the access token lacks the
+        crm.objects.owners.read scope): the refresh still runs and stores
+        owner_hubspot_id, and keeps the names it stored before.
         """
         try:
             owners = list(self._client.get_owners())
         except OwnersApiException:
             LOG.exception("Could not read HubSpot owners")
-            return {}
+            return None
 
         names = {}
         for owner in owners:

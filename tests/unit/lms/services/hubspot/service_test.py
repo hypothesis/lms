@@ -111,6 +111,14 @@ class TestHubSpotService:
     def test_refresh_companies_when_owners_cannot_be_read(
         self, svc, hubspot_api_client, db_session, caplog
     ):
+        # A company stored by an earlier refresh, with its owner's name.
+        factories.HubSpotCompany(
+            hubspot_id=100,
+            lms_organization_id="us.org.1",
+            owner_hubspot_id=81234567,
+            owner_name="Jane Doe",
+        )
+        db_session.flush()
         hubspot_api_client.get_companies.return_value = [
             Mock(
                 properties={
@@ -121,16 +129,32 @@ class TestHubSpotService:
                     "current_deal__services_end": None,
                     "hubspot_owner_id": "81234567",
                 }
-            )
+            ),
+            Mock(
+                properties={
+                    "lms_organization_id": "us.org.2",
+                    "name": "NEW COMPANY",
+                    "hs_object_id": 200,
+                    "current_deal__services_start": None,
+                    "current_deal__services_end": None,
+                    "hubspot_owner_id": "81234567",
+                }
+            ),
         ]
         # e.g. the access token lacks the crm.objects.owners.read scope
         hubspot_api_client.get_owners.side_effect = ApiException(status=403)
 
         svc.refresh_companies()
 
-        company = db_session.query(HubSpotCompany).one()
-        assert company.owner_hubspot_id == 81234567
-        assert company.owner_name is None
+        stored = db_session.query(HubSpotCompany).filter_by(hubspot_id=100).one()
+        new = db_session.query(HubSpotCompany).filter_by(hubspot_id=200).one()
+        # The stored name is kept, not overwritten with NULL...
+        assert stored.name == "COMPANY"
+        assert stored.owner_hubspot_id == 81234567
+        assert stored.owner_name == "Jane Doe"
+        # ...and a company seen for the first time gets the ID but no name yet.
+        assert new.owner_hubspot_id == 81234567
+        assert new.owner_name is None
         assert "Could not read HubSpot owners" in caplog.messages
 
     def test_export_companies_contract_billables(
